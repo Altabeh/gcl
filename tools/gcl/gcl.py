@@ -3,9 +3,12 @@
 This module provides a parser for Google case law
 pages available at https://scholar.google.com/.
 
-The offered features include downloading, scraping, parsing, serializing
+The offered features include scraping, parsing, serializing
 and tagging important data such as bluebook citations, judge names, courts,
 decision dates, case numbers, patents in suit, cited claims, footnotes and etc.
+
+It also provides a useful labeled text of the case file that can be utilized
+in machine-learning applications.
 """
 
 from __future__ import absolute_import
@@ -18,7 +21,6 @@ from functools import reduce
 from operator import concat
 from os import cpu_count
 from pathlib import Path
-from time import sleep
 
 import requests
 from bs4 import BeautifulSoup as BS
@@ -26,6 +28,7 @@ from tqdm import tqdm
 
 BASE_DIR = Path(__file__).resolve().parents[2]
 sys.path.insert(0, BASE_DIR.__str__())
+
 from tools.utils import (closest_value, deaccent, hyphen_to_numbers,
                          remove_repeated, sort_int, validate_url)
 
@@ -103,7 +106,12 @@ class GCLParse(object):
                 raise Exception('jurisdictions.json not found')
 
     @staticmethod
-    def _regex(item, patterns=None, sub=True, flags=None, start=0, end=None):
+    def _regex(item,
+               patterns=None,
+               sub=True,
+               flags=None,
+               start=0,
+               end=None):
         """
         Apply a regex rule to find/substitute a textual pattern in the text.
 
@@ -167,8 +175,7 @@ class GCLParse(object):
         """
         html_text = ''
         if not Path(path_or_url).is_file():
-            status, response = self._call_api(path_or_url)
-            sleep(2)
+            status, response = self._get(path_or_url)
             if status == 200:
                 html_text = response.text
         else:
@@ -350,39 +357,6 @@ class GCLParse(object):
             return judges
         return []
 
-    def make_court(self):
-        """
-        Create a dictionary of all federal and state level courts.
-        """
-        url = self.base_url + 'scholar_courts'
-        status, response = self._call_api(url)
-        codes = [
-            ('sc', 0),
-            ('fc', 1)
-        ]
-        courts = {}
-        if status == 200:
-            gs_courts = BS(response.text, 'html.parser')
-            for c, i in codes:
-                _courts = gs_courts.find_all('table', class_='gs_courts')[
-                    i].select('.gs_courts_grp')
-                _courts = [(
-                    fc.find('div', class_='gs_courts_top').get_text(), [
-                        sub.get_text() for sub in fc.find_all('div', class_='gs_courts_sub')
-                    ]
-                ) for fc in _courts
-                ]
-                courts[c] = {}
-                count = 1
-                for d, e in _courts:
-                    d = d.replace('Circuit', 'Cir.')
-                    courts[c][d] = {}
-                    for juris in e:
-                        courts[c][d][f'{c}_{count}'] = self._abbreviate_court_name(
-                            juris)
-                        count += 1
-        return courts
-
     def _abbreviate_court_name(self, name):
         """
         Abbreviate the court name according to the Bluebook format.
@@ -411,7 +385,7 @@ class GCLParse(object):
             html_text = data
         else:
             if not Path(data).is_file():
-                status, response = self._call_api(data)
+                status, response = self._get(data)
                 if status == 200:
                     html_text = response.text
                 else:
@@ -832,7 +806,7 @@ class GCLParse(object):
             self.data_dir / 'patent' / f'patent_{self.suffix}' / subfolder) / f'{patent_number}.json'
         found = False
         if not skip_patent:
-            status, response = self._call_api(url)
+            status, response = self._get(url)
             if status == 200:
                 found = True
                 patent = BS(deaccent(response.text), 'html.parser')
@@ -924,15 +898,15 @@ class GCLParse(object):
                         case_summary[case_id][key] = val
         return case_summary
 
-    def _call_api(self, url_or_id):
+    def _get(self, url_or_id):
         """
-        Request to crawl a Google Scholar case law page with a valid `url_or_id`.
+        Request to access the content of a Google Scholar case law page with a valid `url_or_id`.
         """
         url = url_or_id
         if self._regex(url_or_id, self.just_number_patterns, sub=False):
             url = self.base_url + f'scholar_case?case={url_or_id}'
 
-        response = requests.get(url_or_id)
+        response = requests.get(url)
         response.encoding = response.apparent_encoding
         status = response.status_code
 
