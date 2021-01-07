@@ -92,7 +92,7 @@ class GCLParse(object):
 
     def __init__(self, **kwargs):
         self.data_dir = kwargs.get(
-            'data_dir', BASE_DIR / 'tools' / 'alice' / 'data')
+            'data_dir', BASE_DIR / 'tools' / 'gcl' / 'data')
         if isinstance(self.data_dir, str):
             self.data_dir = Path(self.data_dir)
         self.jurisdictions = kwargs.get('jurisdictions', None)
@@ -511,14 +511,14 @@ class GCLParse(object):
 
     def _gcl_get_date(self,
                       opinion,
-                      original_date=False):
+                      short_month=False):
         """
         Extract the decision date for a court `opinion` with the format `Day Month, Year`
         format and convert it to `Year-Month-Day`.
 
         Args
         ----
-        :param original_date: ---> bool: if true, returns the date like `%B %d, %Y`.
+        :param short_month: ---> bool: if true, returns the date like `%b. %d, %Y`.
         """
         date = self._regex(opinion.find_all(lambda tag: tag.name == 'center' and self._regex(
             tag.get_text(), self.date_patterns, sub=False))[-1].get_text(), self.date_patterns, sub=False)[0]
@@ -526,8 +526,12 @@ class GCLParse(object):
         date_format = datetime.strptime(self._regex(
             date, self.space_patterns), '%B %d, %Y')
 
-        if original_date:
-            return date_format.strftime('%b. %d, %Y')
+        if short_month:
+            date = date_format.strftime('%b. %d, %Y')
+            dls = date.split()
+            if dls[0] == 'May.':
+                date = date.replace('.', '')
+            return date
 
         return date_format.strftime('%Y-%m-%d')
 
