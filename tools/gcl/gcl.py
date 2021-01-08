@@ -35,6 +35,8 @@ from tools.utils import (
     remove_repeated,
     sort_int,
     validate_url,
+    switch_ip,
+    proxy_browser,
 )
 
 __author__ = {"github.com/": ["altabeh"]}
@@ -118,7 +120,14 @@ class GCLParse(object):
             except FileNotFoundError:
                 raise Exception("jurisdictions.json not found")
 
-    def gcl_parse(self, path_or_url: str, skip_patent=False, return_data=False, json_subdir=None):
+    def gcl_parse(
+        self,
+        path_or_url: str,
+        skip_patent=False,
+        return_data=False,
+        json_subdir=None,
+        need_proxy=False,
+    ):
         """
         Parses a Google case law page under an `html_path` or at a `url` and serializes/saves all relevant information
         to a json file.
@@ -132,17 +141,16 @@ class GCLParse(object):
         """
         html_text = ""
         if not Path(path_or_url).is_file():
-            status, response = self._get(path_or_url)
-            if status == 200:
-                html_text = response.text
+            status, html_text = self._get(path_or_url, need_proxy)
         else:
             with open(path_or_url, "r") as f:
                 html_text = f.read()
 
         html_text = BS(deaccent(html_text), "html.parser")
+
         opinion = html_text.find(id="gs_opinion")
 
-        # Return empty set if case law page was not found.
+        # Return empty set if case law page was not found (`404` error).
         if not opinion:
             print(f'Serialization failed for "{path_or_url}"')
             return {}
@@ -379,11 +387,7 @@ class GCLParse(object):
             html_text = data
         else:
             if not Path(data).is_file():
-                status, response = self._get(data)
-                if status == 200:
-                    html_text = response.text
-                else:
-                    raise Exception(f'URL "{data}" not found')
+                status, html_text = self._get(data)
             else:
                 with open(data, "r") as f:
                     html_text = f.read()
@@ -813,7 +817,9 @@ class GCLParse(object):
                 )
         return claims_from_patent
 
-    def gcl_patent_data(self, number_or_url: str, case_id=None, skip_patent=False, return_data=False):
+    def gcl_patent_data(
+        self, number_or_url: str, case_id=None, skip_patent=False, return_data=False
+    ):
         """
         Download and scrape data for a patent with patent No. or valid url `number_or_url`.
 
@@ -900,9 +906,6 @@ class GCLParse(object):
                     [*relevant_patterns, (r" - Google Patents|^.*? - ", "")],
                 )
 
-            else:
-                print(f'URL "{url}" not found')
-
             with open(json_path.__str__(), "w") as f:
                 json.dump(info, f, indent=4)
 
@@ -957,7 +960,7 @@ class GCLParse(object):
                         case_summary[case_id][key] = val
         return case_summary
 
-    def _get(self, url_or_id):
+    def _get(self, url_or_id, need_proxy=False):
         """
         Request to access the content of a Google Scholar case law page with a valid `url_or_id`.
         """
@@ -965,16 +968,33 @@ class GCLParse(object):
         if regex(url_or_id, self.just_number_patterns, sub=False):
             url = self.base_url + f"scholar_case?case={url_or_id}"
 
-        response = requests.get(url)
-        response.encoding = response.apparent_encoding
-        status = response.status_code
+        res_content = ""
+
+        if need_proxy:
+            proxy = proxy_browser("127.0.0.1", 9050)
+            proxy.get(url)
+            res_content = proxy.page_source
+            status = 200
+
+            if not res_content:
+                status = 0
+
+            else:
+                # Obtain a `404` error indicator if server returned html.
+                if regex(res_content, [(r"class=\"gs_med\"", "")], sub=False):
+                    status = 404
+            switch_ip()
+
+        else:
+            response = requests.get(url)
+            response.encoding = response.apparent_encoding
+            status = response.status_code
+            if status == 200:
+                res_content = response.text
 
         if status == 404:
             print(f'URL "{url}" not found')
 
         if status not in [200, 404]:
-            raise Exception(
-                f"Server response: {status} with headers: {response.headers}"
-            )
-
-        return status, response
+            raise Exception(f"Server response: {status}")
+        return status, res_content
