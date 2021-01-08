@@ -5,6 +5,10 @@ from concurrent.futures import ProcessPoolExecutor as future_pool
 from os import cpu_count
 from pathlib import Path
 
+from selenium import webdriver
+from selenium.webdriver.firefox.options import Options
+from stem import Signal
+from stem.control import Controller
 from tqdm import tqdm
 
 __all__ = [
@@ -18,6 +22,8 @@ __all__ = [
     "hyphen_to_numbers",
     "remove_repeated",
     "validate_url",
+    "switch_ip",
+    "proxy_browser",
 ]
 
 
@@ -225,3 +231,27 @@ def validate_url(url: str):
         raise Exception(f"URL domain malformed (domain={domain})")
 
     return url
+
+
+def switch_ip():
+    """
+    Signal TOR for a new connection.
+    """
+    with Controller.from_port(port=9051) as controller:
+        controller.authenticate()
+        controller.signal(Signal.NEWNYM)
+
+
+def proxy_browser(host, port, proxy_type=1):
+    """
+    Get a new selenium webdriver with tor as the proxy.
+    """
+    fp = webdriver.FirefoxProfile()
+    # Direct = 0, Manual = 1, PAC = 2, AUTODETECT = 4, SYSTEM = 5
+    fp.set_preference("network.proxy.type", proxy_type)
+    fp.set_preference("network.proxy.socks", host)
+    fp.set_preference("network.proxy.socks_port", int(port))
+    fp.update_preferences()
+    options = Options()
+    options.headless = True
+    return webdriver.Firefox(options=options, firefox_profile=fp)
