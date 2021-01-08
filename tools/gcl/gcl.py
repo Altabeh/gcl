@@ -12,25 +12,25 @@ in machine-learning applications.
 """
 
 from __future__ import absolute_import
+
 import json
 import re
 import sys
-from concurrent.futures import ProcessPoolExecutor as future_pool
 from datetime import datetime
 from functools import reduce
 from operator import concat
-from os import cpu_count
 from pathlib import Path
 
 import requests
 from bs4 import BeautifulSoup as BS
-from tqdm import tqdm
 
 BASE_DIR = Path(__file__).resolve().parents[2]
 sys.path.insert(0, BASE_DIR.__str__())
 
-from tools.utils import (closest_value, deaccent, hyphen_to_numbers,
-                         remove_repeated, sort_int, validate_url)
+from tools.utils import (closest_value, create_dir, deaccent,
+                         hyphen_to_numbers, regex, remove_repeated, sort_int,
+                         validate_url)
+
 
 __author__ = {"github.com/": ["altabeh"]}
 __all__ = ['GCLParse']
@@ -41,8 +41,8 @@ class GCLParse(object):
     Parser for Google case law pages.
     """
     base_url = 'https://scholar.google.com/'
-    
-    #------ Regex Patterns ------
+
+    # ------ Regex Patterns ------
     case_patterns = [(r'/scholar_case?(?:.*?)=(\d+)', r'\g<1>'
                       )]
     casenumber_patterns = [(r'scidkt=(.*?)&', ''
@@ -104,59 +104,6 @@ class GCLParse(object):
                         'jurisdictions', json.load(f))
             except FileNotFoundError:
                 raise Exception('jurisdictions.json not found')
-
-    @staticmethod
-    def _regex(item,
-               patterns=None,
-               sub=True,
-               flags=None,
-               start=0,
-               end=None):
-        """
-        Apply a regex rule to find/substitute a textual pattern in the text.
-
-        Args
-        ----
-        :param item: ---> list or str: list of strings/string to apply regex to.
-        :param patterns: ---> list of tuples: regex patterns.
-        :param sub: ---> bool: switch between re.sub/re.search.
-        :param flags: ---> same as `re` flags. Defaults to `None` or `0`.
-        :param start: ---> int: start index of the input list from which applying regex begins.
-        :param end: ---> int: end index of the input list up to which applying regex continues.
-        """
-        if not patterns:
-            raise Exception("Please enter a valid pattern e.g. [(r'\n', '')]")
-
-        if not flags:
-            flags = 0
-
-        if item:
-            for pattern, val in patterns:
-                if isinstance(item, list):
-                    if isinstance(item[0], list):
-                        if sub:
-                            item = [list(map(lambda x: re.sub(
-                                pattern, val, x, flags=flags), group[start:end])) for group in item]
-                        else:
-                            item = [list(map(lambda x: re.findall(
-                                pattern, x, flags=flags), group[start:end])) for group in item]
-
-                    if isinstance(item[0], str):
-                        if sub:
-                            item = [re.sub(pattern, val, el, flags=flags)
-                                    for el in item[start:end]]
-                        else:
-                            item = [re.findall(pattern, el, flags=flags)
-                                    for el in item[start:end]]
-
-                elif isinstance(item, str):
-                    if sub:
-                        item = re.sub(pattern, val, item, flags=flags)
-                    else:
-                        item = re.findall(pattern, item, flags=flags)
-                else:
-                    continue
-        return item
 
     def gcl_parse(self, path_or_url: str,
                   skip_patent=False,
@@ -232,13 +179,13 @@ class GCLParse(object):
         for l in links:
             if fn := l.attrs:
                 if fn.get('href', None) and '/scholar_case?' in fn['href']:
-                    case_citation = self._regex(
+                    case_citation = regex(
                         l.get_text(), self.extra_char_patterns)
                     case_name = None
                     if gn := l.find('i'):
-                        case_name = self._regex(
+                        case_name = regex(
                             gn.get_text(), self.comma_space_patterns)
-                    id_ = self._regex(
+                    id_ = regex(
                         l.attrs['href'], self.case_patterns, sub=False)[0]
                     ct = {'name': case_name, 'citations': [case_citation]}
                     if not case['cites_to']:
@@ -270,7 +217,7 @@ class GCLParse(object):
                 if patent_number.endswith(key):
                     patents.append(
                         {'patent_number': patent_number, 'patent_found': patent_found, 'claims': claims, 'cited_claims': [
-                            int(i) for i in value if self._regex(i, self.just_number_patterns, sub=False)]
+                            int(i) for i in value if regex(i, self.just_number_patterns, sub=False)]
                          })
                     break
 
@@ -285,16 +232,16 @@ class GCLParse(object):
                 parent_tag = tag.parent
                 # Remove footnote tag identifier from the end of case file.
                 tag.replaceWith('')
-                case['footnotes'].append({'identifier': f"{tag.attrs['name']}", 'context': self._regex(
+                case['footnotes'].append({'identifier': f"{tag.attrs['name']}", 'context': regex(
                     parent_tag.get_text(), self.space_patterns)})
 
         self._gcl_replace_tags(opinion, court_code)
 
-        case['training_text'] = self._regex(
+        case['training_text'] = regex(
             opinion.get_text(), self.strip_patterns)
 
         json_subdir = f'json_{self.suffix}' if not json_subdir else json_subdir
-        with open(str(self._create(self.data_dir / 'json' / json_subdir) / f'{case_id}.json'), 'w') as f:
+        with open(str(create_dir(self.data_dir / 'json' / json_subdir) / f'{case_id}.json'), 'w') as f:
             json.dump(case, f, indent=4)
 
         if return_data:
@@ -304,7 +251,7 @@ class GCLParse(object):
         """
         Retrieve the case id given the html of the case file.
         """
-        return self._regex(
+        return regex(
             str(html_text.find(id='gs_tbar_lt')), self.case_patterns, sub=False)[0]
 
     def gcl_get_judge(self,
@@ -324,8 +271,8 @@ class GCLParse(object):
                                      ]
         judge_tag = ''
         for tag in opinion.find_all('p'):
-            tag_text = self._regex(tag.get_text(), initial_cleaning_patterns)
-            if self._regex(tag_text, self.judge_patterns, sub=False):
+            tag_text = regex(tag.get_text(), initial_cleaning_patterns)
+            if regex(tag_text, self.judge_patterns, sub=False):
                 judge_tag = tag
                 break
 
@@ -334,15 +281,15 @@ class GCLParse(object):
 
         # Exclude the Supreme Court judges as it is not so useful.
         if judge_tag and court_code not in ['us']:
-            judges = self._regex(judge_tag.get_text(),
-                                 initial_cleaning_patterns)
-            judges = self._regex(judges, [*self.judgeclean_patterns_2, (' and ', ', '), *self.extra_char_patterns,
-                                          *self.judgeclean_patterns_3], flags=re.I)
-            judges = self._regex(''.join(judges).split(
+            judges = regex(judge_tag.get_text(),
+                           initial_cleaning_patterns)
+            judges = regex(judges, [*self.judgeclean_patterns_2, (' and ', ', '), *self.extra_char_patterns,
+                                    *self.judgeclean_patterns_3], flags=re.I)
+            judges = regex(''.join(judges).split(
                 ','), [*self.comma_space_patterns, (r':', '')])
 
             for i, person in enumerate(judges):
-                if self._regex(person, self.roman_patterns, sub=False) or self._regex(person, self.abbreviation_patterns, sub=False):
+                if regex(person, self.roman_patterns, sub=False) or regex(person, self.abbreviation_patterns, sub=False):
                     judges[i-1] = f'{judges[i-1]}, {person}'
                     judges.pop(i)
                 elif not person:
@@ -350,9 +297,9 @@ class GCLParse(object):
 
             judges = [
                 ' '.join([
-                    l.lower().capitalize() if not self._regex(l, self.roman_patterns, sub=False) else l for l in name.split()]) for name in [j for j in judges if j]
+                    l.lower().capitalize() if not regex(l, self.roman_patterns, sub=False) else l for l in name.split()]) for name in [j for j in judges if j]
             ]
-            judges = self._regex(judges, [(
+            judges = regex(judges, [(
                 r'(?<=[\'’])\w|\b[a-z]+(?=\.)', lambda match: f'{match.group(0).capitalize()}')])
             return judges
         return []
@@ -361,14 +308,14 @@ class GCLParse(object):
         """
         Abbreviate the court name according to the Bluebook format.
         """
-        name = self._regex(name, [(r'([A-Z])(?![a-z])(?!\.)', r'\g<1>.')
-                                  ])
+        name = regex(name, [(r'([A-Z])(?![a-z])(?!\.)', r'\g<1>.')
+                            ])
         for m_key in ['states_territories', 'federal_courts']:
             for key, value in self.jurisdictions[m_key].items():
                 if key in name:
                     name = name.replace(key, value)
                     break
-        return self._regex(name, [(r'([A-Z]\.) ([A-Z]\.)', r'\g<1>\g<2>')])
+        return regex(name, [(r'([A-Z]\.) ([A-Z]\.)', r'\g<1>\g<2>')])
 
     def gcl_citor(self, data):
         """
@@ -397,14 +344,14 @@ class GCLParse(object):
         if not isinstance(html_text, BS):
             html_text = BS(html_text, 'html.parser')
 
-        citation = self._regex(html_text.find(
+        citation = regex(html_text.find(
             id='gs_hdr_md').get_text(), self.extra_char_patterns)
         [court_name, court_type, state] = ['']*3
         try:
-            cdata = self._regex(citation, self.federal_court_patterns, sub=False
-                                )
+            cdata = regex(citation, self.federal_court_patterns, sub=False
+                          )
             if not cdata:
-                citation = self._regex(citation, [(
+                citation = regex(citation, [(
                     r' ?[,-] ((\d{4}))$', r' (\g<1>)'
                 )]
                 )
@@ -424,11 +371,11 @@ class GCLParse(object):
                 else:
                     # Fixes a district court that is only the state name.
                     # E.g. x v. y, Dist. Court, North Carolina ---> x v. y, D.N.C.
-                    possible_court_type = self._regex(citation.replace(
+                    possible_court_type = regex(citation.replace(
                         cdata[0], '').split(',')[-1], self.space_patterns)
                     state_abbr = self.jurisdictions['states_territories'][court_name]
                     if 'Dist.' in possible_court_type and state_abbr:
-                        court_name = f'D. {state_abbr}' if self._regex(
+                        court_name = f'D. {state_abbr}' if regex(
                             state_abbr, [(r'[a-z]', '')], sub=False) else f'D.{state_abbr}'
                     else:
                         raise KeyError
@@ -438,7 +385,7 @@ class GCLParse(object):
                 case_number = '' if delimiter == '-' else f', No. {self._gcl_casenumber(html_text, True)[0]}'
                 date = year if delimiter == '-' else self._gcl_get_date(
                     html_text, True)
-                citation = self._regex(citation.replace(
+                citation = regex(citation.replace(
                     cdata[0], f"{case_number} ({court_name_spaced}{date})"), self.strip_patterns
                 )
                 return citation, 'Supreme Court'
@@ -448,10 +395,10 @@ class GCLParse(object):
             # E.g. x v. y, No 2021-2344 (Fed. Cl. 2021) ---> x v. y, No 2021-2344, Federal Courts (Fed. Cl. 2021)
             replace_with = f" ({court_name_spaced}{year})" if court_name not in [
                 'Fed. Cl.', 'D.D.C.'] else f", Federal Courts ({court_name_spaced}{year})"
-            citation = self._regex(citation.replace(
+            citation = regex(citation.replace(
                 cdata[0], replace_with), self.strip_patterns
             )
-            cdata = self._regex(citation, [
+            cdata = regex(citation, [
                 (r'( ?([-,]) ([\w:. \']+) \(([\w:. \']+)\))$', '')
             ], sub=False)[0]
 
@@ -463,16 +410,16 @@ class GCLParse(object):
             case_number = '' if delimiter == '-' else f', No. {self._gcl_casenumber(html_text, True)[0]}'
             date = year if delimiter == '-' else self._gcl_get_date(
                 html_text, True)
-            citation = self._regex(citation.replace(
+            citation = regex(citation.replace(
                 cdata[0], f"{case_number} ({court_type_spaced}{court_name_spaced}{date})"), self.strip_patterns
             )
 
         except KeyError:
             [court_name, state, year] = ['']*3
-            cdata = self._regex(citation, self.state_court_patterns, sub=False
-                                )
+            cdata = regex(citation, self.state_court_patterns, sub=False
+                          )
             if not cdata:
-                citation = self._regex(citation, [(
+                citation = regex(citation, [(
                     r' ?[,-] ((\d{4}))$', r' (\g<1>)'
                 )]
                 )
@@ -485,7 +432,7 @@ class GCLParse(object):
                 if i == 1:
                     delimiter = c
                 if i == 2:
-                    state = self._regex(
+                    state = regex(
                         c, [(r'\.', ''), (r'([A-Z-a-z])(?=[A-Z]|\b)', r'\g<1>.')])
                     # States which don't get abbreviated:
                     if c in ['Alaska', 'Idaho', 'Iowa', 'Ohio', 'Utah']:
@@ -504,10 +451,10 @@ class GCLParse(object):
             case_number = '' if delimiter == '-' else f', No. {self._gcl_casenumber(html_text, True)[0]}'
             date = year if delimiter == '-' else self._gcl_get_date(
                 html_text, True)
-            citation = self._regex(citation.replace(
+            citation = regex(citation.replace(
                 cdata[0], f"{case_number} ({state_spaced}{court_name_spaced}{date})"
             ), self.strip_patterns)
-        return citation, self._regex(' '.join([state, court_type, court_name]), [*self.space_patterns, *self.strip_patterns])
+        return citation, regex(' '.join([state, court_type, court_name]), [*self.space_patterns, *self.strip_patterns])
 
     def _gcl_get_date(self,
                       opinion,
@@ -520,10 +467,10 @@ class GCLParse(object):
         ----
         :param short_month: ---> bool: if true, returns the date like `%b. %d, %Y`.
         """
-        date = self._regex(opinion.find_all(lambda tag: tag.name == 'center' and self._regex(
+        date = regex(opinion.find_all(lambda tag: tag.name == 'center' and regex(
             tag.get_text(), self.date_patterns, sub=False))[-1].get_text(), self.date_patterns, sub=False)[0]
 
-        date_format = datetime.strptime(self._regex(
+        date_format = datetime.strptime(regex(
             date, self.space_patterns), '%B %d, %Y')
 
         if short_month:
@@ -557,7 +504,7 @@ class GCLParse(object):
         """
         Extract full case name from the `opinion`.
         """
-        return self._regex(opinion.find(id='gsl_case_name').get_text(), [
+        return regex(opinion.find(id='gsl_case_name').get_text(), [
             *self.strip_patterns, *self.comma_space_patterns])
 
     def _gcl_casenumber(self, opinion, only_casenumber=False):
@@ -572,9 +519,9 @@ class GCLParse(object):
         case_num = opinion.select_one('center > a')
         case_ids_ = ['']
         if fn := case_num.attrs:
-            case_ids_ = self._regex(
+            case_ids_ = regex(
                 fn['href'], self.casenumber_patterns, sub=False)[0].split('+')
-        docket_numbers = self._regex(self._regex(case_num.get_text(
+        docket_numbers = regex(regex(case_num.get_text(
         ), self.docket_patterns).split(','), self.extra_char_patterns)
 
         # Correct the docket numbers if they start with '-'
@@ -649,7 +596,7 @@ class GCLParse(object):
             if not text:
                 p.replaceWith('')
             else:
-                if self._regex(text, [(r'[.!?][\"\']?$', '')], sub=False):
+                if regex(text, [(r'[.!?][\"\']?$', '')], sub=False):
                     p.replaceWith(f'{text} $$$$ ')
                 else:
                     p.replaceWith(text)
@@ -664,20 +611,20 @@ class GCLParse(object):
         """
         text = opinion.get_text()
         # Remove page numbers and line-breaks.
-        modified_opinion = self._regex(
+        modified_opinion = regex(
             text, [*self.page_patterns, *self.strip_patterns])
-        patents = self._regex(
+        patents = regex(
             modified_opinion, self.patent_number_patterns_1, sub=False)
         # Make sure that patterns like ("'#number patent") are there to sift through
         # extracted patents and keep the ones cited later in the case text.
-        patent_refs = set(self._regex(modified_opinion, [
+        patent_refs = set(regex(modified_opinion, [
                           (self.patent_reference_pattern, '')], sub=False))
         if patent_refs:
-            patents = [f'US{x}' for x in self._regex(patents, [*self.extra_char_patterns, (r'\W', '')
-                                                               ]) if x[-3:] in patent_refs]
-        elif self._regex(text, [(r'[pP]atents-in-[sS]uit', '')]):
-            patents = [f'US{x}' for x in self._regex(patents, [*self.extra_char_patterns, (r'\W', '')
-                                                               ])]
+            patents = [f'US{x}' for x in regex(patents, [*self.extra_char_patterns, (r'\W', '')
+                                                         ]) if x[-3:] in patent_refs]
+        elif regex(text, [(r'[pP]atents-in-[sS]uit', '')]):
+            patents = [f'US{x}' for x in regex(patents, [*self.extra_char_patterns, (r'\W', '')
+                                                         ])]
         else:
             patents = []
         return remove_repeated(patents)
@@ -694,11 +641,11 @@ class GCLParse(object):
                 parent_tag = tag.parent
                 footnote_tags.append(tag.parent)
                 tag.parent.replaceWith('')
-                footnotes_data[tag.attrs['name']] = self._regex(
+                footnotes_data[tag.attrs['name']] = regex(
                     parent_tag.get_text(), self.space_patterns)
 
         # Remove page numbers and well as line-breakers.
-        modified_opinion = self._regex(opinion.get_text(), [
+        modified_opinion = regex(opinion.get_text(), [
             (r' \d+\*\d+ ', ' '), *self.page_patterns, *self.strip_patterns
         ])
 
@@ -711,7 +658,7 @@ class GCLParse(object):
             modified_opinion = modified_opinion.replace(
                 f'@@@@{key}', val)
 
-        modified_opinion = self._regex(
+        modified_opinion = regex(
             modified_opinion, self.patent_number_patterns_2)
         # Regex to capture claim numbers followed by a patent number.
         claims_1 = re.findall(
@@ -720,9 +667,9 @@ class GCLParse(object):
         claims_from_patent = {}
         for c in claims_1:
             new_key = c[2]
-            new_value = self._regex(c[1], [(r'(\d+)[\- ]+(\d+)', r'\g<1>-\g<2>'), (r'[^0-9\-]+',
-                                                                                   ' '), *self.strip_patterns, *self.space_patterns
-                                           ])
+            new_value = regex(c[1], [(r'(\d+)[\- ]+(\d+)', r'\g<1>-\g<2>'), (r'[^0-9\-]+',
+                                                                             ' '), *self.strip_patterns, *self.space_patterns
+                                     ])
             if claims_from_patent.get(new_key, None):
                 cls = claims_from_patent[new_key]
                 if new_value not in cls:
@@ -748,9 +695,9 @@ class GCLParse(object):
 
         if ref_location:
             for key, value in claims.items():
-                new_key = self._regex(ref_location[closest_value([ref[0] for ref in ref_location], key)][1], [(r'[^0-9]+', '')
-                                                                                                              ])
-                new_value = self._regex(value, [
+                new_key = regex(ref_location[closest_value([ref[0] for ref in ref_location], key)][1], [(r'[^0-9]+', '')
+                                                                                                        ])
+                new_value = regex(value, [
                     (r'(\d+)[\- ]+(\d+)', r'\g<1>-\g<2>'), (r'[^0-9\-]+',
                                                             ' '), *self.strip_patterns, *self.space_patterns
                 ])
@@ -790,7 +737,7 @@ class GCLParse(object):
         try:
             if validate_url(number_or_url):
                 url = number_or_url
-                if fn := self._regex(url, [(r'(?<=patent/).*?(?=/|$)', '')], sub=False):
+                if fn := regex(url, [(r'(?<=patent/).*?(?=/|$)', '')], sub=False):
                     patent_number = fn[0]
                 else:
                     raise('Url is not a valid `Google Patents` url')
@@ -806,7 +753,7 @@ class GCLParse(object):
             info['case_id'] = case_id
         else:
             subfolder = patent_number
-        json_path = self._create(
+        json_path = create_dir(
             self.data_dir / 'patent' / f'patent_{self.suffix}' / subfolder) / f'{patent_number}.json'
         found = False
         if not skip_patent:
@@ -824,11 +771,11 @@ class GCLParse(object):
                         num = in_tag.attrs['num']
                         if '-' in num:
                             extra_count += 1  # Fixes wrong counting of claims.
-                            num = int(self._regex(
+                            num = int(regex(
                                 num, [(r'-.*$', '')])) + extra_count
                         else:
                             num = int(num) + extra_count
-                        context = self._regex(
+                        context = regex(
                             tag.get_text(), [*relevant_patterns, (r'^\d+\. ', '')])
                         attach_data = {'claim_number': num,
                                        'context': context, 'dependent_on': None}
@@ -840,9 +787,9 @@ class GCLParse(object):
 
                 abstract_tags = patent.find_all('div', class_='abstract')
                 abstract = ' '.join(
-                    [self._regex(ab.get_text(), relevant_patterns) for ab in abstract_tags])
+                    [regex(ab.get_text(), relevant_patterns) for ab in abstract_tags])
                 info['abstract'] = abstract
-                info['title'] = self._regex(patent.find('h1', attrs={'itemprop': 'pageTitle'}).get_text(), [
+                info['title'] = regex(patent.find('h1', attrs={'itemprop': 'pageTitle'}).get_text(), [
                     *relevant_patterns, (r' - Google Patents|^.*? - ', '')])
 
             else:
@@ -907,7 +854,7 @@ class GCLParse(object):
         Request to access the content of a Google Scholar case law page with a valid `url_or_id`.
         """
         url = url_or_id
-        if self._regex(url_or_id, self.just_number_patterns, sub=False):
+        if regex(url_or_id, self.just_number_patterns, sub=False):
             url = self.base_url + f'scholar_case?case={url_or_id}'
 
         response = requests.get(url)
@@ -922,30 +869,3 @@ class GCLParse(object):
                 f'Server response: {status} with headers: {response.headers}')
 
         return status, response
-
-    @staticmethod
-    def _create(path):
-        """
-        Create a directory under `path`.
-        """
-        if isinstance(path, str):
-            path = Path(path)
-        path.mkdir(parents=True, exist_ok=True)
-        return path
-
-    @staticmethod
-    def multiprocess(func,
-                     files,
-                     yield_results=False,
-                     cpus=cpu_count()):
-        """
-        Wrap a function `func` in a multiprocessing block good for simultaneous I/O operations
-        involving multiple number of `files`. 
-        Set `yield_results` to True if intend to yield results back to the caller.
-        """
-        with future_pool(max_workers=cpus) as p:
-            for _ in tqdm(p.map(func, files), total=len(files)):
-                if not yield_results:
-                    pass
-                else:
-                    yield _
