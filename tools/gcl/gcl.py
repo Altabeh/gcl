@@ -19,7 +19,7 @@ from datetime import datetime
 from functools import reduce
 from operator import concat
 from pathlib import Path
-
+from tqdm import tqdm
 import requests
 from bs4 import BeautifulSoup as BS
 
@@ -27,7 +27,9 @@ BASE_DIR = Path(__file__).resolve().parents[2]
 sys.path.insert(0, BASE_DIR.__str__())
 
 from tools.utils import (
+    rm_tree,
     closest_value,
+    multiprocess,
     create_dir,
     deaccent,
     hyphen_to_numbers,
@@ -37,6 +39,8 @@ from tools.utils import (
     validate_url,
     switch_ip,
     proxy_browser,
+    recaptcha_process,
+    async_get,
 )
 
 __author__ = {"github.com/": ["altabeh"]}
@@ -55,16 +59,16 @@ class GCLParse(object):
     casenumber_patterns = [(r"scidkt=(.*?)&", "")]
     just_number_patterns = [(r"^\d+$", "")]
     docket_patterns = [
-        (r"(?:[\w ]+)?N[Oo][sS]?\.:? ", ""),
+        (r"(?:[\w .]+)?(?:C\.A|N[Oo][sS]?)\.:? ?", ""),
         (r"\([\w ]+\)", ""),
-        (r",? +and +", ","),
+        (r",? +[Aa][Nn][Dd] +", ","),
     ]
-    patent_number_pattern = r"(?:(?:RE|PP|D|AI|X|H|T)?\d{1,2}[,.]\-?)?(?:(?:RE|PP|D|AI|X|H|T)\d{2,3}|\d{3})[,.]\-?\d{3}(?: ?AI)?\b"
-    patent_reference_pattern = r'["`\'#]+(\d{3}) ?[Pp]atent\b'
-
+    docket_appeals_patterns = [(r"(?:\d{2,4}|(?<=, )|(?<=, and)(?: +)?)-\d{1,5}", "")]
+    docket_us_patterns = [(r"\d+(?:-\d+)?", "")]
+    patent_number_pattern = r"(?:(?:RE|PP|D|AI|X|H|T)?\d{1,2}[,./]\-?)?(?:(?:RE|PP|D|AI|X|H|T)\d{2,3}|\d{3})[,./]\-?\d{3}(?: ?AI)?\b"
+    patent_reference_pattern = r'["`\'#]+(\d{3}) ?(?:[Aa]pplication|[Pp]atent)\b'
     claim_patterns_1 = r"([Cc]laims?([\d\-, and]+)(?:[\w ]+)(?:(?:[\(\"“ ]+)?(?: ?the ?)?[#`\']+(\d+)))"
     claim_patterns_2 = r"(?<=[cC]laim[s ])(?:([\d,\- ]+)(?:(?:[, ]+)?and ([\d\- ]+))*)+"
-
     patent_number_patterns_1 = [(r" " + patent_number_pattern, "")]
     patent_number_patterns_2 = [(r"[USnitedpPaNso. ]+" + patent_number_pattern, "")]
     federal_court_patterns = [(r"( ?([,-]) ([\w:. \']+) (\d{4}))$", "")]
@@ -75,19 +79,19 @@ class GCLParse(object):
             "",
         )
     ]
-    judgeclean_patterns_1 = [
+    judge_clean_patterns_1 = [
         (
             r", joined$| ?—$| ?@@@@\[[\d\*]+\] ?$|^Opinion of the Court by |, United States District Court| ?Pending before the Court are:?| ?Opinion for the court filed by[\w\'., ]+| delivered the opinion of the Court\.|^Appeal from ",
             "",
         )
     ]
-    judgeclean_patterns_2 = [
+    judge_clean_patterns_2 = [
         (
             r"^(?:the )?hon\. |^(?:the )?honorable |^before:? |^present:? |^m[rs]s?\.? |, (?:u\.?\s\.?)?d?\.?j\.\.?$|, j\.s\.c\.$",
             "",
         )
     ]
-    judgeclean_patterns_3 = [
+    judge_clean_patterns_3 = [
         (
             r"senior|chief|u\.?s\.?|united states|circuit|district|magistrate|chief|court|judges?",
             "",
@@ -99,6 +103,7 @@ class GCLParse(object):
             "",
         )
     ]
+    special_chars_patterns = [(r"\W", "")]
     strip_patterns = [(r"\n", " "), (r" +", " ")]
     extra_char_patterns = [(r"^[,. ]+|[,. ]+$", "")]
     comma_space_patterns = [(r"^[, ]+|[, ]+$", "")]
@@ -141,7 +146,7 @@ class GCLParse(object):
         """
         html_text = ""
         if not Path(path_or_url).is_file():
-            status, html_text = self._get(path_or_url, need_proxy)
+            html_text = tuple(self._get(path_or_url, need_proxy))[1]
         else:
             with open(path_or_url, "r") as f:
                 html_text = f.read()
@@ -183,19 +188,6 @@ class GCLParse(object):
             case["short_citation"].append(center.get_text())
             center.replaceWith("")
 
-        for id_, num_ in self._gcl_casenumber(opinion):
-            if fn := case["case_numbers"]:
-                for el in fn:
-                    if id_ == el["id"]:
-                        el["docket_number"].append(num_)
-                    else:
-                        case["case_numbers"].append(
-                            {"id": id_, "docket_number": [num_]}
-                        )
-                        break
-            else:
-                case["case_numbers"].append({"id": id_, "docket_number": [num_]})
-
         case["cites_to"] = {}
         for l in links:
             if fn := l.attrs:
@@ -224,15 +216,35 @@ class GCLParse(object):
         case["court"] = self.jurisdictions["court_details"][court_info]
 
         court_code = case["court"].get("court_code", None)
+        jurisdiction = case["court"].get("jurisdiction", None)
+        # Insert the case number if the case is still unpublished
+        case["citation"] = case["citation"].replace(
+            "XXXXXX", self._gcl_casenumber(html_text, jurisdiction, court_code, True)[0]
+        )
+
+        for id_, num_ in self._gcl_casenumber(opinion, jurisdiction, court_code):
+            if fn := case["case_numbers"]:
+                for el in fn:
+                    if id_ == el["id"]:
+                        el["docket_number"].append(num_)
+                    else:
+                        case["case_numbers"].append(
+                            {"id": id_, "docket_number": [num_]}
+                        )
+                        break
+            else:
+                case["case_numbers"].append({"id": id_, "docket_number": [num_]})
+
         case["judges"] = self.gcl_get_judge(opinion, court_code, False)
 
         patents = []
+        patent_numbers = self._gcl_get_patents(opinion)
         for key, value in self._gcl_get_claims(opinion).items():
-            for patent_number in self._gcl_get_patents(opinion):
-                patent_found, claims = self.gcl_patent_data(
-                    patent_number, case_id, skip_patent, True
-                )
+            for patent_number in patent_numbers:
                 if patent_number.endswith(key):
+                    patent_found, claims = self.gcl_patent_data(
+                        patent_number, case_id, skip_patent, True
+                    )
                     patents.append(
                         {
                             "patent_number": patent_number,
@@ -251,6 +263,7 @@ class GCLParse(object):
         case["html"] = op_c
         case["training_text"] = ""
         case["footnotes"] = []
+
         small_tag = opinion.find_all("small")
         if small_tag:
             footnotes = small_tag[-1].find_all("a", class_="gsl_hash")
@@ -299,7 +312,7 @@ class GCLParse(object):
         """
         initial_cleaning_patterns = [
             (r"(?: +)?\+page\[\d+\]\+ +", ""),
-            *self.judgeclean_patterns_1,
+            *self.judge_clean_patterns_1,
         ]
         judge_tag = ""
         for tag in opinion.find_all("p"):
@@ -317,10 +330,10 @@ class GCLParse(object):
             judges = regex(
                 judges,
                 [
-                    *self.judgeclean_patterns_2,
+                    *self.judge_clean_patterns_2,
                     (" and ", ", "),
                     *self.extra_char_patterns,
-                    *self.judgeclean_patterns_3,
+                    *self.judge_clean_patterns_3,
                 ],
                 flags=re.I,
             )
@@ -387,7 +400,7 @@ class GCLParse(object):
             html_text = data
         else:
             if not Path(data).is_file():
-                status, html_text = self._get(data)
+                html_text = tuple(self._get(data))[1]
             else:
                 with open(data, "r") as f:
                     html_text = f.read()
@@ -435,11 +448,7 @@ class GCLParse(object):
 
             court_name_spaced = f"{court_name} " if court_name else ""
             if not court_name:
-                case_number = (
-                    ""
-                    if delimiter == "-"
-                    else f", No. {self._gcl_casenumber(html_text, True)[0]}"
-                )
+                case_number = "" if delimiter == "-" else f", No. XXXXXX"
                 date = year if delimiter == "-" else self._gcl_get_date(html_text, True)
                 citation = regex(
                     citation.replace(
@@ -471,11 +480,7 @@ class GCLParse(object):
             court_type_spaced = f"{court_type} " if court_type else ""
             # Encountering a dash after publication in Google cases means that the case has been published.
             # So no case number is needed according to bluebook if a dash is encountered.
-            case_number = (
-                ""
-                if delimiter == "-"
-                else f", No. {self._gcl_casenumber(html_text, True)[0]}"
-            )
+            case_number = "" if delimiter == "-" else f", No. XXXXXX"
             date = year if delimiter == "-" else self._gcl_get_date(html_text, True)
             citation = regex(
                 citation.replace(
@@ -516,11 +521,7 @@ class GCLParse(object):
 
             state_spaced = "" if "Commw" in court_name else f"{state} "
             court_name_spaced = f"{court_name} "
-            case_number = (
-                ""
-                if delimiter == "-"
-                else f", No. {self._gcl_casenumber(html_text, True)[0]}"
-            )
+            case_number = "" if delimiter == "-" else f", No. XXXXXX"
             date = year if delimiter == "-" else self._gcl_get_date(html_text, True)
             citation = regex(
                 citation.replace(
@@ -554,13 +555,74 @@ class GCLParse(object):
         date_format = datetime.strptime(regex(date, self.space_patterns), "%B %d, %Y")
 
         if short_month:
-            date = date_format.strftime("%b. %d, %Y")
-            dls = date.split()
-            if dls[0] == "May.":
-                date = date.replace(".", "")
+            date = date_format.strftime("%B %d, %Y")
+            if not regex(date, [(r"May|June|July", "")], sub=False):
+                date = date_format.strftime("%b. %d, %Y")
             return date
 
         return date_format.strftime("%Y-%m-%d")
+
+    def gcl_handle_redundant(self, json_subdir=None, delete_redundant=False):
+        """
+        Print the redundant (unpublished) cases. Only keep the published case
+        if `delete_redundant` is set to True.
+
+        Args
+        ----
+        :param json_subdir: ---> str: name of the subdirectory in the 'json' folder that the serialized
+                                 data is saved in. Defaults to `json_suffix`.
+        :param delete_redundant: ---> bool: if True, will delete the serialized data and patent information.
+        """
+        suffix = self.suffix
+        if not json_subdir:
+            json_subdir = f"json_{self.suffix}"
+            suffix = json_subdir.replace("json_", "")
+
+        directory = self.data_dir / "json" / json_subdir
+        json_files = list((directory).glob("*.json"))
+
+        name_patterns, docket_patterns, ids = [], [], []
+        for f in tqdm(json_files, total=len(json_files)):
+            with open(f, "r") as jfile:
+                info = json.load(jfile)
+                dc = [info["date"]] + [info["court"]["court_code"]]
+                name_patterns += ["".join([info["full_case_name"].lower()] + dc)]
+
+                docket_patterns += [
+                    "".join(
+                        [
+                            "".join(c["docket_number"]).lower()
+                            for c in info["case_numbers"]
+                        ]
+                        + dc
+                    )
+                ]
+
+                ids += [""] if info["short_citation"] else [info["id"]]
+
+        patterns = name_patterns + docket_patterns
+        indices = [
+            fn
+            for value in set(patterns)
+            if len(fn := [i for i, v in enumerate(patterns) if v == value]) > 1
+        ]
+        ids.extend(ids)
+        repeated_ids = set([ids[i] for i in set(reduce(concat, indices)) if ids[i]])
+        print(f"There are {len(repeated_ids)} repeated cases in {str(directory)}")
+
+        if delete_redundant:
+            print("Starting to delete redundant (unpublished) cases...")
+            for case_id in tqdm(repeated_ids, total=len(repeated_ids)):
+                (directory / f"{case_id}.json").unlink()
+                patent_folder = self.data_dir / "patent" / f"patent_{suffix}" / case_id
+                if patent_folder.is_dir():
+                    rm_tree(patent_folder)
+                print(f"Data for case id {case_id} deleted successfully")
+        else:
+            redundent_cases = {
+                x: self.gcl_get_citation(x, False)[x] for x in repeated_ids
+            }
+            print(redundent_cases)
 
     @staticmethod
     def _gcl_footnote_id(opinion):
@@ -592,7 +654,9 @@ class GCLParse(object):
             [*self.strip_patterns, *self.comma_space_patterns],
         )
 
-    def _gcl_casenumber(self, opinion, only_casenumber=False):
+    def _gcl_casenumber(
+        self, opinion, jurisdiction=None, court_code=None, only_casenumber=False
+    ):
         """
         Extract the case ids and docket numbers of any case related
         to `opinion`.
@@ -607,11 +671,24 @@ class GCLParse(object):
             case_ids_ = regex(fn["href"], self.casenumber_patterns, sub=False)[0].split(
                 "+"
             )
-        docket_numbers = regex(
-            regex(case_num.get_text(), self.docket_patterns).split(","),
-            self.extra_char_patterns,
-        )
 
+        docket_numbers = []
+
+        if jurisdiction == "F":
+            if court_code:
+                if court_code not in ["us"]:
+                    docket_numbers = regex(
+                        case_num.get_text(), self.docket_appeals_patterns, sub=False
+                    )
+                elif court_code in ["us"]:
+                    docket_numbers = regex(
+                        case_num.get_text(), self.docket_us_patterns, sub=False
+                    )
+
+        if not docket_numbers:
+            docket_numbers = regex(case_num.get_text(), self.docket_patterns).split(",")
+
+        docket_numbers = regex(docket_numbers, self.extra_char_patterns)
         # Correct the docket numbers if they start with '-'
         for i, d in enumerate(docket_numbers):
             if d.startswith("-"):
@@ -623,19 +700,23 @@ class GCLParse(object):
         dn = len(docket_numbers)
         ci = len(case_ids_)
         if dn > ci:
-            return zip(case_ids_ * (dn - ci), docket_numbers)
+            return zip(case_ids_ * (dn - ci + 1), docket_numbers)
 
         return zip(case_ids_, docket_numbers)
 
     def _gcl_replace_tags(self, opinion, court_code):
         """
-        Remove or replace all the tags with appropriate labels.
+        Remove or replace all the tags with their appropriate labels.
         """
         for el in opinion.find_all("center"):
             el.replaceWith("")
 
         for h in opinion.find_all("h2"):
-            h.replaceWith("")
+            if court_code in ["us"]:
+                if "Syllabus" not in h.get_text():
+                    h.replaceWith("")
+            else:
+                h.replaceWith("")
 
         for p in opinion.find_all("a", class_="gsl_pagenum"):
             p.replaceWith(f" +page[{p.get_text()}]+ ")
@@ -658,22 +739,30 @@ class GCLParse(object):
         judge_tag = self.gcl_get_judge(opinion, court_code, True)
         end_replace = False
         # Remove everything in the non-Supreme Court cases up to the paragraph with judge information.
-        if judge_tag:
+        if judge_tag and court_code not in ["us"]:
             for p in opinion.find_all("p"):
                 if not end_replace:
-                    if p == judge_tag:
+                    if p == judge_tag and judge_tag not in p.find_all("p"):
                         end_replace = True
-                    p.replaceWith("")
+                    if judge_tag not in p.find_all("p"):
+                        p.replaceWith("")
                 else:
                     break
 
         # Remove everything before Syllabus for Supreme Court cases.
         if court_code in ["us"]:
-            for h in opinion.find_all("h2"):
+            for h in opinion.find_all(lambda tag: tag.name in ["p", "h2"]):
                 if not end_replace:
-                    if "Syllabus" in h.get_text():
-                        end_replace = True
-                    h.replaceWith("")
+                    if h.name == "h2":
+                        if "Syllabus" in h.get_text():
+                            end_replace = True
+                        h.replaceWith("")
+                    else:
+                        if judge_tag:
+                            if h == judge_tag and judge_tag not in h.find_all("p"):
+                                end_replace = True
+                            if judge_tag not in h.find_all("p"):
+                                h.replaceWith("")
                 else:
                     break
 
@@ -706,18 +795,51 @@ class GCLParse(object):
         )
         if patent_refs:
             patents = [
-                f"US{x}"
-                for x in regex(patents, [*self.extra_char_patterns, (r"\W", "")])
+                f"US{self.uspto_grab_patent_number(x)}"
+                for x in patents
                 if x[-3:] in patent_refs
             ]
         elif regex(text, [(r"[pP]atents-in-[sS]uit", "")]):
-            patents = [
-                f"US{x}"
-                for x in regex(patents, [*self.extra_char_patterns, (r"\W", "")])
-            ]
-        else:
-            patents = []
-        return remove_repeated(patents)
+            patents = [f"US{self.uspto_grab_patent_number(x)}" for x in patents]
+
+        return remove_repeated([x for x in patents if x != "US"])
+
+    def uspto_grab_patent_number(self, number):
+        """
+        Grab the patent number (str) given an application `number` (str) from
+        https://patentcenter.uspto.gov/. If `number` is a valid patent number,
+        then return the cleaned patent number.
+
+        Example
+        -------
+        >>> uspto_grab_patent_number('11/685,188')
+        '7631336'
+
+        >>> uspto_grab_patent_number('4,566,345')
+        '4566345
+
+        """
+        clean_number = regex(
+            number, [*self.extra_char_patterns, *self.special_chars_patterns]
+        )
+
+        if "/" in number:
+            url = f"https://patentcenter.uspto.gov/#!/applications/{clean_number}"
+            res_content = async_get(
+                url, '//*[@id="maincontent"]/div/div/div/div[2]/div[2]/div[3]/div/a'
+            )
+            soup = BS(res_content, "html.parser")
+            patent_number_a = soup.find(
+                lambda tag: tag.name == "a"
+                and tag.attrs.get("ng-bind", None) == "app.patentNumber()"
+            )
+            return (
+                regex(patent_number_a.get_text(), self.special_chars_patterns)
+                if patent_number_a
+                else ""
+            )
+
+        return clean_number
 
     def _gcl_get_claims(self, opinion):
         """
@@ -773,9 +895,9 @@ class GCLParse(object):
                 claims_from_patent[new_key] = [new_value]
 
         patent_refs = re.finditer(self.patent_reference_pattern, modified_opinion)
-
+        # Remove claim numbers of the type `claims # of the '# patent` to avoid double count.
         for c in claims_1:
-            modified_opinion = modified_opinion.replace(c[0], "")
+            modified_opinion = modified_opinion.replace(c[1], "")
         # Regex to capture claim numbers at large or NOT followed by a patent number.
         claims_2 = re.finditer(self.claim_patterns_2, modified_opinion)
 
@@ -821,11 +943,11 @@ class GCLParse(object):
         self, number_or_url: str, case_id=None, skip_patent=False, return_data=False
     ):
         """
-        Download and scrape data for a patent with patent No. or valid url `number_or_url`.
+        Download and scrape data for a patent with Patent (Application) No. or valid url `number_or_url`.
 
         Example
         -------
-        number_or_url = 'https://patents.google.com/patent/US20150278825A1/en'
+        >>> gcl_patent_data('https://patents.google.com/patent/US20150278825A1/en')
 
         Args
         ----
@@ -834,18 +956,6 @@ class GCLParse(object):
         :param return_data: ---> bool: if true, returns the serialized downloaded data.
         """
         [patent_number, url] = [""] * 2
-        try:
-            if validate_url(number_or_url):
-                url = number_or_url
-                if fn := regex(url, [(r"(?<=patent/).*?(?=/|$)", "")], sub=False):
-                    patent_number = fn[0]
-                else:
-                    raise ("Url is not a valid `Google Patents` url")
-        except:
-            patent_number = number_or_url
-            url = f"https://patents.google.com/patent/{patent_number}"
-
-        relevant_patterns = [*self.strip_patterns, *self.space_patterns]
         info = {
             "patent_number": patent_number,
             "url": url,
@@ -854,70 +964,101 @@ class GCLParse(object):
             "claims": {},
         }
         subfolder = case_id
+
         if case_id:
             info["case_id"] = case_id
+
         else:
             subfolder = patent_number
+
+        found = False
+
+        try:
+            if validate_url(number_or_url):
+                url = number_or_url
+                if fn := regex(url, [(r"(?<=patent/).*?(?=/|$)", "")], sub=False):
+                    patent_number = fn[0]
+        except:
+            patent_number = number_or_url
+
         json_path = (
-            create_dir(self.data_dir / "patent" / f"patent_{self.suffix}" / subfolder)
+            self.data_dir
+            / "patent"
+            / f"patent_{self.suffix}"
+            / subfolder
             / f"{patent_number}.json"
         )
-        found = False
-        if not skip_patent:
-            status, response = self._get(url)
-            if status == 200:
-                found = True
-                patent = BS(deaccent(response.text), "html.parser")
-                claim_tags = patent.select(".claims > *")
-                last_independent_num = 1
-                extra_count = 0
-                for tag in claim_tags:
-                    in_tag = tag.find(
-                        lambda tag: tag.name == "div" and tag.attrs.get("num", None)
-                    )
-                    if in_tag:
-                        num = in_tag.attrs["num"]
-                        if "-" in num:
-                            extra_count += 1  # Fixes wrong counting of claims.
-                            num = int(regex(num, [(r"-.*$", "")])) + extra_count
-                        else:
-                            num = int(num) + extra_count
-                        context = regex(
-                            tag.get_text(), [*relevant_patterns, (r"^\d+\. ", "")]
-                        )
-                        attach_data = {
-                            "claim_number": num,
-                            "context": context,
-                            "dependent_on": None,
-                        }
-                        info["claims"][num] = attach_data
-                        if "claim-dependent" not in tag.attrs["class"]:
-                            last_independent_num = num
-                        else:
-                            info["claims"][num]["dependent_on"] = last_independent_num
 
-                abstract_tags = patent.find_all("div", class_="abstract")
-                abstract = " ".join(
-                    [regex(ab.get_text(), relevant_patterns) for ab in abstract_tags]
-                )
-                info["abstract"] = abstract
-                info["title"] = regex(
-                    patent.find("h1", attrs={"itemprop": "pageTitle"}).get_text(),
-                    [*relevant_patterns, (r" - Google Patents|^.*? - ", "")],
-                )
-
-            with open(json_path.__str__(), "w") as f:
-                json.dump(info, f, indent=4)
-
-        if return_data:
-            if json_path.is_file():
+        if json_path.is_file():
+            if return_data:
                 with open(json_path.__str__(), "r") as f:
                     info = json.load(f)
+            found = True
+
+        else:
+            if not skip_patent:
+                url = f"https://patents.google.com/patent/{patent_number}"
+                status, html_text = self._get(url)
+                if status == 200:
                     found = True
-            else:
-                raise Exception(
-                    f"Patent No. {patent_number} has not been downloaded yet. Please use ``skip_patent=False`` option."
+                    patent = BS(deaccent(html_text), "html.parser")
+                    claim_tags = patent.select(".claims > *")
+                    last_independent_num = 1
+                    extra_count = 0
+                    relevant_patterns = [*self.strip_patterns, *self.space_patterns]
+                    for tag in claim_tags:
+                        in_tag = tag.find(
+                            lambda tag: tag.name == "div" and tag.attrs.get("num", None)
+                        )
+                        if in_tag:
+                            num = in_tag.attrs["num"]
+                            if "-" in num:
+                                extra_count += 1  # Fixes wrong counting of claims.
+                                num = int(regex(num, [(r"-.*$", "")])) + extra_count
+                            else:
+                                num = int(num) + extra_count
+                            context = regex(
+                                tag.get_text(),
+                                [*relevant_patterns, (r"^\d+\. ", "")],
+                            )
+                            attach_data = {
+                                "claim_number": num,
+                                "context": context,
+                                "dependent_on": None,
+                            }
+                            info["claims"][num] = attach_data
+                            if "claim-dependent" not in tag.attrs["class"]:
+                                last_independent_num = num
+                            else:
+                                info["claims"][num][
+                                    "dependent_on"
+                                ] = last_independent_num
+
+                    abstract_tags = patent.find_all("div", class_="abstract")
+                    abstract = " ".join(
+                        [
+                            regex(ab.get_text(), relevant_patterns)
+                            for ab in abstract_tags
+                        ]
+                    )
+                    info["abstract"] = abstract
+                    info["title"] = regex(
+                        patent.find("h1", attrs={"itemprop": "pageTitle"}).get_text(),
+                        [*relevant_patterns, (r" - Google Patents|^.*? - ", "")],
+                    )
+                    info["url"] = url
+                    info["patent_number"] = patent_number
+                    print(f"Saving patent data with Patent No. {patent_number} ...")
+                    create_dir(json_path.parent)
+                    with open(json_path.__str__(), "w") as f:
+                        json.dump(info, f, indent=4)
+
+        if return_data:
+            if info["title"] is None:
+                print(
+                    f"Patent No. {patent_number} has not been downloaded yet. Please set `skip_patent=False`"
                 )
+                return found, []
 
             return found, info["claims"]
 
@@ -960,9 +1101,71 @@ class GCLParse(object):
                         case_summary[case_id][key] = val
         return case_summary
 
+    def _collect_cites(self, data: str) -> list:
+        """
+        Collect the value of `cites_to` key in a gcl `data`. If file was not found,
+        it will be downloaded.
+
+        Args
+        ----
+        :param data: ---> str or pathlib: path to a gcl json file or a valid case_id.
+        """
+        case_repo, case_id = {}, ""
+        if isinstance(data, str):
+            if regex(data, self.just_number_patterns, sub=False):
+                top_folder = self.data_dir / f"json_{self.suffix}"
+                for folder in top_folder.glob("**"):
+                    json_path = top_folder / folder / f"{data}.json"
+                    if json_path.is_file():
+                        with open(json_path.__str__(), "r") as f:
+                            case_repo = json.load(f)
+                        break
+
+                if not case_repo:
+                    case_id = data
+                    url = self.base_url + f"scholar_case?case={case_id}"
+                    case_repo = self.gcl_parse(url, return_data=True)
+
+        if isinstance(data, Path):
+            with open(data.__str__(), "r") as f:
+                case_repo = json.load(f)
+                case_id = case_repo["id"]
+
+        return remove_repeated([case_id] + list(case_repo["cites_to"].keys()))
+
+    def bulk_cites_collect(self, json_subdir=None):
+        """
+        Collect case_ids collected using the method `_collect_cites`
+        from each case found in the subdirectory `~/json/json_subdir`.
+        If no subdirectory is set, it defaults to `json_suffix`.
+        """
+        filename = self.suffix
+        if not json_subdir:
+            json_subdir = f"json_{self.suffix}"
+            filename = json_subdir.replace("json_", "")
+        case_ids = create_dir(self.data_dir) / "json" / f"case_ids_{filename}.json"
+
+        r = {"case_ids": []}
+        if case_ids.is_file():
+            with open(case_ids.__str__(), "r") as f:
+                r = json.load(f)
+        paths = (self.data_dir / "json" / json_subdir).glob("*.json")
+        r["case_ids"] += reduce(
+            concat,
+            list(multiprocess(self._collect_cites, list(paths), yield_results=True)),
+        )
+        r["case_ids"] = remove_repeated(r["case_ids"])
+        with open(case_ids.__str__(), "w") as f:
+            json.dump(r, f, indent=4)
+
     def _get(self, url_or_id, need_proxy=False):
         """
         Request to access the content of a Google Scholar case law page with a valid `url_or_id`.
+
+        Args
+        ----
+        :param need_proxy: ---> bool: if True, start switching proxy IP after each request
+                                      to reduce risk of getting blocked.
         """
         url = url_or_id
         if regex(url_or_id, self.just_number_patterns, sub=False):
@@ -971,7 +1174,7 @@ class GCLParse(object):
         res_content = ""
 
         if need_proxy:
-            proxy = proxy_browser("127.0.0.1", 9050)
+            proxy = proxy_browser()
             proxy.get(url)
             res_content = proxy.page_source
             status = 200
@@ -983,7 +1186,12 @@ class GCLParse(object):
                 # Obtain a `404` error indicator if server returned html.
                 if regex(res_content, [(r"class=\"gs_med\"", "")], sub=False):
                     status = 404
-            switch_ip()
+                # Solve recaptcha if encountered.
+                elif regex(res_content, [(r"id=\"gs_captcha_c\"", "")], sub=False):
+                    EXPECTED_RESULT = "You are verified"
+                    recaptcha = recaptcha_process(url, proxy)
+                    assert EXPECTED_RESULT in recaptcha
+                switch_ip()
 
         else:
             response = requests.get(url)
