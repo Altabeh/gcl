@@ -2,16 +2,21 @@ import re
 import unicodedata
 import urllib
 from concurrent.futures import ProcessPoolExecutor as future_pool
-from os import cpu_count
+from os import cpu_count, environ
 from pathlib import Path
-
+from python_anticaptcha import AnticaptchaClient, NoCaptchaTaskProxylessTask
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
 from stem import Signal
 from stem.control import Controller
 from tqdm import tqdm
+from time import sleep
 
 __all__ = [
+    "rm_tree",
     "create_dir",
     "multiprocess",
     "regex",
@@ -24,7 +29,16 @@ __all__ = [
     "validate_url",
     "switch_ip",
     "proxy_browser",
+    "recaptcha_process",
+    "async_get",
 ]
+
+SELENIUM_OPTIONS = webdriver.ChromeOptions()
+SELENIUM_OPTIONS.add_argument("headless")
+SELENIUM_DRIVER = webdriver.Chrome(options=SELENIUM_OPTIONS)
+
+ANTICAPTCHA_KEY = environ["ANTICAPTCHA_KEY"]
+client = AnticaptchaClient(ANTICAPTCHA_KEY)
 
 
 DOMAIN_FORMAT = re.compile(
@@ -41,6 +55,19 @@ DOMAIN_FORMAT = re.compile(
 SCHEME_FORMAT = re.compile(
     r"^(http|hxxp|ftp|fxp)s?$", re.IGNORECASE  # scheme: http(s) or ftp(s)
 )
+
+
+def rm_tree(path):
+    """
+    Remove file/directory under `path`.
+    """
+    path = Path(path)
+    for child in path.glob("*"):
+        if child.is_file():
+            child.unlink()
+        else:
+            rm_tree(child)
+    path.rmdir()
 
 
 def regex(item, patterns=None, sub=True, flags=None, start=0, end=None):
@@ -122,8 +149,8 @@ def create_dir(path):
 def multiprocess(func, files, yield_results=False, cpus=cpu_count()):
     """
     Wrap a function `func` in a multiprocessing block good for simultaneous I/O operations
-    involving multiple number of `files`.
-    Set `yield_results` to True if intend to yield results back to the caller.
+    involving multiple number of `files`. Set `yield_results` to True if the function intends
+    to yield results back to the caller.
     """
     with future_pool(max_workers=cpus) as p:
         for _ in tqdm(p.map(func, files), total=len(files)):
@@ -135,7 +162,7 @@ def multiprocess(func, files, yield_results=False, cpus=cpu_count()):
 
 def sort_int(string):
     """
-    Sort strings based on an integer value embdedd in.
+    Sort strings based on an integer value embedded in.
     """
     return [int(c) if c.isdigit() else c for c in re.split(r"(\d+)", string)]
 
@@ -242,7 +269,7 @@ def switch_ip():
         controller.signal(Signal.NEWNYM)
 
 
-def proxy_browser(host, port, proxy_type=1):
+def proxy_browser(host="127.0.0.1", port=9050, proxy_type=1):
     """
     Get a new selenium webdriver with tor as the proxy.
     """
@@ -255,3 +282,69 @@ def proxy_browser(host, port, proxy_type=1):
     options = Options()
     options.headless = True
     return webdriver.Firefox(options=options, firefox_profile=fp)
+
+
+def _recaptcha_get_token(url, site_key, invisible=False):
+    """
+    Enter a `url` and a valid `site_key` to call https://anticaptcha.com API to solve
+    the recaptcha encountered at the url. The response is a token soon to be used
+    for verification purposes.
+
+    Args
+    ----
+    :param invisible: ---> bool: If True, calls the invisible recaptcha api.
+    """
+    task = NoCaptchaTaskProxylessTask(
+        website_url=url, website_key=site_key, is_invisible=invisible
+    )
+    job = client.createTask(task)
+    job.join(maximum_time=60 * 15)
+    return job.get_solution_response()
+
+
+def _recaptcha_form_submit(driver, token):
+    """
+    Submit the recaptcha form with a valid `token`.
+    """
+    driver.execute_script(
+        "document.getElementById('g-recaptcha-response').innerHTML='{}';".format(token)
+    )
+    driver.execute_script("gs_captcha_cb('{}')".format(token))
+    sleep(1)
+
+
+def recaptcha_process(url, driver):
+    """
+    Wait for a recaptcha-success message to show up in DOM after receiving
+    the correct token from the anticaptcha servers and submitting the recaptcha form.
+    """
+    driver.get(url)
+    site_key = regex(
+        driver.find_element(By.TAG_NAME, "iframe").get_attribute("src"),
+        [(r"&k=(.*?)&", "")],
+        sub=False,
+    )[0]
+    token = _recaptcha_get_token(url, site_key)
+    _recaptcha_form_submit(driver, token)
+    return driver.find_element_by_class_name("recaptcha-success").text
+
+
+def async_get(url, xpath):
+    """
+    Interactive selenium driver for active javascript execution that would
+    be required in the websites that follow an AJAX call for search functionality.
+
+    Args
+    ----
+    :param xpath: ---> str: wait for the element with xpath `xpath` to appear in DOM
+                            to get the page content.
+    """
+    SELENIUM_DRIVER.get(url)
+    try:
+        WebDriverWait(SELENIUM_DRIVER, 10).until(
+            EC.presence_of_element_located((By.XPATH, xpath))
+        )
+    finally:
+        r = SELENIUM_DRIVER.page_source
+        return r
+    
