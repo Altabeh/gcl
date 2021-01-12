@@ -294,7 +294,7 @@ class GCLParse(object):
 
     def get_case_id(self, html_text):
         """
-        Retrieve the case id given the html of the case file.
+        Retrieve the case ID given the html of the case file.
         """
         return regex(
             str(html_text.find(id="gs_tbar_lt")), self.case_patterns, sub=False
@@ -373,18 +373,6 @@ class GCLParse(object):
             return judges
         return []
 
-    def _abbreviate_court_name(self, name):
-        """
-        Abbreviate the court name according to the Bluebook format.
-        """
-        name = regex(name, [(r"([A-Z])(?![a-z])(?!\.)", r"\g<1>.")])
-        for m_key in ["states_territories", "federal_courts"]:
-            for key, value in self.jurisdictions[m_key].items():
-                if key in name:
-                    name = name.replace(key, value)
-                    break
-        return regex(name, [(r"([A-Z]\.) ([A-Z]\.)", r"\g<1>\g<2>")])
-
     def gcl_citor(self, data):
         """
         Create a bluebook citation for a given input html, url or path to an html file
@@ -393,7 +381,7 @@ class GCLParse(object):
         Args
         ----
         :param data: ---> str, BeautifulSoup obj: A url, path to the Google
-                          case law page or its case_id or its BeautifulSoup object.
+                          case law page or its case ID or its BeautifulSoup object.
         """
         html_text = ""
         if isinstance(data, BS):
@@ -562,16 +550,21 @@ class GCLParse(object):
 
         return date_format.strftime("%Y-%m-%d")
 
-    def gcl_handle_redundant(self, json_subdir=None, delete_redundant=False):
+    def gcl_drop(self, json_subdir=None, remove_redundant=False, external_list=None):
         """
-        Print the redundant (unpublished) cases. Only keep the published case
-        if `delete_redundant` is set to True.
+        Show the redundant (unpublished) cases. Only keep the published ones
+        if `keep_published` is set to True. Add an arbitrary `external_list`
+        to the bunch of cases to be removed.
 
         Args
         ----
-        :param json_subdir: ---> str: name of the subdirectory in the 'json' folder that the serialized
-                                 data is saved in. Defaults to `json_suffix`.
-        :param delete_redundant: ---> bool: if True, will delete the serialized data and patent information.
+        :param json_subdir: ---> str: name of the subdirectory in the 'json' folder
+                                      that the serialized data is saved in. Defaults to
+                                      `json_suffix`.
+        :param remove_redundant: ---> bool: if True, will remove the serialized data and
+                                            patent information of the redundant (unpublished) cases.
+        :param external_list: ---> list: an arbitrary list of case IDs whose serialized data are found
+                                         in `json_subdir`, which too need to be removed.
         """
         suffix = self.suffix
         if not json_subdir:
@@ -610,19 +603,35 @@ class GCLParse(object):
         repeated_ids = set([ids[i] for i in set(reduce(concat, indices)) if ids[i]])
         print(f"There are {len(repeated_ids)} repeated cases in {str(directory)}")
 
-        if delete_redundant:
-            print("Starting to delete redundant (unpublished) cases...")
-            for case_id in tqdm(repeated_ids, total=len(repeated_ids)):
-                (directory / f"{case_id}.json").unlink()
-                patent_folder = self.data_dir / "patent" / f"patent_{suffix}" / case_id
-                if patent_folder.is_dir():
-                    rm_tree(patent_folder)
-                print(f"Data for case id {case_id} deleted successfully")
+        def _remove_data(case_id, label):
+            """Remove all data related to the case ID `case_id` from the `data` folder."""
+            path = directory / f"{case_id}.json"
+            if path.is_file():
+                path.unlink()
+            patent_folder = self.data_dir / "patent" / f"patent_{suffix}" / case_id
+            if patent_folder.is_dir():
+                rm_tree(patent_folder)
+            print(f"Case data with ID {case_id} ({label}) was removed successfully")
+
+        if remove_redundant:
+            print("Starting to remove redundant (unpublished) cases...")
+            list(
+                _remove_data(case_id, "redundant")
+                for case_id in tqdm(repeated_ids, total=len(repeated_ids))
+            )
+
         else:
             redundent_cases = {
                 x: self.gcl_get_citation(x, False)[x] for x in repeated_ids
             }
-            print(redundent_cases)
+            print(f"Redundent cases: {redundent_cases}")
+
+        if external_list:
+            print("Starting to remove cases with IDs stored in external list...")
+            list(
+                _remove_data(case_id, "external")
+                for case_id in tqdm(external_list, total=len(external_list))
+            )
 
     @staticmethod
     def _gcl_footnote_id(opinion):
@@ -658,7 +667,7 @@ class GCLParse(object):
         self, opinion, jurisdiction=None, court_code=None, only_casenumber=False
     ):
         """
-        Extract the case ids and docket numbers of any case related
+        Extract the case IDs and docket numbers of any case related
         to `opinion`.
 
         Args
@@ -1064,7 +1073,7 @@ class GCLParse(object):
 
     def gcl_get_citation(self, case_id, return_list=True):
         """
-        Given a `case_id` for a Google case law page and create a summary
+        Given a `case_id` for a Google case law page, create a summary
         of the case in terms of its bluebook citation, court and date.
         If case is not found in the local database, download it first.
 
@@ -1103,12 +1112,12 @@ class GCLParse(object):
 
     def _collect_cites(self, data: str) -> list:
         """
-        Collect the value of `cites_to` key in a gcl `data`. If file was not found,
+        Collect the value of `cites_to` key in a gcl `data`. If file is not found,
         it will be downloaded.
 
         Args
         ----
-        :param data: ---> str or pathlib: path to a gcl json file or a valid case_id.
+        :param data: ---> str or pathlib: path to a gcl json file or a valid case ID.
         """
         case_repo, case_id = {}, ""
         if isinstance(data, str):
@@ -1135,7 +1144,7 @@ class GCLParse(object):
 
     def bulk_cites_collect(self, json_subdir=None):
         """
-        Collect case_ids collected using the method `_collect_cites`
+        Collect case IDs collected using the method `_collect_cites`
         from each case found in the subdirectory `~/json/json_subdir`.
         If no subdirectory is set, it defaults to `json_suffix`.
         """
