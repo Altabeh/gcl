@@ -15,32 +15,34 @@ from __future__ import absolute_import
 import json
 import re
 import sys
+from csv import QUOTE_ALL, writer
 from datetime import datetime
 from functools import reduce
 from operator import concat
 from pathlib import Path
-from tqdm import tqdm
+
 import requests
 from bs4 import BeautifulSoup as BS
+from tqdm import tqdm
 
 BASE_DIR = Path(__file__).resolve().parents[2]
 sys.path.insert(0, BASE_DIR.__str__())
 
 from tools.utils import (
-    rm_tree,
+    async_get,
     closest_value,
-    multiprocess,
     create_dir,
     deaccent,
     hyphen_to_numbers,
-    regex,
-    remove_repeated,
-    sort_int,
-    validate_url,
-    switch_ip,
+    multiprocess,
     proxy_browser,
     recaptcha_process,
-    async_get,
+    regex,
+    remove_repeated,
+    rm_tree,
+    sort_int,
+    switch_ip,
+    validate_url,
 )
 
 __author__ = {"github.com/": ["altabeh"]}
@@ -135,6 +137,55 @@ class GCLParse(object):
             except FileNotFoundError:
                 raise Exception("jurisdictions.json not found")
 
+    def _get(self, url_or_id, need_proxy=False):
+        """
+        Request to access the content of a Google Scholar case law page with a valid `url_or_id`.
+
+        Args
+        ----
+        :param need_proxy: ---> bool: if True, start switching proxy IP after each request
+                                      to reduce risk of getting blocked.
+        """
+        url = url_or_id
+        if regex(url_or_id, self.just_number_patterns, sub=False):
+            url = self.base_url + f"scholar_case?case={url_or_id}"
+
+        res_content = ""
+
+        if need_proxy:
+            proxy = proxy_browser()
+            proxy.get(url)
+            res_content = proxy.page_source
+            status = 200
+
+            if not res_content:
+                status = 0
+
+            else:
+                # Obtain a `404` error indicator if server returned html.
+                if regex(res_content, [(r"class=\"gs_med\"", "")], sub=False):
+                    status = 404
+                # Solve recaptcha if encountered.
+                elif regex(res_content, [(r"id=\"gs_captcha_c\"", "")], sub=False):
+                    EXPECTED_RESULT = "You are verified"
+                    recaptcha = recaptcha_process(url, proxy)
+                    assert EXPECTED_RESULT in recaptcha
+                switch_ip()
+
+        else:
+            response = requests.get(url)
+            response.encoding = response.apparent_encoding
+            status = response.status_code
+            if status == 200:
+                res_content = response.text
+
+        if status == 404:
+            print(f'URL "{url}" not found')
+
+        if status not in [200, 404]:
+            raise Exception(f"Server response: {status}")
+        return status, res_content
+
     def gcl_parse(
         self,
         path_or_url: str,
@@ -173,9 +224,9 @@ class GCLParse(object):
         opinion.find(id="gs_dont_print").replaceWith("")
         op_c = str(opinion)
         links = opinion.find_all("a")
-        case_id = self.get_case_id(html_text)
-        self._gcl_footnote_id(opinion)
-        full_case_name = self._gcl_full_casename(opinion)
+        case_id = self.gcl_get_id(html_text)
+        self._footnote_id(opinion)
+        full_case_name = self._full_casename(opinion)
         opinion.find(id="gsl_case_name").replaceWith("")
 
         case = {
@@ -222,17 +273,17 @@ class GCLParse(object):
                             case["cites_to"][id_] = [ct]
                     l.replaceWith(f" ####{id_} ")
 
-        case["date"] = self._gcl_get_date(opinion)
+        case["date"] = self._get_date(opinion)
         case["court"] = self.jurisdictions["court_details"][court_info]
 
         court_code = case["court"].get("court_code", None)
         jurisdiction = case["court"].get("jurisdiction", None)
         # Insert the case number if the case is still unpublished
         case["citation"] = case["citation"].replace(
-            "XXXXXX", self._gcl_casenumber(html_text, jurisdiction, court_code, True)[0]
+            "XXXXXX", self._casenumber(html_text, jurisdiction, court_code, True)[0]
         )
 
-        for id_, num_ in self._gcl_casenumber(opinion, jurisdiction, court_code):
+        for id_, num_ in self._casenumber(opinion, jurisdiction, court_code):
             if fn := case["case_numbers"]:
                 for el in fn:
                     if id_ == el["id"]:
@@ -247,10 +298,10 @@ class GCLParse(object):
 
         case["judges"] = self.gcl_get_judge(opinion, court_code)
         case["personal_opinions"] = None
-        
+
         patents = []
-        patent_numbers = self._gcl_get_patents(opinion)
-        for key, value in self._gcl_get_claims(opinion).items():
+        patent_numbers = self._get_patents(opinion)
+        for key, value in self._get_claims(opinion).items():
             for patent_number in patent_numbers:
                 if patent_number.endswith(key):
                     patent_found, claims = self.gcl_patent_data(
@@ -290,11 +341,11 @@ class GCLParse(object):
                     }
                 )
 
-        self._gcl_replace_tags(opinion, court_code)
+        self._replace_tags(opinion, court_code)
 
         case["training_text"] = regex(opinion.get_text(), self.strip_patterns)
 
-        case["personal_opinions"] = self._gcl_personal_opinion(
+        case["personal_opinions"] = self._personal_opinion(
             case["training_text"], case["judges"]
         )
 
@@ -308,7 +359,7 @@ class GCLParse(object):
         if return_data:
             return case
 
-    def get_case_id(self, html_text):
+    def gcl_get_id(self, html_text):
         """
         Retrieve the case ID given the html of the case file.
         """
@@ -455,7 +506,7 @@ class GCLParse(object):
             court_name_spaced = f"{court_name} " if court_name else ""
             if not court_name:
                 case_number = "" if delimiter == "-" else f", No. XXXXXX"
-                date = year if delimiter == "-" else self._gcl_get_date(html_text, True)
+                date = year if delimiter == "-" else self._get_date(html_text, True)
                 citation = regex(
                     citation.replace(
                         cdata[0], f"{case_number} ({court_name_spaced}{date})"
@@ -487,7 +538,7 @@ class GCLParse(object):
             # Encountering a dash after publication in Google cases means that the case has been published.
             # So no case number is needed according to bluebook if a dash is encountered.
             case_number = "" if delimiter == "-" else f", No. XXXXXX"
-            date = year if delimiter == "-" else self._gcl_get_date(html_text, True)
+            date = year if delimiter == "-" else self._get_date(html_text, True)
             citation = regex(
                 citation.replace(
                     cdata[0],
@@ -528,7 +579,7 @@ class GCLParse(object):
             state_spaced = "" if "Commw" in court_name else f"{state} "
             court_name_spaced = f"{court_name} "
             case_number = "" if delimiter == "-" else f", No. XXXXXX"
-            date = year if delimiter == "-" else self._gcl_get_date(html_text, True)
+            date = year if delimiter == "-" else self._get_date(html_text, True)
             citation = regex(
                 citation.replace(
                     cdata[0], f"{case_number} ({state_spaced}{court_name_spaced}{date})"
@@ -540,7 +591,7 @@ class GCLParse(object):
             [*self.space_patterns, *self.strip_patterns],
         )
 
-    def _gcl_get_date(self, opinion, short_month=False):
+    def _get_date(self, opinion, short_month=False):
         """
         Extract the decision date for a court `opinion` with the format `Day Month, Year`
         format and convert it to `Year-Month-Day`.
@@ -663,7 +714,7 @@ class GCLParse(object):
             )
 
     @staticmethod
-    def _gcl_footnote_id(opinion):
+    def _footnote_id(opinion):
         """
         Obtain all the footnote ids cited in the text and replace them with
         a unique identifier '@@@@[id]' for tracking purposes.
@@ -683,7 +734,7 @@ class GCLParse(object):
                         f" @@@@{tag.find('a').attrs['name'].replace('r', '')} "
                     )
 
-    def _gcl_full_casename(self, opinion):
+    def _full_casename(self, opinion):
         """
         Extract full case name from the `opinion`.
         """
@@ -692,7 +743,7 @@ class GCLParse(object):
             [*self.strip_patterns, *self.comma_space_patterns],
         )
 
-    def _gcl_casenumber(
+    def _casenumber(
         self, opinion, jurisdiction=None, court_code=None, only_casenumber=False
     ):
         """
@@ -742,7 +793,7 @@ class GCLParse(object):
 
         return zip(case_ids_, docket_numbers)
 
-    def _gcl_replace_tags(self, opinion, court_code):
+    def _replace_tags(self, opinion, court_code):
         """
         Remove or replace all the tags with their appropriate labels.
         """
@@ -818,7 +869,47 @@ class GCLParse(object):
         if small:
             small[-1].replaceWith("")
 
-    def _gcl_get_patents(self, opinion):
+    def _personal_opinion(self, training_text, judges):
+        """
+        Determine if a case from Circuit Courts involves personal opinion of a judge(s)
+        e.g. "dissent" or "concur". Return a dictionary including the name of every judge
+        hearing the case, together with a sub-key "index_span" that shows the range of positional
+        indices of the personal opinion located in `training_text`.
+        """
+        opinion_tags = list(
+            re.finditer(self.judge_dissent_concur_patterns, training_text)
+        )
+        op_dict, indices = {"concur": None, "dissent": None}, {}
+
+        for i, tag in enumerate(opinion_tags):
+            indices[i] = tag.start()
+
+        for judge in judges:
+            for i, tag in enumerate(opinion_tags):
+                if judge.lower() in tag.group(1).lower():
+                    op_type = filter(
+                        lambda x: x in tag.group(0).lower(),
+                        ["concurring", "dissenting"],
+                    )
+                    for o in op_type:
+                        dc = regex(o, [(r"r?ing$", "")])
+
+                        if op_dict[dc] is None:
+                            op_dict[dc] = []
+
+                        # Fix the end index of each tuple in `index_span` by replacing it with
+                        # the start index of the next index, if any. Otherwise,
+                        # replace the end index with the length of `training_text`.
+                        end_index = len(training_text)
+                        if i < len(opinion_tags) - 1:
+                            end_index = indices[i + 1]
+
+                        op_dict[dc] += [
+                            {"judge": judge, "index_span": (tag.start(), end_index)}
+                        ]
+        return op_dict
+
+    def _get_patents(self, opinion):
         """
         Scrape the patent numbers cited in an `opinion`.
         """
@@ -880,7 +971,7 @@ class GCLParse(object):
 
         return clean_number
 
-    def _gcl_get_claims(self, opinion):
+    def _get_claims(self, opinion):
         """
         Extract the claim numbers cited in an `opinion`.
         """
@@ -1178,7 +1269,7 @@ class GCLParse(object):
 
         return remove_repeated([case_id] + list(case_repo["cites_to"].keys()))
 
-    def bulk_cites_collect(self, json_subdir=None):
+    def gcl_cites_collect(self, json_subdir=None):
         """
         Collect case IDs collected using the method `_collect_cites`
         from each case found in the subdirectory `~/json/json_subdir`.
@@ -1203,91 +1294,34 @@ class GCLParse(object):
         with open(case_ids.__str__(), "w") as f:
             json.dump(r, f, indent=4)
 
-    def _gcl_personal_opinion(self, training_text, judges):
+    def gcl_make_list(self, filename, json_subdir=None):
         """
-        Determine if a case from Circuit Courts involves personal opinion of a judge(s)
-        e.g. "dissent" or "concur". Return a dictionary including the name of every judge
-        hearing the case, together with a sub-key "index_span" that shows the range of positional
-        indices of the personal opinion located in `training_text`.
+        Create a csv file that contains existing case summaries in
+        `json_subdir` and save it under `~/data/csv/{filename}.csv.`
         """
-        opinion_tags = list(
-            re.finditer(self.judge_dissent_concur_patterns, training_text)
+        json_subdir = f"json_{self.suffix}" if not json_subdir else json_subdir
+        case_files = (self.data_dir / "json" / json_subdir).glob("*.json")
+        case_summaries = list(
+            multiprocess(
+                self.gcl_get_citation, [f.stem for f in case_files], yield_results=True
+            )
         )
-        op_dict, indices = {"concur": None, "dissent": None}, {}
-
-        for i, tag in enumerate(opinion_tags):
-            indices[i] = tag.start()
-
-        for judge in judges:
-            for i, tag in enumerate(opinion_tags):
-                if judge.lower() in tag.group(1).lower():
-                    op_type = filter(
-                        lambda x: x in tag.group(0).lower(),
-                        ["concurring", "dissenting"],
-                    )
-                    for o in op_type:
-                        dc = regex(o, [(r"r?ing$", "")])
-
-                        if op_dict[dc] is None:
-                            op_dict[dc] = []
-
-                        # Fix the end index of each tuple in `index_span` by replacing it with
-                        # the start index of the next index, if any. Otherwise,
-                        # replace the end index with the length of `training_text`.
-                        end_index = len(training_text)
-                        if i < len(opinion_tags) - 1:
-                            end_index = indices[i + 1]
-
-                        op_dict[dc] += [
-                            {"judge": judge, "index_span": (tag.start(), end_index)}
-                        ]
-        return op_dict
-
-    def _get(self, url_or_id, need_proxy=False):
-        """
-        Request to access the content of a Google Scholar case law page with a valid `url_or_id`.
-
-        Args
-        ----
-        :param need_proxy: ---> bool: if True, start switching proxy IP after each request
-                                      to reduce risk of getting blocked.
-        """
-        url = url_or_id
-        if regex(url_or_id, self.just_number_patterns, sub=False):
-            url = self.base_url + f"scholar_case?case={url_or_id}"
-
-        res_content = ""
-
-        if need_proxy:
-            proxy = proxy_browser()
-            proxy.get(url)
-            res_content = proxy.page_source
-            status = 200
-
-            if not res_content:
-                status = 0
-
-            else:
-                # Obtain a `404` error indicator if server returned html.
-                if regex(res_content, [(r"class=\"gs_med\"", "")], sub=False):
-                    status = 404
-                # Solve recaptcha if encountered.
-                elif regex(res_content, [(r"id=\"gs_captcha_c\"", "")], sub=False):
-                    EXPECTED_RESULT = "You are verified"
-                    recaptcha = recaptcha_process(url, proxy)
-                    assert EXPECTED_RESULT in recaptcha
-                switch_ip()
-
-        else:
-            response = requests.get(url)
-            response.encoding = response.apparent_encoding
-            status = response.status_code
-            if status == 200:
-                res_content = response.text
-
-        if status == 404:
-            print(f'URL "{url}" not found')
-
-        if status not in [200, 404]:
-            raise Exception(f"Server response: {status}")
-        return status, res_content
+        case_summaries.sort(
+            key=lambda x: datetime.strptime(x[1], "%Y-%m-%d"), reverse=True
+        )
+        case_summaries = [[i + 1, *entry] for i, entry in enumerate(case_summaries)]
+        with open(self.data_dir / "csv" / f"{filename}.csv", "w", newline="") as f:
+            csvfile = writer(f, quoting=QUOTE_ALL, lineterminator="\n", delimiter="\t")
+            csvfile.writerow(
+                [
+                    "  #  ",
+                    "Case",
+                    "Date",
+                    "Court Full Name",
+                    "Court Short Name",
+                    "Court Code",
+                    "Jurisdiction",
+                    "URL",
+                ]
+            )
+            csvfile.writerows(case_summaries)
