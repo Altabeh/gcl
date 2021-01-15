@@ -65,9 +65,11 @@ class GCLParse(object):
     ]
     docket_appeals_patterns = [(r"(?:\d{2,4}|(?<=, )|(?<=, and)(?: +)?)-\d{1,5}", "")]
     docket_us_patterns = [(r"\d+(?:-\d+)?", "")]
-    patent_number_pattern = r"(?:(?:RE|PP|D|AI|X|H|T)?\d{1,2}[,./]\-?)?(?:(?:RE|PP|D|AI|X|H|T)\d{2,3}|\d{3})[,./]\-?\d{3}(?: ?AI)?\b"
-    patent_reference_pattern = r'["`\'#]+(\d{3}) ?(?:[Aa]pplication|[Pp]atent)\b'
-    claim_patterns_1 = r"([Cc]laims?([\d\-, and]+)(?:[\w ]+)(?:(?:[\(\"“ ]+)?(?: ?the ?)?[#`\']+(\d+)))"
+    patent_number_pattern = r"(?:(?:RE|PP|D|AI|X|H|T)? ?\d{1,2}[,./]\-?)?(?:(?:RE|PP|D|AI|X|H|T) ?\d{2,3}|\d{3})[,./]\-?\d{3}(?: ?AI)?\b"
+    patent_reference_pattern = r'["`\'#]+(\d{3,4}) ?(?:[Aa]pplication|[Pp]atent)\b'
+    claim_patterns_1 = (
+        r"[Cc]laims?([\d\-, and]+)(?:[\w ]+)(?:(?:[\(\"“ ]+)?(?: ?the ?)?[#`\']+(\d+))"
+    )
     claim_patterns_2 = r"(?<=[cC]laim[s ])(?:([\d,\- ]+)(?:(?:[, ]+)?and ([\d\- ]+))*)+"
     patent_number_patterns_1 = [(r" " + patent_number_pattern, "")]
     patent_number_patterns_2 = [(r"[USnitedpPaNso. ]+" + patent_number_pattern, "")]
@@ -79,9 +81,10 @@ class GCLParse(object):
             "",
         )
     ]
+    judge_dissent_concur_patterns = r"(?<=\$)([^\$][\w\W][^\$]+((?:[Cc]oncurring|[Dd]issenting)[a-z.:;,\- ]+))(?=\$)"
     judge_clean_patterns_1 = [
         (
-            r", joined$| ?—$| ?@@@@\[[\d\*]+\] ?$|^Opinion of the Court by |, United States District Court| ?Pending before the Court are:?| ?Opinion for the court filed by[\w\'., ]+| delivered the opinion of the Court\.|^Appeal from ",
+            r", joined$| ?—$|^Opinion of the Court by |, United States District Court| ?Pending before the Court are:?| ?Opinion for the court filed by[\w\'., ]+| delivered the opinion of the Court\.|^Appeal from ",
             "",
         )
     ]
@@ -108,9 +111,16 @@ class GCLParse(object):
     extra_char_patterns = [(r"^[,. ]+|[,. ]+$", "")]
     comma_space_patterns = [(r"^[, ]+|[, ]+$", "")]
     space_patterns = [(r"^ +| +$", "")]
+    end_sentence_patterns = [
+        (
+            r"(?:AFFIRMED|ORDERED|REMANDED|DENIED|REVERSED|GRANTED|[pP][aA][rR][tT]|[.!?])[\"\'”’]?$",
+            "",
+        )
+    ]
     roman_patterns = [(r"^[MDCLXVI](?:M|D|C{0,4}|L|X{0,4}|V|I{0,4})$", "")]
     abbreviation_patterns = [(r"^[JS][Rr]\.$", "")]
-    page_patterns = [(r"\+page\[\d+\]\+", "")]
+    page_patterns = [(r"(?: +)?\+page\[\d+\]\+ +", " ")]
+    clean_footnote_patterns = [(r" ?@@@@\[[\d\*]+\] ?", " ")]
 
     def __init__(self, **kwargs):
         self.data_dir = kwargs.get("data_dir", BASE_DIR / "tools" / "gcl" / "data")
@@ -235,8 +245,9 @@ class GCLParse(object):
             else:
                 case["case_numbers"].append({"id": id_, "docket_number": [num_]})
 
-        case["judges"] = self.gcl_get_judge(opinion, court_code, False)
-
+        case["judges"] = self.gcl_get_judge(opinion, court_code)
+        case["personal_opinions"] = None
+        
         patents = []
         patent_numbers = self._gcl_get_patents(opinion)
         for key, value in self._gcl_get_claims(opinion).items():
@@ -254,6 +265,7 @@ class GCLParse(object):
                                 int(i)
                                 for i in value
                                 if regex(i, self.just_number_patterns, sub=False)
+                                and int(i) <= len(claims)
                             ],
                         }
                     )
@@ -281,6 +293,10 @@ class GCLParse(object):
         self._gcl_replace_tags(opinion, court_code)
 
         case["training_text"] = regex(opinion.get_text(), self.strip_patterns)
+
+        case["personal_opinions"] = self._gcl_personal_opinion(
+            case["training_text"], case["judges"]
+        )
 
         json_subdir = f"json_{self.suffix}" if not json_subdir else json_subdir
         with open(
@@ -311,15 +327,17 @@ class GCLParse(object):
         :param just_locate: ---> bool: just locate the tag containing judge names and return.
         """
         initial_cleaning_patterns = [
-            (r"(?: +)?\+page\[\d+\]\+ +", ""),
+            *self.page_patterns,
+            *self.clean_footnote_patterns,
             *self.judge_clean_patterns_1,
         ]
         judge_tag = ""
         for tag in opinion.find_all("p"):
-            tag_text = regex(tag.get_text(), initial_cleaning_patterns)
-            if regex(tag_text, self.judge_patterns, sub=False):
-                judge_tag = tag
-                break
+            if not tag.find("h2"):
+                tag_text = regex(tag.get_text(), initial_cleaning_patterns)
+                if regex(tag_text, self.judge_patterns, sub=False):
+                    judge_tag = tag
+                    break
 
         if just_locate:
             return judge_tag
@@ -550,7 +568,13 @@ class GCLParse(object):
 
         return date_format.strftime("%Y-%m-%d")
 
-    def gcl_drop(self, json_subdir=None, remove_redundant=False, external_list=None):
+    def gcl_drop(
+        self,
+        json_subdir=None,
+        remove_redundant=False,
+        remove_patent=False,
+        external_list=None,
+    ):
         """
         Show the redundant (unpublished) cases. Only keep the published ones
         if `keep_published` is set to True. Add an arbitrary `external_list`
@@ -565,6 +589,7 @@ class GCLParse(object):
                                             patent information of the redundant (unpublished) cases.
         :param external_list: ---> list: an arbitrary list of case IDs whose serialized data are found
                                          in `json_subdir`, which too need to be removed.
+        :param remove_patent: ---> bool: if True, remove patent data.
         """
         suffix = self.suffix
         if not json_subdir:
@@ -606,11 +631,15 @@ class GCLParse(object):
         def _remove_data(case_id, label):
             """Remove all data related to the case ID `case_id` from the `data` folder."""
             path = directory / f"{case_id}.json"
+
             if path.is_file():
                 path.unlink()
-            patent_folder = self.data_dir / "patent" / f"patent_{suffix}" / case_id
-            if patent_folder.is_dir():
-                rm_tree(patent_folder)
+
+            if remove_patent:
+                patent_folder = self.data_dir / "patent" / f"patent_{suffix}" / case_id
+                if patent_folder.is_dir():
+                    rm_tree(patent_folder)
+
             print(f"Case data with ID {case_id} ({label}) was removed successfully")
 
         if remove_redundant:
@@ -780,7 +809,7 @@ class GCLParse(object):
             if not text:
                 p.replaceWith("")
             else:
-                if regex(text, [(r"[.!?][\"\']?$", "")], sub=False):
+                if regex(text, self.end_sentence_patterns, sub=False):
                     p.replaceWith(f"{text} $$$$ ")
                 else:
                     p.replaceWith(text)
@@ -807,6 +836,7 @@ class GCLParse(object):
                 f"US{self.uspto_grab_patent_number(x)}"
                 for x in patents
                 if x[-3:] in patent_refs
+                or regex(x, self.special_chars_patterns)[-4:] in patent_refs
             ]
         elif regex(text, [(r"[pP]atents-in-[sS]uit", "")]):
             patents = [f"US{self.uspto_grab_patent_number(x)}" for x in patents]
@@ -882,13 +912,13 @@ class GCLParse(object):
 
         modified_opinion = regex(modified_opinion, self.patent_number_patterns_2)
         # Regex to capture claim numbers followed by a patent number.
-        claims_1 = re.findall(self.claim_patterns_1, modified_opinion)
+        claims_1 = re.finditer(self.claim_patterns_1, modified_opinion)
 
         claims_from_patent = {}
         for c in claims_1:
-            new_key = c[2]
+            new_key = c.group(2)
             new_value = regex(
-                c[1],
+                c.group(1),
                 [
                     (r"(\d+)[\- ]+(\d+)", r"\g<1>-\g<2>"),
                     (r"[^0-9\-]+", " "),
@@ -906,7 +936,12 @@ class GCLParse(object):
         patent_refs = re.finditer(self.patent_reference_pattern, modified_opinion)
         # Remove claim numbers of the type `claims # of the '# patent` to avoid double count.
         for c in claims_1:
-            modified_opinion = modified_opinion.replace(c[1], "")
+            modified_opinion = (
+                modified_opinion[: c.span(1)[0]]
+                + " "
+                + modified_opinion[c.span(1)[1] :]
+            )
+
         # Regex to capture claim numbers at large or NOT followed by a patent number.
         claims_2 = re.finditer(self.claim_patterns_2, modified_opinion)
 
@@ -946,6 +981,7 @@ class GCLParse(object):
                 claims_from_patent[key] = sorted(
                     remove_repeated(reduce(concat, value)), key=sort_int
                 )
+
         return claims_from_patent
 
     def gcl_patent_data(
@@ -1057,7 +1093,7 @@ class GCLParse(object):
                     )
                     info["url"] = url
                     info["patent_number"] = patent_number
-                    print(f"Saving patent data with Patent No. {patent_number} ...")
+                    print(f"Saving patent data for Patent No. {patent_number} ...")
                     create_dir(json_path.parent)
                     with open(json_path.__str__(), "w") as f:
                         json.dump(info, f, indent=4)
@@ -1166,6 +1202,46 @@ class GCLParse(object):
         r["case_ids"] = remove_repeated(r["case_ids"])
         with open(case_ids.__str__(), "w") as f:
             json.dump(r, f, indent=4)
+
+    def _gcl_personal_opinion(self, training_text, judges):
+        """
+        Determine if a case from Circuit Courts involves personal opinion of a judge(s)
+        e.g. "dissent" or "concur". Return a dictionary including the name of every judge
+        hearing the case, together with a sub-key "index_span" that shows the range of positional
+        indices of the personal opinion located in `training_text`.
+        """
+        opinion_tags = list(
+            re.finditer(self.judge_dissent_concur_patterns, training_text)
+        )
+        op_dict, indices = {"concur": None, "dissent": None}, {}
+
+        for i, tag in enumerate(opinion_tags):
+            indices[i] = tag.start()
+
+        for judge in judges:
+            for i, tag in enumerate(opinion_tags):
+                if judge.lower() in tag.group(1).lower():
+                    op_type = filter(
+                        lambda x: x in tag.group(0).lower(),
+                        ["concurring", "dissenting"],
+                    )
+                    for o in op_type:
+                        dc = regex(o, [(r"r?ing$", "")])
+
+                        if op_dict[dc] is None:
+                            op_dict[dc] = []
+
+                        # Fix the end index of each tuple in `index_span` by replacing it with
+                        # the start index of the next index, if any. Otherwise,
+                        # replace the end index with the length of `training_text`.
+                        end_index = len(training_text)
+                        if i < len(opinion_tags) - 1:
+                            end_index = indices[i + 1]
+
+                        op_dict[dc] += [
+                            {"judge": judge, "index_span": (tag.start(), end_index)}
+                        ]
+        return op_dict
 
     def _get(self, url_or_id, need_proxy=False):
         """
