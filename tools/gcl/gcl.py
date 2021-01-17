@@ -68,9 +68,9 @@ class GCLParse(object):
     docket_appeals_patterns = [(r"(?:\d{2,4}|(?<=, )|(?<=, and)(?: +)?)-\d{1,5}", "")]
     docket_us_patterns = [(r"\d+(?:-\d+)?", "")]
     patent_number_pattern = r"(?:(?:RE|PP|D|AI|X|H|T)? ?\d{1,2}[,./]\-?)?(?:(?:RE|PP|D|AI|X|H|T) ?\d{2,3}|\d{3})[,./]\-?\d{3}(?: ?AI)?\b"
-    patent_reference_pattern = r'["`\'#]+(\d{3,4}) ?(?:[Aa]pplication|[Pp]atent)\b'
+    patent_reference_pattern = r'["`\'#’]+(\d{3,4}) ?(?:[Aa]pplication|[Pp]atent)\b'
     claim_patterns_1 = (
-        r"[Cc]laims?([\d\-, and]+)(?:[\w ]+)(?:(?:[\(\"“ ]+)?(?: ?the ?)?[#`\']+(\d+))"
+        r"[Cc]laims?([\d\-, and]+)(?:[\w ]+)(?:(?:[\(\"“ ]+)?(?: ?the ?)?[#`\'’]+(\d+))"
     )
     claim_patterns_2 = r"(?<=[cC]laim[s ])(?:([\d,\- ]+)(?:(?:[, ]+)?and ([\d\- ]+))*)+"
     patent_number_patterns_1 = [(r" " + patent_number_pattern, "")]
@@ -128,7 +128,10 @@ class GCLParse(object):
         self.data_dir = kwargs.get("data_dir", BASE_DIR / "tools" / "gcl" / "data")
         if isinstance(self.data_dir, str):
             self.data_dir = Path(self.data_dir)
+        # jurisdictions.json contains all U.S. states, territories and federal/state court names,
+        # codes, and abbreviations.
         self.jurisdictions = kwargs.get("jurisdictions", None)
+        # Will be used to label all folders inside `data_dir`.
         self.suffix = kwargs.get("suffix", "")
         if not self.jurisdictions:
             try:
@@ -191,7 +194,6 @@ class GCLParse(object):
         path_or_url: str,
         skip_patent=False,
         return_data=False,
-        json_subdir=None,
         need_proxy=False,
     ):
         """
@@ -202,8 +204,6 @@ class GCLParse(object):
         ----
         :param path_or_url: ---> str: a path to an html file or a valid url of a Google case law page.
         :param skip_patent: ---> bool: if true, skips downloading and scraping patent information.
-        :param json_subdir: ---> str: name of the subdirectory in the 'json' folder to save the serialized
-                                 data in. Defaults to `json_suffix`.
         """
         html_text = ""
         if not Path(path_or_url).is_file():
@@ -349,9 +349,8 @@ class GCLParse(object):
             case["training_text"], case["judges"]
         )
 
-        json_subdir = f"json_{self.suffix}" if not json_subdir else json_subdir
         with open(
-            str(create_dir(self.data_dir / "json" / json_subdir) / f"{case_id}.json"),
+            str(create_dir(self.data_dir / "json" / f'json_{self.suffix}') / f"{case_id}.json"),
             "w",
         ) as f:
             json.dump(case, f, indent=4)
@@ -621,7 +620,6 @@ class GCLParse(object):
 
     def gcl_drop(
         self,
-        json_subdir=None,
         remove_redundant=False,
         remove_patent=False,
         external_list=None,
@@ -633,21 +631,13 @@ class GCLParse(object):
 
         Args
         ----
-        :param json_subdir: ---> str: name of the subdirectory in the 'json' folder
-                                      that the serialized data is saved in. Defaults to
-                                      `json_suffix`.
         :param remove_redundant: ---> bool: if True, will remove the serialized data and
                                             patent information of the redundant (unpublished) cases.
         :param external_list: ---> list: an arbitrary list of case IDs whose serialized data are found
-                                         in `json_subdir`, which too need to be removed.
+                                         in `json_suffix`, which too need to be removed.
         :param remove_patent: ---> bool: if True, remove patent data.
         """
-        suffix = self.suffix
-        if not json_subdir:
-            json_subdir = f"json_{self.suffix}"
-            suffix = json_subdir.replace("json_", "")
-
-        directory = self.data_dir / "json" / json_subdir
+        directory = self.data_dir / "json" / f'json_{self.suffix}'
         json_files = list((directory).glob("*.json"))
 
         name_patterns, docket_patterns, ids = [], [], []
@@ -687,7 +677,7 @@ class GCLParse(object):
                 path.unlink()
 
             if remove_patent:
-                patent_folder = self.data_dir / "patent" / f"patent_{suffix}" / case_id
+                patent_folder = self.data_dir / "patent" / f"patent_{self.suffix}" / case_id
                 if patent_folder.is_dir():
                     rm_tree(patent_folder)
 
@@ -1268,24 +1258,21 @@ class GCLParse(object):
                 case_id = case_repo["id"]
 
         return remove_repeated([case_id] + list(case_repo["cites_to"].keys()))
-
-    def gcl_cites_collect(self, json_subdir=None):
+    
+    def gcl_cites_collect(self):
         """
         Collect case IDs collected using the method `_collect_cites`
-        from each case found in the subdirectory `~/json/json_subdir`.
-        If no subdirectory is set, it defaults to `json_suffix`.
+        from each case found in the subdirectory `~/data/json/json_suffix`
+        and save them to `~/data/json/case_ids_suffix.json`.
         """
-        filename = self.suffix
-        if not json_subdir:
-            json_subdir = f"json_{self.suffix}"
-            filename = json_subdir.replace("json_", "")
-        case_ids = create_dir(self.data_dir) / "json" / f"case_ids_{filename}.json"
+        
+        case_ids = self.data_dir / "json" / f"case_ids_{self.suffix}.json"
 
         r = {"case_ids": []}
         if case_ids.is_file():
             with open(case_ids.__str__(), "r") as f:
                 r = json.load(f)
-        paths = (self.data_dir / "json" / json_subdir).glob("*.json")
+        paths = (self.data_dir / "json" / f'json_{self.suffix}').glob("*.json")
         r["case_ids"] += reduce(
             concat,
             list(multiprocess(self._collect_cites, list(paths), yield_results=True)),
@@ -1294,13 +1281,12 @@ class GCLParse(object):
         with open(case_ids.__str__(), "w") as f:
             json.dump(r, f, indent=4)
 
-    def gcl_make_list(self, filename, json_subdir=None):
+    def gcl_make_list(self, filename):
         """
         Create a csv file that contains existing case summaries in
-        `json_subdir` and save it under `~/data/csv/{filename}.csv.`
+        `json_suffix` and save it under `~/data/csv/{filename}.csv.`
         """
-        json_subdir = f"json_{self.suffix}" if not json_subdir else json_subdir
-        case_files = (self.data_dir / "json" / json_subdir).glob("*.json")
+        case_files = (self.data_dir / "json" / f'json_{self.suffix}').glob("*.json")
         case_summaries = list(
             multiprocess(
                 self.gcl_get_citation, [f.stem for f in case_files], yield_results=True
