@@ -115,7 +115,7 @@ class GCLParse(object):
     space_patterns = [(r"^ +| +$", "")]
     end_sentence_patterns = [
         (
-            r"(?:AFFIRMED|ORDERED|REMANDED|DENIED|REVERSED|GRANTED|[pP][aA][rR][tT]|[.!?])[\"\'”’]?$",
+            r"(?:AFFIRMED|ORDERED|REMANDED|DENIED|REVERSED|GRANTED|[pP][aA][rR][tT]|@@@@\[[\d\*]+\]|[.!?])[\"\'”’]?$",
             "",
         )
     ]
@@ -1272,7 +1272,7 @@ class GCLParse(object):
         if case_ids.is_file():
             with open(case_ids.__str__(), "r") as f:
                 r = json.load(f)
-        paths = (self.data_dir / "json" / f'json_{self.suffix}').glob("*.json")
+        paths = (self.data_dir / "json" / f"json_{self.suffix}").glob("*.json")
         r["case_ids"] += reduce(
             concat,
             list(multiprocess(self._collect_cites, list(paths), yield_results=True)),
@@ -1286,7 +1286,7 @@ class GCLParse(object):
         Create a csv file that contains existing case summaries in
         `json_suffix` and save it under `~/data/csv/{filename}.csv.`
         """
-        case_files = (self.data_dir / "json" / f'json_{self.suffix}').glob("*.json")
+        case_files = (self.data_dir / "json" / f"json_{self.suffix}").glob("*.json")
         case_summaries = list(
             multiprocess(
                 self.gcl_get_citation, [f.stem for f in case_files], yield_results=True
