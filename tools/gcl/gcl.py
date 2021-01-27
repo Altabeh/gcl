@@ -20,6 +20,8 @@ from datetime import datetime
 from functools import reduce
 from operator import concat
 from pathlib import Path
+from random import randint
+from time import sleep
 
 import requests
 from bs4 import BeautifulSoup as BS
@@ -108,6 +110,10 @@ class GCLParse(object):
             "",
         )
     ]
+    long_bluebook_patterns = [(r"(?:en banc|[Ee]d\.|Cir\.|\d{4})\)$", "")]
+    extras_citations_patterns = [
+        (r",(?:(?:[\d& ,\-\*]+)|(?:[nat&\- \*\d]+(?:\.\d+ ?)?))(?= \(|,)", "")
+    ]
     special_chars_patterns = [(r"\W", "")]
     strip_patterns = [(r"\n", " "), (r" +", " ")]
     extra_char_patterns = [(r"^[,. ]+|[,. ]+$", "")]
@@ -187,6 +193,7 @@ class GCLParse(object):
 
         if status not in [200, 404]:
             raise Exception(f"Server response: {status}")
+
         return status, res_content
 
     def gcl_parse(
@@ -195,6 +202,7 @@ class GCLParse(object):
         skip_patent=False,
         return_data=False,
         need_proxy=False,
+        random_sleep=False,
     ):
         """
         Parses a Google case law page under an `html_path` or at a `url` and serializes/saves all relevant information
@@ -204,10 +212,14 @@ class GCLParse(object):
         ----
         :param path_or_url: ---> str: a path to an html file or a valid url of a Google case law page.
         :param skip_patent: ---> bool: if true, skips downloading and scraping patent information.
+        :param random_sleep: ---> bool: if True, sleep for randomly selected seconds before making
+                                      a new request.
         """
         html_text = ""
         if not Path(path_or_url).is_file():
             html_text = tuple(self._get(path_or_url, need_proxy))[1]
+            if random_sleep:
+                sleep(randint(2, 10))
         else:
             with open(path_or_url, "r") as f:
                 html_text = f.read()
@@ -238,16 +250,19 @@ class GCLParse(object):
 
         case["citation"], court_info = self.gcl_citor(html_text)
         case["short_citation"] = []
-        page_list = opinion.find_all("a", class_="gsl_pagenum")
+
+        page_number_tags = opinion.find_all("a", class_="gsl_pagenum")
 
         case["first_page"], case["last_page"] = None, None
-        if page_list:
-            pages = [p.get_text() for p in page_list]
+        if page_number_tags:
+            pages = [p.get_text() for p in page_number_tags]
             case["first_page"], case["last_page"] = int(pages[0]), int(pages[-1])
 
         for center in opinion.select("center > b"):
             case["short_citation"].append(center.get_text())
             center.replaceWith("")
+
+        self.gcl_fix_broken_links(page_number_tags)
 
         case["cites_to"] = {}
         for l in links:
@@ -263,14 +278,21 @@ class GCLParse(object):
                         case["cites_to"] = {id_: [ct]}
                     else:
                         if case["cites_to"].get(id_, None):
-                            for el in case["cites_to"][id_]:
+                            cites = case["cites_to"][id_]
+                            not_accounted = True
+                            for el in cites:
                                 if el["name"] == case_name:
                                     if case_citation not in el["citations"]:
                                         el["citations"].append(case_citation)
-                                else:
-                                    case["cites_to"][id_] = [ct]
+                                    not_accounted = False
+                                    break
+
+                            # If some variation of a citation does not exist in the cited cases already:
+                            if not_accounted:
+                                cites += [ct]
                         else:
                             case["cites_to"][id_] = [ct]
+
                     l.replaceWith(f" ####{id_} ")
 
         case["date"] = self._get_date(opinion)
@@ -350,7 +372,10 @@ class GCLParse(object):
         )
 
         with open(
-            str(create_dir(self.data_dir / "json" / f'json_{self.suffix}') / f"{case_id}.json"),
+            str(
+                create_dir(self.data_dir / "json" / f"json_{self.suffix}")
+                / f"{case_id}.json"
+            ),
             "w",
         ) as f:
             json.dump(case, f, indent=4)
@@ -637,7 +662,7 @@ class GCLParse(object):
                                          in `json_suffix`, which too need to be removed.
         :param remove_patent: ---> bool: if True, remove patent data.
         """
-        directory = self.data_dir / "json" / f'json_{self.suffix}'
+        directory = self.data_dir / "json" / f"json_{self.suffix}"
         json_files = list((directory).glob("*.json"))
 
         name_patterns, docket_patterns, ids = [], [], []
@@ -677,7 +702,9 @@ class GCLParse(object):
                 path.unlink()
 
             if remove_patent:
-                patent_folder = self.data_dir / "patent" / f"patent_{self.suffix}" / case_id
+                patent_folder = (
+                    self.data_dir / "patent" / f"patent_{self.suffix}" / case_id
+                )
                 if patent_folder.is_dir():
                     rm_tree(patent_folder)
 
@@ -692,7 +719,7 @@ class GCLParse(object):
 
         else:
             redundent_cases = {
-                x: self.gcl_get_citation(x, False)[x] for x in repeated_ids
+                x: self.gcl_citation_summary(x, False)[x] for x in repeated_ids
             }
             print(f"Redundent cases: {redundent_cases}")
 
@@ -782,6 +809,27 @@ class GCLParse(object):
             return zip(case_ids_ * (dn - ci + 1), docket_numbers)
 
         return zip(case_ids_, docket_numbers)
+
+    @staticmethod
+    def gcl_fix_broken_links(page_number_tags):
+        for a in page_number_tags:
+            if fn := a.previous_sibling:
+                if (
+                    fn.name == "a"
+                    and fn.attrs["href"]
+                    and "scholar_case?" in fn.attrs["href"]
+                ):
+                    if gn := a.next_sibling.next_sibling:
+                        if (
+                            gn.name == "a"
+                            and gn.attrs["href"]
+                            and gn.attrs["href"] == fn.attrs["href"]
+                        ):
+                            if zn := gn.i:
+                                zn.unwrap()
+                                gn.smooth()
+                            gn.string = regex(fn.get_text() + gn.text, [(r" +", " ")])
+                            fn.decompose()
 
     def _replace_tags(self, opinion, court_code):
         """
@@ -1138,27 +1186,28 @@ class GCLParse(object):
                         )
                         if in_tag:
                             num = in_tag.attrs["num"]
-                            if "-" in num:
-                                extra_count += 1  # Fixes wrong counting of claims.
-                                num = int(regex(num, [(r"-.*$", "")])) + extra_count
-                            else:
-                                num = int(num) + extra_count
-                            context = regex(
-                                tag.get_text(),
-                                [*relevant_patterns, (r"^\d+\. ", "")],
-                            )
-                            attach_data = {
-                                "claim_number": num,
-                                "context": context,
-                                "dependent_on": None,
-                            }
-                            info["claims"][num] = attach_data
-                            if "claim-dependent" not in tag.attrs["class"]:
-                                last_independent_num = num
-                            else:
-                                info["claims"][num][
-                                    "dependent_on"
-                                ] = last_independent_num
+                            if regex(num, [(r"\d$", "")], sub=False):
+                                if "-" in num:
+                                    extra_count += 1  # Fixes wrong counting of claims.
+                                    num = int(regex(num, [(r"-.*$", "")])) + extra_count
+                                else:
+                                    num = int(num) + extra_count
+                                context = regex(
+                                    tag.get_text(),
+                                    [*relevant_patterns, (r"^\d+\. ", "")],
+                                )
+                                attach_data = {
+                                    "claim_number": num,
+                                    "context": context,
+                                    "dependent_on": None,
+                                }
+                                info["claims"][num] = attach_data
+                                if "claim-dependent" not in tag.attrs["class"]:
+                                    last_independent_num = num
+                                else:
+                                    info["claims"][num][
+                                        "dependent_on"
+                                    ] = last_independent_num
 
                     abstract_tags = patent.find_all("div", class_="abstract")
                     abstract = " ".join(
@@ -1174,7 +1223,7 @@ class GCLParse(object):
                     )
                     info["url"] = url
                     info["patent_number"] = patent_number
-                    print(f"Saving patent data for Patent No. {patent_number} ...")
+                    print(f"Saving patent data for Patent No. {patent_number}...")
                     create_dir(json_path.parent)
                     with open(json_path.__str__(), "w") as f:
                         json.dump(info, f, indent=4)
@@ -1188,7 +1237,7 @@ class GCLParse(object):
 
             return found, info["claims"]
 
-    def gcl_get_citation(self, case_id, return_list=True):
+    def gcl_citation_summary(self, case_id, suffix=None, return_list=True):
         """
         Given a `case_id` for a Google case law page, create a summary
         of the case in terms of its bluebook citation, court and date.
@@ -1196,16 +1245,28 @@ class GCLParse(object):
 
         Args
         ----
+        :param suffix: ---> str: overwrites instance attribute `suffix`.
         :param return_list: ---> bool: if False, return a dictionary instead with keys being
                                  `citation`, `court` and `date`.
         """
         data = {"citation": None, "court": None, "date": None}
+
+        if not suffix:
+            suffix = self.suffix
+
         path_to_file = (
-            self.data_dir / "json" / f"json_{self.suffix}" / f"{case_id}.json"
+            create_dir(self.data_dir / "json" / f"json_{suffix}") / f"{case_id}.json"
         )
+
         url = self.base_url + f"scholar_case?case={case_id}"
+
         if not path_to_file.is_file():
+            print(f"Now downloading the case {case_id}...")
+            s1 = self.suffix
+            self.suffix = suffix
             data = self.gcl_parse(url, return_data=True)
+            self.suffix = s1
+
         else:
             with open(path_to_file, "r") as f:
                 data = json.load(f)
@@ -1227,9 +1288,25 @@ class GCLParse(object):
                         case_summary[case_id][key] = val
         return case_summary
 
+    def gcl_long_blue_cite(self, citation):
+        """
+        Return longest bluebook version of a citation by removing pages and extra details.
+        Return None if the citation does not match any of `long_bluebook_patterns`.
+
+        Example
+        -------
+        >>> citation = "Ormco Corp. v. Align Tech., Inc., 463 F.3d 1299, 1305 (Fed. Cir. 2006)"
+        u"Ormco Corp. v. Align Tech., Inc., 463 F.3d 1299 (Fed. Cir. 2006)"
+
+        """
+        citation = regex(citation, self.extras_citations_patterns)
+        if regex(citation, self.long_bluebook_patterns, sub=False):
+            return citation
+        return
+
     def _collect_cites(self, data: str) -> list:
         """
-        Collect the value of `cites_to` key in a gcl `data`. If file is not found,
+        Collect all the citations in a gcl `data`. If file is not found,
         it will be downloaded.
 
         Args
@@ -1257,28 +1334,61 @@ class GCLParse(object):
                 case_repo = json.load(f)
                 case_id = case_repo["id"]
 
-        return remove_repeated([case_id] + list(case_repo["cites_to"].keys()))
-    
-    def gcl_cites_collect(self):
-        """
-        Collect case IDs collected using the method `_collect_cites`
-        from each case found in the subdirectory `~/data/json/json_suffix`
-        and save them to `~/data/json/case_ids_suffix.json`.
-        """
-        
-        case_ids = self.data_dir / "json" / f"case_ids_{self.suffix}.json"
+        cites = {}
+        for k, v in case_repo["cites_to"].items():
+            cites[k] = reduce(concat, [i["citations"] for i in v])
+        cites[case_id] = [case_repo["citation"]]
 
-        r = {"case_ids": []}
-        if case_ids.is_file():
-            with open(case_ids.__str__(), "r") as f:
-                r = json.load(f)
+        return cites
+
+    def gcl_bundle_cites(self, blue_citation=False):
+        """
+        Bundle citations collected using the method `_collect_cites`
+        from each case found in the subdirectory `~/data/json/json_suffix`
+        and save them to `~/data/json/citations_suffix.json`.
+
+        Args
+        ----
+        :param blue_citation: ---> bool: if True, returns the long bluebook version of the citation.
+                                         Returns None if nothing is found.
+        """
+
+        cites = self.data_dir / "json" / f"citations_{self.suffix}.json"
         paths = (self.data_dir / "json" / f"json_{self.suffix}").glob("*.json")
-        r["case_ids"] += reduce(
-            concat,
-            list(multiprocess(self._collect_cites, list(paths), yield_results=True)),
+
+        r = {"cites": {}}
+
+        collected_cites = list(
+            multiprocess(self._collect_cites, list(paths), yield_results=True)
         )
-        r["case_ids"] = remove_repeated(r["case_ids"])
-        with open(case_ids.__str__(), "w") as f:
+
+        for c in tqdm(collected_cites, total=len(collected_cites)):
+            for k, v in c.items():
+                if r["cites"].get(k, None):
+                    r["cites"][k] += v
+                else:
+                    r["cites"][k] = v
+
+        for k in r["cites"].keys():
+            value = sorted(list(set(r["cites"][k])), key=len, reverse=True)
+            r["cites"][k] = value
+            match = False
+            if blue_citation:
+                for v in value:
+                    if fv := self.gcl_long_blue_cite(v):
+                        r["cites"][k] = fv
+                        match = True
+                        break
+
+                if not match:
+                    r["cites"][k] = None
+                    summary = self.gcl_citation_summary(
+                        k, f"cites_{self.suffix}", False
+                    )
+                    if sn := summary[k]:
+                        r["cites"][k] = sn["citation"]
+
+        with open(cites.__str__(), "w") as f:
             json.dump(r, f, indent=4)
 
     def gcl_make_list(self, filename):
@@ -1289,7 +1399,9 @@ class GCLParse(object):
         case_files = (self.data_dir / "json" / f"json_{self.suffix}").glob("*.json")
         case_summaries = list(
             multiprocess(
-                self.gcl_get_citation, [f.stem for f in case_files], yield_results=True
+                self.gcl_citation_summary,
+                [f.stem for f in case_files],
+                yield_results=True,
             )
         )
         case_summaries.sort(
