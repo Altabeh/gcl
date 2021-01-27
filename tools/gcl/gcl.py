@@ -40,6 +40,7 @@ from tools.utils import (
     proxy_browser,
     recaptcha_process,
     regex,
+    load_json,
     remove_repeated,
     rm_tree,
     sort_int,
@@ -59,7 +60,7 @@ class GCLParse(object):
     base_url = "https://scholar.google.com/"
 
     # ------ Regex Patterns ------
-    case_patterns = [(r"/scholar_case?(?:.*?)=(\d+)", r"\g<1>")]
+    case_patterns = [(r"/scholar_case\?(?:.*?)=(\d+)", r"\g<1>")]
     casenumber_patterns = [(r"scidkt=(.*?)&", "")]
     just_number_patterns = [(r"^\d+$", "")]
     docket_patterns = [
@@ -110,7 +111,7 @@ class GCLParse(object):
             "",
         )
     ]
-    long_bluebook_patterns = [(r"(?:en banc|[Ee]d\.|Cir\.|\d{4})\)$", "")]
+    long_bluebook_patterns = [(r"(?:^in re:?| +v\.? +).*(?:en banc|ed\.|cir\.|\d{4})\)$", "")]
     extras_citations_patterns = [
         (r",(?:(?:[\d& ,\-\*]+)|(?:[nat&\- \*\d]+(?:\.\d+ ?)?))(?= \(|,)", "")
     ]
@@ -141,8 +142,10 @@ class GCLParse(object):
         self.suffix = kwargs.get("suffix", "")
         if not self.jurisdictions:
             try:
-                with open(str(self.data_dir / "jurisdictions.json")) as f:
-                    self.jurisdictions = kwargs.get("jurisdictions", json.load(f))
+                self.jurisdictions = kwargs.get(
+                    "jurisdictions",
+                    load_json(self.data_dir / "jurisdictions.json", True),
+                )
             except FileNotFoundError:
                 raise Exception("jurisdictions.json not found")
 
@@ -229,8 +232,17 @@ class GCLParse(object):
         opinion = html_text.find(id="gs_opinion")
 
         # Return empty set if case law page was not found (`404` error).
+        # Store the case ID with a `404` error.
         if not opinion:
             print(f'Serialization failed for "{path_or_url}"')
+            path_404 = self.data_dir / "json" / f"404_{self.suffix}.json"
+            not_downloaded = load_json(path_404)
+            with open(path_404.__str__(), "w") as f:
+                case_id = regex(
+                    path_or_url, [(r"(?:.*scholar_case\?case=)?(\d+)(?:.*)?", r"\g<1>")]
+                )
+                not_downloaded[case_id] = case_id
+                json.dump(not_downloaded, f, indent=4)
             return {}
 
         opinion.find(id="gs_dont_print").replaceWith("")
@@ -262,7 +274,7 @@ class GCLParse(object):
             case["short_citation"].append(center.get_text())
             center.replaceWith("")
 
-        self.gcl_fix_broken_links(page_number_tags)
+        self._fix_broken_links(page_number_tags)
 
         case["cites_to"] = {}
         for l in links:
@@ -667,22 +679,18 @@ class GCLParse(object):
 
         name_patterns, docket_patterns, ids = [], [], []
         for f in tqdm(json_files, total=len(json_files)):
-            with open(f, "r") as jfile:
-                info = json.load(jfile)
-                dc = [info["date"]] + [info["court"]["court_code"]]
-                name_patterns += ["".join([info["full_case_name"].lower()] + dc)]
+            info = load_json(f)
+            dc = [info["date"]] + [info["court"]["court_code"]]
+            name_patterns += ["".join([info["full_case_name"].lower()] + dc)]
 
-                docket_patterns += [
-                    "".join(
-                        [
-                            "".join(c["docket_number"]).lower()
-                            for c in info["case_numbers"]
-                        ]
-                        + dc
-                    )
-                ]
+            docket_patterns += [
+                "".join(
+                    ["".join(c["docket_number"]).lower() for c in info["case_numbers"]]
+                    + dc
+                )
+            ]
 
-                ids += [""] if info["short_citation"] else [info["id"]]
+            ids += [""] if info["short_citation"] else [info["id"]]
 
         patterns = name_patterns + docket_patterns
         indices = [
@@ -811,7 +819,10 @@ class GCLParse(object):
         return zip(case_ids_, docket_numbers)
 
     @staticmethod
-    def gcl_fix_broken_links(page_number_tags):
+    def _fix_broken_links(page_number_tags):
+        """
+        Consolidate double links created due to page numbers.
+        """
         for a in page_number_tags:
             if fn := a.previous_sibling:
                 if (
@@ -1165,8 +1176,7 @@ class GCLParse(object):
 
         if json_path.is_file():
             if return_data:
-                with open(json_path.__str__(), "r") as f:
-                    info = json.load(f)
+                info = load_json(json_path)
             found = True
 
         else:
@@ -1264,12 +1274,11 @@ class GCLParse(object):
             print(f"Now downloading the case {case_id}...")
             s1 = self.suffix
             self.suffix = suffix
-            data = self.gcl_parse(url, return_data=True)
+            data = self.gcl_parse(url, return_data=True, random_sleep=True)
             self.suffix = s1
 
         else:
-            with open(path_to_file, "r") as f:
-                data = json.load(f)
+            data = load_json(path_to_file)
 
         case_summary = []
         if not return_list:
@@ -1300,7 +1309,8 @@ class GCLParse(object):
 
         """
         citation = regex(citation, self.extras_citations_patterns)
-        if regex(citation, self.long_bluebook_patterns, sub=False):
+
+        if regex(citation, self.long_bluebook_patterns, sub=False, flags=re.I):
             return citation
         return
 
@@ -1320,8 +1330,7 @@ class GCLParse(object):
                 for folder in top_folder.glob("**"):
                     json_path = top_folder / folder / f"{data}.json"
                     if json_path.is_file():
-                        with open(json_path.__str__(), "r") as f:
-                            case_repo = json.load(f)
+                        case_repo = load_json(json_path)
                         break
 
                 if not case_repo:
@@ -1330,9 +1339,8 @@ class GCLParse(object):
                     case_repo = self.gcl_parse(url, return_data=True)
 
         if isinstance(data, Path):
-            with open(data.__str__(), "r") as f:
-                case_repo = json.load(f)
-                case_id = case_repo["id"]
+            case_repo = load_json(data)
+            case_id = case_repo["id"]
 
         cites = {}
         for k, v in case_repo["cites_to"].items():
@@ -1352,9 +1360,15 @@ class GCLParse(object):
         :param blue_citation: ---> bool: if True, returns the long bluebook version of the citation.
                                          Returns None if nothing is found.
         """
+        jfold = self.data_dir / "json"
+        cites = jfold / f"citations_{self.suffix}.json"
+        paths = (jfold / f"json_{self.suffix}").glob("*.json")
 
-        cites = self.data_dir / "json" / f"citations_{self.suffix}.json"
-        paths = (self.data_dir / "json" / f"json_{self.suffix}").glob("*.json")
+        # Load json file that contains case IDs that have encountered 404 error.
+        cases_404 = load_json(jfold / f"404_{self.suffix}.json")
+
+        # Load json file that contains manually added citations.
+        manual_cit = load_json(jfold / f"manual_citations_{self.suffix}.json")
 
         r = {"cites": {}}
 
@@ -1382,11 +1396,15 @@ class GCLParse(object):
 
                 if not match:
                     r["cites"][k] = None
-                    summary = self.gcl_citation_summary(
-                        k, f"cites_{self.suffix}", False
-                    )
-                    if sn := summary[k]:
-                        r["cites"][k] = sn["citation"]
+                    if not cases_404.get(k, None):
+                        summary = self.gcl_citation_summary(
+                            k, f"cites_{self.suffix}", False
+                        )
+                        if sn := summary[k]:
+                            r["cites"][k] = sn["citation"]
+
+                    elif fn := manual_cit.get(k, None):
+                        r["cites"][k] = fn
 
         with open(cites.__str__(), "w") as f:
             json.dump(r, f, indent=4)
