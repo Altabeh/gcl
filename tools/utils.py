@@ -1,22 +1,25 @@
+import json
 import re
 import unicodedata
 import urllib
 from concurrent.futures import ProcessPoolExecutor as future_pool
 from os import cpu_count, environ
 from pathlib import Path
+from time import sleep
+
 from python_anticaptcha import AnticaptchaClient, NoCaptchaTaskProxylessTask
 from selenium import webdriver
-from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.common.by import By
+from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 from stem import Signal
 from stem.control import Controller
 from tqdm import tqdm
-from time import sleep
 
 __all__ = [
     "rm_tree",
+    "load_json",
     "create_dir",
     "multiprocess",
     "regex",
@@ -36,10 +39,6 @@ __all__ = [
 SELENIUM_OPTIONS = webdriver.ChromeOptions()
 SELENIUM_OPTIONS.add_argument("headless")
 SELENIUM_DRIVER = webdriver.Chrome(options=SELENIUM_OPTIONS)
-
-ANTICAPTCHA_KEY = environ["ANTICAPTCHA_KEY"]
-client = AnticaptchaClient(ANTICAPTCHA_KEY)
-
 
 DOMAIN_FORMAT = re.compile(
     r"(?:^(\w{1,255}):(.{1,255})@|^)"  # http basic authentication [optional]
@@ -68,6 +67,27 @@ def rm_tree(path):
         else:
             rm_tree(child)
     path.rmdir()
+
+
+def load_json(path, allow_exception=False):
+    """
+    Load a json file and return its content.
+    Set `allow_exception` to True if FileNotFound can be raised.
+    """
+    data = {}
+    if not isinstance(path, Path):
+        path = Path(path)
+
+    if allow_exception:
+        with open(path.__str__(), "r") as f:
+            data = json.load(f)
+
+    else:
+        if path.is_file():
+            with open(path.__str__(), "r") as f:
+                data = json.load(f)
+
+    return data
 
 
 def regex(item, patterns=None, sub=True, flags=None, start=0, end=None):
@@ -297,9 +317,16 @@ def _recaptcha_get_token(url, site_key, invisible=False):
     task = NoCaptchaTaskProxylessTask(
         website_url=url, website_key=site_key, is_invisible=invisible
     )
-    job = client.createTask(task)
-    job.join(maximum_time=60 * 15)
-    return job.get_solution_response()
+
+    ANTICAPTCHA_KEY = environ.get("ANTICAPTCHA_KEY", None)
+
+    if ANTICAPTCHA_KEY:
+        client = AnticaptchaClient(ANTICAPTCHA_KEY)
+        job = client.createTask(task)
+        job.join(maximum_time=60 * 15)
+        return job.get_solution_response()
+
+    raise Exception("ANTICAPTCHA_KEY could not be found in the python env.")
 
 
 def _recaptcha_form_submit(driver, token):
@@ -347,4 +374,3 @@ def async_get(url, xpath):
     finally:
         r = SELENIUM_DRIVER.page_source
         return r
-    
