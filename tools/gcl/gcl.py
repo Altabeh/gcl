@@ -111,9 +111,28 @@ class GCLParse(object):
             "",
         )
     ]
-    long_bluebook_patterns = [(r"(?:^in re:?| +v\.? +).*(?:en banc|ed\.|cir\.|\d{4})\)$", "")]
+    long_bluebook_patterns = [
+        (r"(?:^in re:?| +v\.? +).*(?:en banc|ed\.|cir\.|\d{4})\)$", "")
+    ]
     extras_citations_patterns = [
-        (r",(?:(?:[\d& ,\-\*]+)|(?:[nat&\- \*\d]+(?:\.\d+ ?)?))(?= \(|,)", "")
+        (
+            r",(?:(?:[\d& ,\-\*]+)|(?:[nat&\- \*\d]+(?:[\. ]+(?:(?:(?:[\.\- ]+)?\d+)?)+ ?)?))(?= \(|,)",
+            "",
+        ),
+        (
+            r"((?:^in re:?|(?:.)* v\.? +).*(?:\(en banc|ed\.|Cir\.|\d{4})\))(?:(?:(?: +)?\(.*?\))+)?$",
+            r"\g<1>",
+        ),
+        (
+            r"^(?:[\w\'\-\.]+)?\"(?: +)?| +\(\".*?\"\)|\b at ?\*?(?: +)?(?:\d+(?: ?\- ?\d+)?)+",
+            "",
+        ),
+        (r"Fed\.Appx\.", "F. App'x"),
+        (r"F\.Supp\.(\d+)d", r"F. Supp. \g<1>d"),
+        (r"Cir\.(\d+)", r"Cir. \g<1>"),
+        (r"Fed\.Cir\.", "Fed. Cir."),
+        (r"L\.Ed\.(\d+)d", r"L. Ed. \g<1>d"),
+        (r"S\.Ct\.", "S. Ct."),
     ]
     special_chars_patterns = [(r"\W", "")]
     strip_patterns = [(r"\n", " "), (r" +", " ")]
@@ -277,7 +296,8 @@ class GCLParse(object):
         self._fix_broken_links(page_number_tags)
 
         case["cites_to"] = {}
-        for l in links:
+        for i, l in enumerate(links):
+            c = i + 1
             if fn := l.attrs:
                 if fn.get("href", None) and "/scholar_case?" in fn["href"]:
                     case_citation = regex(l.get_text(), self.extra_char_patterns)
@@ -285,7 +305,15 @@ class GCLParse(object):
                     if gn := l.find("i"):
                         case_name = regex(gn.get_text(), self.comma_space_patterns)
                     id_ = regex(l.attrs["href"], self.case_patterns, sub=False)[0]
-                    ct = {"name": case_name, "citations": [case_citation]}
+                    
+                    # The key `identifier` may be used to trace different variations of 
+                    # the same citation in the case text specially when substituting a
+                    # case ID with its citation. E.g. #123456789[identifier].
+                    var = {"citation": case_citation, "identifier": f"[{c}]"}
+                    ct = {
+                        "case_name": case_name,
+                        "variations": [var],
+                    }
                     if not case["cites_to"]:
                         case["cites_to"] = {id_: [ct]}
                     else:
@@ -293,9 +321,10 @@ class GCLParse(object):
                             cites = case["cites_to"][id_]
                             not_accounted = True
                             for el in cites:
-                                if el["name"] == case_name:
-                                    if case_citation not in el["citations"]:
-                                        el["citations"].append(case_citation)
+                                if el["case_name"] == case_name:
+                                    variants = [v["citation"] for v in el["variations"]]
+                                    if case_citation not in variants:
+                                        el["variations"] += [var]
                                     not_accounted = False
                                     break
 
@@ -305,7 +334,7 @@ class GCLParse(object):
                         else:
                             case["cites_to"][id_] = [ct]
 
-                    l.replaceWith(f" ####{id_} ")
+                    l.replaceWith(f" ####{id_}[{c}] ")
 
         case["date"] = self._get_date(opinion)
         case["court"] = self.jurisdictions["court_details"][court_info]
@@ -1308,7 +1337,7 @@ class GCLParse(object):
         u"Ormco Corp. v. Align Tech., Inc., 463 F.3d 1299 (Fed. Cir. 2006)"
 
         """
-        citation = regex(citation, self.extras_citations_patterns)
+        citation = regex(citation, self.extras_citations_patterns, flags=re.I)
 
         if regex(citation, self.long_bluebook_patterns, sub=False, flags=re.I):
             return citation
@@ -1344,7 +1373,9 @@ class GCLParse(object):
 
         cites = {}
         for k, v in case_repo["cites_to"].items():
-            cites[k] = reduce(concat, [i["citations"] for i in v])
+            cites[k] = reduce(
+                concat, [[var["citation"] for var in i["variations"]] for i in v]
+            )
         cites[case_id] = [case_repo["citation"]]
 
         return cites
@@ -1353,22 +1384,25 @@ class GCLParse(object):
         """
         Bundle citations collected using the method `_collect_cites`
         from each case found in the subdirectory `~/data/json/json_suffix`
-        and save them to `~/data/json/citations_suffix.json`.
+        and save them to `~/data/json/citations_suffix.json`. Use a file
+        at `~/data/json/manual_cites_suffix.json` with a data structure 
+        compatible with `~/data/json/citations_suffix.json` to consider
+        overwriting imperfect citations.
 
         Args
         ----
         :param blue_citation: ---> bool: if True, returns the long bluebook version of the citation.
                                          Returns None if nothing is found.
         """
-        jfold = self.data_dir / "json"
-        cites = jfold / f"citations_{self.suffix}.json"
-        paths = (jfold / f"json_{self.suffix}").glob("*.json")
+        json_folder = self.data_dir / "json"
+        cites = json_folder / f"citations_{self.suffix}.json"
+        paths = (json_folder / f"json_{self.suffix}").glob("*.json")
 
         # Load json file that contains case IDs that have encountered 404 error.
-        cases_404 = load_json(jfold / f"404_{self.suffix}.json")
+        cases_404 = load_json(json_folder / f"404_{self.suffix}.json")
 
         # Load json file that contains manually added citations.
-        manual_cit = load_json(jfold / f"manual_citations_{self.suffix}.json")
+        manual_cites = load_json(json_folder / f"manual_cites_{self.suffix}.json")
 
         r = {"cites": {}}
 
@@ -1385,26 +1419,32 @@ class GCLParse(object):
 
         for k in r["cites"].keys():
             value = sorted(list(set(r["cites"][k])), key=len, reverse=True)
-            r["cites"][k] = value
+            r["cites"][k] = {"citation": value[0], "needs_review": False}
             match = False
             if blue_citation:
                 for v in value:
                     if fv := self.gcl_long_blue_cite(v):
-                        r["cites"][k] = fv
+                        r["cites"][k]["citation"] = fv
                         match = True
                         break
 
-                if not match:
-                    r["cites"][k] = None
-                    if not cases_404.get(k, None):
-                        summary = self.gcl_citation_summary(
-                            k, f"cites_{self.suffix}", False
-                        )
-                        if sn := summary[k]:
-                            r["cites"][k] = sn["citation"]
-
-                    elif fn := manual_cit.get(k, None):
-                        r["cites"][k] = fn
+                if fn := manual_cites.get(k, None):
+                    r["cites"][k]["citation"] = regex(
+                        fn["citation"], self.extras_citations_patterns
+                    )
+                    match = False
+                else:
+                    if not match:
+                        if not cases_404.get(k, None):
+                            summary = self.gcl_citation_summary(
+                                k, f"cites_{self.suffix}", False
+                            )
+                            if sn := summary[k]:
+                                r["cites"][k]["citation"] = regex(
+                                    sn["citation"], self.extras_citations_patterns
+                                )
+                        else:
+                            r["cites"][k]["needs_review"] = True
 
         with open(cites.__str__(), "w") as f:
             json.dump(r, f, indent=4)
