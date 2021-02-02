@@ -78,8 +78,6 @@ class GCLParse(object):
     claim_patterns_2 = r"(?<=[cC]laim[s ])(?:([\d,\- ]+)(?:(?:[, ]+)?and ([\d\- ]+))*)+"
     patent_number_patterns_1 = [(r" " + patent_number_pattern, "")]
     patent_number_patterns_2 = [(r"[USnitedpPaNso. ]+" + patent_number_pattern, "")]
-    federal_court_patterns = [(r"( ?([,-]) ([\w:. \']+) (\d{4}))$", "")]
-    state_court_patterns = [(r"( ?([-,]) ([\w. ]+): (.*?) (\d{4}))$", "")]
     judge_patterns = [
         (
             r"^(m[rs]s?\.? )?C[Hh][Ii][Ee][Ff] J[Uu][Dd][Gg][Ee][Ss]? |^(m[rs]s?\.? )?(?:C[Hh][Ii][Ee][Ff] )?J[Uu][Ss][Tt][Ii][Cc][Ee][Ss]? |^P[rR][Ee][Ss][Ee][nN][T]: |^B[eE][fF][oO][rR][Ee]: | J[Uu][Dd][Gg][Ee][Ss]?[:.]?$|, [UJSC. ]+:?$|, (?:[USD. ]+)?[J. ]+:?$|, J[Uu][Ss][Tt][Ii][Cc][Ee][Ss]?\.?$",
@@ -111,10 +109,16 @@ class GCLParse(object):
             "",
         )
     ]
+    month_day_patterns = [
+        (
+            r"(?:Jan\.|Feb\.|Mar\.|Apr\.|May|June|July|Aug\.|Sept?\.|Oct\.|Nov\.|Dec\.) +(?:[0-9]{2}\b,?)?",
+            "",
+        ),
+    ]
     long_bluebook_patterns = [
         (r"(?:^in re:?| +v\.? +).*(?:en banc|ed\.|cir\.|\d{4})\)$", "")
     ]
-    extras_citations_patterns = [
+    extras_citation_patterns = [
         (
             r",(?:(?:[\d& ,\-\*]+)|(?:[nat&\- \*\d]+(?:[\. ]+(?:(?:(?:[\.\- ]+)?\d+)?)+ ?)?))(?= \(|,)",
             "",
@@ -127,12 +131,25 @@ class GCLParse(object):
             r"^(?:[\w\'\-\.]+)?\"(?: +)?| +\(\".*?\"\)|\b at ?\*?(?: +)?(?:\d+(?: ?\- ?\d+)?)+",
             "",
         ),
-        (r"Fed\.Appx\.", "F. App'x"),
-        (r"F\.Supp\.(\d+)d", r"F. Supp. \g<1>d"),
+        (r"Fed\. ?Appx\.", "F. App'x"),
+        (r"F\. ?Supp\. ?(\d+)d", r"F. Supp. \g<1>d"),
+        (r"L\. ?Ed\. ?(\d+)d", r"L. Ed. \g<1>d"),
+        (r"S\.Ct\.", "S. Ct."),
+    ]
+    federal_court_patterns = [(r"( ?([,-]) ([\w:. \']+) (\d{4}))$", "")]
+    state_court_patterns = [(r"( ?([-,]) ([\w. ]+): (.*?) (\d{4}))$", "")]
+    approx_court_location_patterns = [
+        (r"(\([\w\.,\' ]+\))(?: +)?(?:\(en banc\))?$", "")
+    ]
+    court_clean_patterns = [
         (r"Cir\.(\d+)", r"Cir. \g<1>"),
         (r"Fed\.Cir\.", "Fed. Cir."),
-        (r"L\.Ed\.(\d+)d", r"L. Ed. \g<1>d"),
-        (r"S\.Ct\.", "S. Ct."),
+        (r"CCPA", "C.C.P.A."),
+        (r"PTAB", "P.T.A.B."),
+        (r"Dept", "Dep't"),
+        (r"([\(| ])(Fed|Cir)(?!\.)\b", r"\g<1>\g<2>."),
+        (r"(?<! |\()(\d{4}\))(?: +)?(\(?:en banc\))?$", r" \g<1>"),
+        (r"(?<=\.)([A-Z][a-z\']+\.)", r" \g<1>"),
     ]
     special_chars_patterns = [(r"\W", "")]
     strip_patterns = [(r"\n", " "), (r" +", " ")]
@@ -167,6 +184,11 @@ class GCLParse(object):
                 )
             except FileNotFoundError:
                 raise Exception("jurisdictions.json not found")
+        self.court_keys = sorted(
+            [k for k in self.jurisdictions["court_details"].keys()],
+            key=len,
+            reverse=True,
+        )
 
     def _get(self, url_or_id, need_proxy=False):
         """
@@ -305,8 +327,8 @@ class GCLParse(object):
                     if gn := l.find("i"):
                         case_name = regex(gn.get_text(), self.comma_space_patterns)
                     id_ = regex(l.attrs["href"], self.case_patterns, sub=False)[0]
-                    
-                    # The key `identifier` may be used to trace different variations of 
+
+                    # The key `identifier` may be used to trace different variations of
                     # the same citation in the case text specially when substituting a
                     # case ID with its citation. E.g. #123456789[identifier].
                     var = {"citation": case_citation, "identifier": f"[{c}]"}
@@ -1337,7 +1359,7 @@ class GCLParse(object):
         u"Ormco Corp. v. Align Tech., Inc., 463 F.3d 1299 (Fed. Cir. 2006)"
 
         """
-        citation = regex(citation, self.extras_citations_patterns, flags=re.I)
+        citation = regex(citation, self.extras_citation_patterns, flags=re.I)
 
         if regex(citation, self.long_bluebook_patterns, sub=False, flags=re.I):
             return citation
@@ -1380,12 +1402,38 @@ class GCLParse(object):
 
         return cites
 
+    def _fix_court_abbreviations(self, citation):
+        """
+        Fix court abbreviations in a `citation` due to gcl processing issues or non-bluebook adaptations.
+        """
+        if fn := regex(citation, self.approx_court_location_patterns, sub=False):
+            return citation.replace(fn[0], regex(fn[0], self.court_clean_patterns))
+
+        return citation
+
+    def _court_from_citation(self, citation):
+        """
+        Extract court information from a `citation`.
+        """
+        approx_location = ""
+        if fn := regex(citation, self.approx_court_location_patterns, sub=False):
+            approx_location = regex(fn[0], self.month_day_patterns)
+
+        if approx_location:
+            if regex(approx_location, [(r"^\((?: +)?\d+(?: +)?\)$", "")], sub=False):
+                return self.jurisdictions["court_details"]["Supreme Court"]
+
+            for c in self.court_keys:
+                if c in approx_location:
+                    return self.jurisdictions["court_details"][c]
+        return
+
     def gcl_bundle_cites(self, blue_citation=False):
         """
         Bundle citations collected using the method `_collect_cites`
         from each case found in the subdirectory `~/data/json/json_suffix`
         and save them to `~/data/json/citations_suffix.json`. Use a file
-        at `~/data/json/manual_cites_suffix.json` with a data structure 
+        at `~/data/json/manual_cites_suffix.json` with a data structure
         compatible with `~/data/json/citations_suffix.json` to consider
         overwriting imperfect citations.
 
@@ -1417,32 +1465,36 @@ class GCLParse(object):
                 else:
                     r["cites"][k] = v
 
+        def _cite_detail(c, extras=True):
+            if extras:
+                c = self._fix_court_abbreviations(
+                    regex(c, self.extras_citation_patterns)
+                )
+            r["cites"][k]["citation"] = c
+            r["cites"][k]["court"] = self._court_from_citation(c)
+
         for k in r["cites"].keys():
             value = sorted(list(set(r["cites"][k])), key=len, reverse=True)
-            r["cites"][k] = {"citation": value[0], "needs_review": False}
+            r["cites"][k] = {"citation": value[0], "court": None, "needs_review": False}
             match = False
             if blue_citation:
                 for v in value:
-                    if fv := self.gcl_long_blue_cite(v):
-                        r["cites"][k]["citation"] = fv
+                    if citation := self.gcl_long_blue_cite(v):
+                        _cite_detail(self._fix_court_abbreviations(citation), False)
                         match = True
                         break
 
                 if fn := manual_cites.get(k, None):
-                    r["cites"][k]["citation"] = regex(
-                        fn["citation"], self.extras_citations_patterns
-                    )
-                    match = False
+                    _cite_detail(fn["citation"])
+
                 else:
                     if not match:
                         if not cases_404.get(k, None):
                             summary = self.gcl_citation_summary(
                                 k, f"cites_{self.suffix}", False
                             )
-                            if sn := summary[k]:
-                                r["cites"][k]["citation"] = regex(
-                                    sn["citation"], self.extras_citations_patterns
-                                )
+                            if fn := summary[k]:
+                                _cite_detail(fn["citation"])
                         else:
                             r["cites"][k]["needs_review"] = True
 
