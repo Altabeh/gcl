@@ -1537,7 +1537,7 @@ class GCLParse(object):
         collected_cites = list(
             multi_run(
                 self._collect_cites,
-                list(paths)[1:4],
+                list(paths),
                 threading=True,
                 yield_results=True,
             )
