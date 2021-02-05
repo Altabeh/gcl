@@ -36,7 +36,7 @@ from tools.utils import (
     create_dir,
     deaccent,
     hyphen_to_numbers,
-    multiprocess,
+    multi_run,
     proxy_browser,
     recaptcha_process,
     regex,
@@ -44,6 +44,7 @@ from tools.utils import (
     remove_repeated,
     rm_tree,
     sort_int,
+    nullify,
     switch_ip,
     validate_url,
 )
@@ -70,6 +71,12 @@ class GCLParse(object):
     ]
     docket_appeals_patterns = [(r"(?:\d{2,4}|(?<=, )|(?<=, and)(?: +)?)-\d{1,5}", "")]
     docket_us_patterns = [(r"\d+(?:-\d+)?", "")]
+    docket_number_patterns = [
+        (
+            r"((?:,(?: +)?(?:[A-Za-z ]+(?:Action|Case)?)?)?Nos?\.(?:\b| +)((?:[\w:\- ]|\([A-Z]+\))+)+)",
+            "",
+        )
+    ]
     patent_number_pattern = r"(?:(?:RE|PP|D|AI|X|H|T)? ?\d{1,2}[,./]\-?)?(?:(?:RE|PP|D|AI|X|H|T) ?\d{2,3}|\d{3})[,./]\-?\d{3}(?: ?AI)?\b"
     patent_reference_pattern = r'["`\'#’]+(\d{3,4}) ?(?:[Aa]pplication|[Pp]atent)\b'
     claim_patterns_1 = (
@@ -109,9 +116,9 @@ class GCLParse(object):
             "",
         )
     ]
-    month_day_patterns = [
+    short_month_date_patterns = [
         (
-            r"(?:Jan\.|Feb\.|Mar\.|Apr\.|May|June|July|Aug\.|Sept?\.|Oct\.|Nov\.|Dec\.) +(?:[0-9]{2}\b,?)?",
+            r"((?:(Jan|Feb|Mar|Apr|May|June|July|Aug|Sept?|Oct|Nov|Dec)\.?(?: +)?(?:([0-9]{1,2})\b,?)?(?: +)?)?(\d{4}))",
             "",
         ),
     ]
@@ -151,6 +158,8 @@ class GCLParse(object):
         (r"(?<! |\()(\d{4}\))(?: +)?(\(?:en banc\))?$", r" \g<1>"),
         (r"(?<=\.)([A-Z][a-z\']+\.)", r" \g<1>"),
     ]
+    reporter_empty_patterns = r"(?:[\-—–_]+)(?: +)?(?:X)(?: +)?(?:[\-—–_,]+)"
+    reporter_patterns = r"((\d+)(?: +)?(X)(?: +)?([\d\-—–_ ]+)([at,\.\d\-—–_\*¶ ]+)?([n\.\d\-—–_\*¶ ]+)?)"
     special_chars_patterns = [(r"\W", "")]
     strip_patterns = [(r"\n", " "), (r" +", " ")]
     extra_char_patterns = [(r"^[,. ]+|[,. ]+$", "")]
@@ -171,23 +180,21 @@ class GCLParse(object):
         self.data_dir = kwargs.get("data_dir", BASE_DIR / "tools" / "gcl" / "data")
         if isinstance(self.data_dir, str):
             self.data_dir = Path(self.data_dir)
-        # jurisdictions.json contains all U.S. states, territories and federal/state court names,
+        # `jurisdictions.json` contains all U.S. states, territories and federal/state court names,
         # codes, and abbreviations.
-        self.jurisdictions = kwargs.get("jurisdictions", None)
+        self.jurisdictions = kwargs.get(
+            "jurisdictions", load_json(self.data_dir / "jurisdictions.json", True)
+        )
         # Will be used to label all folders inside `data_dir`.
         self.suffix = kwargs.get("suffix", "")
-        if not self.jurisdictions:
-            try:
-                self.jurisdictions = kwargs.get(
-                    "jurisdictions",
-                    load_json(self.data_dir / "jurisdictions.json", True),
-                )
-            except FileNotFoundError:
-                raise Exception("jurisdictions.json not found")
-        self.court_keys = sorted(
+        self.court_codes = sorted(
             [k for k in self.jurisdictions["court_details"].keys()],
             key=len,
             reverse=True,
+        )
+        # `reporters.json` contains reporters with different variations/flavors mapped to their standard form.
+        self.reporters = kwargs.get(
+            "reporters", load_json(self.data_dir / "reporters.json", True)
         )
 
     def _get(self, url_or_id, need_proxy=False):
@@ -1103,7 +1110,7 @@ class GCLParse(object):
 
         modified_opinion = regex(modified_opinion, self.patent_number_patterns_2)
         # Regex to capture claim numbers followed by a patent number.
-        claims_1 = re.finditer(self.claim_patterns_1, modified_opinion)
+        claims_1 = list(re.finditer(self.claim_patterns_1, modified_opinion))
 
         claims_from_patent = {}
         for c in claims_1:
@@ -1125,12 +1132,14 @@ class GCLParse(object):
                 claims_from_patent[new_key] = [new_value]
 
         patent_refs = re.finditer(self.patent_reference_pattern, modified_opinion)
+
         # Remove claim numbers of the type `claims # of the '# patent` to avoid double count.
         for c in claims_1:
+            start, end = c.span(1)
             modified_opinion = (
-                modified_opinion[: c.span(1)[0]]
-                + " "
-                + modified_opinion[c.span(1)[1] :]
+                modified_opinion[:start]
+                + "".join(["X"] * (end - start))
+                + modified_opinion[end:]
             )
 
         # Regex to capture claim numbers at large or NOT followed by a patent number.
@@ -1411,22 +1420,93 @@ class GCLParse(object):
 
         return citation
 
-    def _court_from_citation(self, citation):
+    def _tokenize_citation(self, citation):
         """
-        Extract court information from a `citation`.
+        Tokenize court data, reporter data, docket numbers, publication date,
+        and case name from a valid `citation`.
         """
-        approx_location = ""
+        citation_dic = {"citation": citation}
+
+        [approx_location, court, day, month, year] = [None] * 5
         if fn := regex(citation, self.approx_court_location_patterns, sub=False):
-            approx_location = regex(fn[0], self.month_day_patterns)
+            date = regex(fn[0], self.short_month_date_patterns, sub=False)
+            if date:
+                date = date[0]
+                [month, day, year] = [nullify(x) for x in date[1:]]
+                approx_location = fn[0].replace(date[0], year)
 
         if approx_location:
             if regex(approx_location, [(r"^\((?: +)?\d+(?: +)?\)$", "")], sub=False):
-                return self.jurisdictions["court_details"]["Supreme Court"]
+                court = self.jurisdictions["court_details"]["Supreme Court"]
 
-            for c in self.court_keys:
+            for c in self.court_codes:
                 if c in approx_location:
-                    return self.jurisdictions["court_details"][c]
-        return
+                    court = self.jurisdictions["court_details"][c]
+
+        for key in self.reporters:
+            if key in key:
+                citation = regex(
+                    citation,
+                    [
+                        (
+                            re.escape(key).join(
+                                self.reporter_empty_patterns.split("X")
+                            ),
+                            "XXXX",
+                        )
+                    ],
+                )
+
+        total_matches = []
+        for key in self.reporters:
+            if key in citation:
+                matches = regex(
+                    citation,
+                    [(re.escape(key).join(self.reporter_patterns.split("X")), "")],
+                    sub=False,
+                )
+
+                for match in matches:
+                    citation = citation.replace(match[0], "XXXX")
+
+                total_matches += matches
+
+        citation_details = []
+        keys = ["volume", "reporter_name", "first_page", "pages", "footnotes"]
+        for m in total_matches:
+            match = list(map(lambda i: regex(i, self.extra_char_patterns), m[1:]))
+            details = {
+                k: nullify(
+                    regex(match[i], [(r"[^0-9\-, ]", ""), *self.extra_char_patterns])
+                )
+                if i > 2
+                else match[i]
+                for i, k in enumerate(keys)
+            }
+
+            citation_details += [details]
+
+        possible_casename = regex(citation, [(r"^(.*?)XXXX+.*", r"\g<1>")])
+
+        docket_numbers = []
+        dockets = regex(possible_casename, self.docket_number_patterns, sub=False)
+
+        for d in dockets:
+            docket_numbers += regex(
+                regex(d[1], [(r",? +and +", ",")]).split(","), self.extra_char_patterns
+            )
+            possible_casename = possible_casename.replace(d[0], "")
+
+        casename = regex(possible_casename, self.comma_space_patterns)
+
+        citation_dic["case_name"] = None if casename == citation else casename
+        citation_dic["published"] = False if docket_numbers else True
+        citation_dic["date"] = {"year": year, "month": month, "day": day}
+        citation_dic["docket_numbers"] = nullify(docket_numbers)
+        citation_dic["citation_details"] = nullify(citation_details)
+        citation_dic["court"] = court
+
+        return citation_dic
 
     def gcl_bundle_cites(self, blue_citation=False):
         """
@@ -1452,40 +1532,63 @@ class GCLParse(object):
         # Load json file that contains manually added citations.
         manual_cites = load_json(json_folder / f"manual_cites_{self.suffix}.json")
 
-        r = {"cites": {}}
+        r = {}
 
         collected_cites = list(
-            multiprocess(self._collect_cites, list(paths), yield_results=True)
+            multi_run(
+                self._collect_cites,
+                list(paths)[1:4],
+                threading=True,
+                yield_results=True,
+            )
         )
 
         for c in tqdm(collected_cites, total=len(collected_cites)):
             for k, v in c.items():
-                if r["cites"].get(k, None):
-                    r["cites"][k] += v
+                if r.get(k, None):
+                    r[k] += v
                 else:
-                    r["cites"][k] = v
+                    r[k] = v
 
-        def _cite_detail(c, extras=True):
+        def _apply(c, k, extras=True):
             if extras:
                 c = self._fix_court_abbreviations(
                     regex(c, self.extras_citation_patterns)
                 )
-            r["cites"][k]["citation"] = c
-            r["cites"][k]["court"] = self._court_from_citation(c)
+            r[k] = {**r[k], **self._tokenize_citation(c)}
 
-        for k in r["cites"].keys():
-            value = sorted(list(set(r["cites"][k])), key=len, reverse=True)
-            r["cites"][k] = {"citation": value[0], "court": None, "needs_review": False}
+        def _longest_cite(k):
+            """
+            Out of many variations of a citation in the `cites_to` key of gcl files,
+            pick the longest one and tokenize it using the `_apply` function.
+            """
+            value = sorted(r[k], key=len, reverse=True)
+
+            r[k] = {
+                "citation": value[0],
+                **{
+                    m: None
+                    for m in [
+                        "citation_details",
+                        "case_name",
+                        "published",
+                        "date",
+                        "docket_numbers",
+                        "court",
+                    ]
+                },
+                "needs_review": False,
+            }
             match = False
             if blue_citation:
                 for v in value:
                     if citation := self.gcl_long_blue_cite(v):
-                        _cite_detail(self._fix_court_abbreviations(citation), False)
+                        _apply(self._fix_court_abbreviations(citation), k, False)
                         match = True
                         break
 
                 if fn := manual_cites.get(k, None):
-                    _cite_detail(fn["citation"])
+                    _apply(fn["citation"], k)
 
                 else:
                     if not match:
@@ -1494,9 +1597,14 @@ class GCLParse(object):
                                 k, f"cites_{self.suffix}", False
                             )
                             if fn := summary[k]:
-                                _cite_detail(fn["citation"])
+                                _apply(fn["citation"], k)
                         else:
-                            r["cites"][k]["needs_review"] = True
+                            r[k]["needs_review"] = True
+
+                if not r[k]["case_name"] or r[k]["case_name"] not in r[k]["citation"]:
+                    r[k]["needs_review"] = True
+
+        list(multi_run(_longest_cite, r.keys(), threading=True, pathos=True))
 
         with open(cites.__str__(), "w") as f:
             json.dump(r, f, indent=4)
@@ -1508,7 +1616,7 @@ class GCLParse(object):
         """
         case_files = (self.data_dir / "json" / f"json_{self.suffix}").glob("*.json")
         case_summaries = list(
-            multiprocess(
+            multi_run(
                 self.gcl_citation_summary,
                 [f.stem for f in case_files],
                 yield_results=True,
