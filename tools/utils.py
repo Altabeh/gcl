@@ -3,10 +3,14 @@ import re
 import unicodedata
 import urllib
 from concurrent.futures import ProcessPoolExecutor as future_pool
+from concurrent.futures import ThreadPoolExecutor as thread_future_pool
+
 from os import cpu_count, environ
 from pathlib import Path
 from time import sleep
 
+from pathos.threading import ThreadPool as thread_pool
+from pathos.multiprocessing import ProcessPool as pool
 from python_anticaptcha import AnticaptchaClient, NoCaptchaTaskProxylessTask
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -19,10 +23,12 @@ from tqdm import tqdm
 
 __all__ = [
     "rm_tree",
+    "generate_reporters",
     "load_json",
     "create_dir",
-    "multiprocess",
+    "multi_run",
     "regex",
+    "nullify",
     "sort_int",
     "deaccent",
     "normalize",
@@ -40,6 +46,7 @@ SELENIUM_OPTIONS = webdriver.ChromeOptions()
 SELENIUM_OPTIONS.add_argument("headless")
 SELENIUM_DRIVER = webdriver.Chrome(options=SELENIUM_OPTIONS)
 
+
 DOMAIN_FORMAT = re.compile(
     r"(?:^(\w{1,255}):(.{1,255})@|^)"  # http basic authentication [optional]
     # check full domain length to be less than or equal to 253 (starting after http basic auth, stopping before port)
@@ -54,6 +61,32 @@ DOMAIN_FORMAT = re.compile(
 SCHEME_FORMAT = re.compile(
     r"^(http|hxxp|ftp|fxp)s?$", re.IGNORECASE  # scheme: http(s) or ftp(s)
 )
+
+
+def generate_reporters(directory):
+    """
+    Generate a dictioanry of all reporters mapped to their standard format
+    and sort them out based on length and save the result to
+    `~/directory/reporters.json`.
+    """
+    from reporters_db import EDITIONS, REPORTERS
+
+    reporters = {}
+
+    for k, v in EDITIONS.items():
+        reporters[k] = k
+
+    for k, v in REPORTERS.items():
+        for i in v:
+            for x, y in i["variations"].items():
+                reporters[x] = y
+
+    new_d = {}
+    for k in sorted(reporters, key=len, reverse=True):
+        new_d[k] = reporters[k]
+
+    with open(str(Path(directory) / "reporters.json"), "w") as f:
+        json.dump(new_d, f, indent=4)
 
 
 def rm_tree(path):
@@ -79,8 +112,11 @@ def load_json(path, allow_exception=False):
         path = Path(path)
 
     if allow_exception:
-        with open(path.__str__(), "r") as f:
-            data = json.load(f)
+        try:
+            with open(path.__str__(), "r") as f:
+                data = json.load(f)
+        except FileNotFoundError:
+            raise Exception(f"{path.name} not found")
 
     else:
         if path.is_file():
@@ -166,18 +202,42 @@ def create_dir(path):
     return path
 
 
-def multiprocess(func, files, yield_results=False, cpus=cpu_count()):
+def multi_run(func, files, threading=False, yield_results=False, cpus=cpu_count(), pathos=False):
     """
-    Wrap a function `func` in a multiprocessing block good for simultaneous I/O operations
-    involving multiple number of `files`. Set `yield_results` to True if the function intends
-    to yield results back to the caller.
+    Wrap a function `func` in a multiprocessing(threading) block good for simultaneous I/O/CPU-bound
+    operations involving multiple number of `files`. Set `yield_results` to True if the function intends
+    to yield results back to the caller. Use `pathos` to implement dill backend that is useful
+    for parallelizing nested and lambda functions.
     """
-    with future_pool(max_workers=cpus) as p:
+    
+    if pathos:
+        if threading:
+            p = thread_pool(cpus)
+        else:
+            p = pool(cpus)
+        for _ in tqdm(p.imap(func, files), total=len(files)):
+            pass
+
+        p.close()
+        p.join()
+
+    else:
+        if threading:
+            p = thread_future_pool(cpus)
+        else:
+            p = future_pool(cpus)
+
         for _ in tqdm(p.map(func, files), total=len(files)):
             if not yield_results:
                 pass
             else:
                 yield _
+            
+
+def nullify(input_):
+    if not input_:
+        input_ = None
+    return input_
 
 
 def sort_int(string):
