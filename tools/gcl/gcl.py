@@ -73,8 +73,20 @@ class GCLParse(object):
     docket_us_patterns = [(r"\d+(?:-\d+)?", "")]
     docket_number_patterns = [
         (
-            r"((?:,(?: +)?(?:[A-Za-z ]+(?:Action|Case)?)?)?Nos?\.(?:\b| +)((?:[\w:\- ]|\([A-Z]+\))+)+)",
+            r"((?:,(?: +)?(?:[A-Za-z ]+)?)?Nos?[\., ]+(?:\b| +)((?:[\w:\- ]|\([A-Za-z/]+\))+)+)",
             "",
+        )
+    ]
+    docket_clean_patterns_1 = [
+        (
+            r"(?:C\.?(?: +)?A\.? +|Case +|(Nos?)(?:[\.: ]+)?|Criminal +|Civil +|Action +)+",
+            "",
+        )
+    ]
+    docket_clean_patterns_2 = [
+        (
+            r"(?: +)?(?:[CA\. ]+|Case +)?(Nos?\.?) +(?:Criminal +|Civil +)?(?:Action +|Case +)?(?:No:? +)?",
+            r"\g<1>",
         )
     ]
     patent_number_pattern = r"(?:(?:RE|PP|D|AI|X|H|T)? ?\d{1,2}[,./]\-?)?(?:(?:RE|PP|D|AI|X|H|T) ?\d{2,3}|\d{3})[,./]\-?\d{3}(?: ?AI)?\b"
@@ -860,7 +872,9 @@ class GCLParse(object):
         if not docket_numbers:
             docket_numbers = regex(case_num.get_text(), self.docket_patterns).split(",")
 
-        docket_numbers = regex(docket_numbers, self.extra_char_patterns)
+        docket_numbers = regex(
+            docket_numbers, [*self.extra_char_patterns, *self.docket_clean_patterns_1]
+        )
         # Correct the docket numbers if they start with '-'
         for i, d in enumerate(docket_numbers):
             if d.startswith("-"):
@@ -1442,6 +1456,7 @@ class GCLParse(object):
             for c in self.court_codes:
                 if c in approx_location:
                     court = self.jurisdictions["court_details"][c]
+                    break
 
         for key in self.reporters:
             if key in key:
@@ -1486,18 +1501,43 @@ class GCLParse(object):
 
             citation_details += [details]
 
-        possible_casename = regex(citation, [(r"^(.*?)XXXX+.*", r"\g<1>")])
+        def _extract_casename(citation):
+            return regex(citation, [(r"^(.*?)XXXX+.*", r"\g<1>")])
+
+        possible_casename = _extract_casename(citation)
 
         docket_numbers = []
-        dockets = regex(possible_casename, self.docket_number_patterns, sub=False)
 
-        for d in dockets:
-            docket_numbers += regex(
-                regex(d[1], [(r",? +and +", ",")]).split(","), self.extra_char_patterns
-            )
-            possible_casename = possible_casename.replace(d[0], "")
+        while True:
+            match = regex(possible_casename, self.docket_number_patterns, sub=False)
 
-        casename = regex(possible_casename, self.comma_space_patterns)
+            if not match:
+                break
+
+            match = match[0]
+
+            if "XXXX" in match[1]:
+                possible_casename = possible_casename.replace(match[0], " XXXX")
+                break
+
+            else:
+                docket_numbers += regex(match[1], [(r",? +and +", ",")]).split(",")
+
+                if not regex(
+                    possible_casename.replace(match[1], ","),
+                    self.docket_number_patterns,
+                    sub=False,
+                ):
+                    possible_casename = possible_casename.replace(match[0], " XXXX")
+                    break
+
+                else:
+                    possible_casename = possible_casename.replace(match[1], ",")
+
+        docket_numbers = regex(docket_numbers, self.comma_space_patterns)
+        casename = regex(
+            _extract_casename(possible_casename), self.comma_space_patterns
+        )
 
         citation_dic["case_name"] = None if casename == citation else casename
         citation_dic["published"] = False if docket_numbers else True
@@ -1565,7 +1605,7 @@ class GCLParse(object):
             value = sorted(r[k], key=len, reverse=True)
 
             r[k] = {
-                "citation": value[0],
+                "citation": regex(value[0], self.docket_clean_patterns_2),
                 **{
                     m: None
                     for m in [
