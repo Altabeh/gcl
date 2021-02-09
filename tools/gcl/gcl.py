@@ -25,29 +25,17 @@ from time import sleep
 
 import requests
 from bs4 import BeautifulSoup as BS
+from reporters_db import EDITIONS, REPORTERS
 from tqdm import tqdm
 
 BASE_DIR = Path(__file__).resolve().parents[2]
 sys.path.insert(0, BASE_DIR.__str__())
 
-from tools.utils import (
-    async_get,
-    closest_value,
-    create_dir,
-    deaccent,
-    hyphen_to_numbers,
-    multi_run,
-    proxy_browser,
-    recaptcha_process,
-    regex,
-    load_json,
-    remove_repeated,
-    rm_tree,
-    sort_int,
-    nullify,
-    switch_ip,
-    validate_url,
-)
+from tools.utils import (async_get, closest_value, create_dir, deaccent,
+                         hyphen_to_numbers, load_json, multi_run, nullify,
+                         proxy_browser, recaptcha_process, regex,
+                         remove_repeated, rm_tree, shorten_date, sort_int,
+                         switch_ip, validate_url)
 
 __author__ = {"github.com/": ["altabeh"]}
 __all__ = ["GCLParse"]
@@ -64,31 +52,16 @@ class GCLParse(object):
     case_patterns = [(r"/scholar_case\?(?:.*?)=(\d+)", r"\g<1>")]
     casenumber_patterns = [(r"scidkt=(.*?)&", "")]
     just_number_patterns = [(r"^\d+$", "")]
-    docket_patterns = [
-        (r"(?:[\w .]+)?(?:C\.A|N[Oo][sS]?)\.:? ?", ""),
-        (r"\([\w ]+\)", ""),
-        (r",? +[Aa][Nn][Dd] +", ","),
-    ]
-    docket_appeals_patterns = [(r"(?:\d{2,4}|(?<=, )|(?<=, and)(?: +)?)-\d{1,5}", "")]
-    docket_us_patterns = [(r"\d+(?:-\d+)?", "")]
     docket_number_patterns = [
         (
-            r"((?:,(?: +)?(?:[A-Za-z ]+)?)?Nos?[\., ]+(?:\b| +)((?:[\w:\- ]|\([A-Za-z/]+\))+)+)",
+            r"((?:(?<=,)|(?<=^))(?: +)?Nos?[., ]+(?:\b| +)((?:[\w:\-. ]|\([A-Za-z/]+\))+)+)",
             "",
         )
     ]
-    docket_clean_patterns_1 = [
-        (
-            r"(?:C\.?(?: +)?A\.? +|Case +|(Nos?)(?:[\.: ]+)?|Criminal +|Civil +|Action +)+",
-            "",
-        )
-    ]
-    docket_clean_patterns_2 = [
-        (
-            r"(?: +)?(?:[CA\. ]+|Case +)?(Nos?\.?) +(?:Criminal +|Civil +)?(?:Action +|Case +)?(?:No:? +)?",
-            r"\g<1>",
-        )
-    ]
+    docket_number_comp_patterns = [(r"((?:(?<=,)|(?<=^)|(?<=No\.)|(?<=Nos\.))(?: +)(\d+[:-][A-Z\d+\-\/ ]+))", "")]
+    docket_appeals_patterns = [(r"(?:\d{2,4}|(?<=, )|(?<=, and)(?: +)?)-\d{1,5}", "")]
+    docket_us_patterns = [(r"\d+(?:-\d+)?", "")]
+    docket_clean_patterns = r"(?:(?<=^)|(?<=,))(?: +)?(?:(?:C\.?A|D(?:[oc]+)?ke?ts?|MDL| +|Case|Crim|Civ)+(?:il|inal)?(?:(?:Action|CV|A|[. ])+)?)?((?:C\.A|Nos?)\.:?)(?: )?"
     patent_number_pattern = r"(?:(?:RE|PP|D|AI|X|H|T)? ?\d{1,2}[,./]\-?)?(?:(?:RE|PP|D|AI|X|H|T) ?\d{2,3}|\d{3})[,./]\-?\d{3}(?: ?AI)?\b"
     patent_reference_pattern = r'["`\'#’]+(\d{3,4}) ?(?:[Aa]pplication|[Pp]atent)\b'
     claim_patterns_1 = (
@@ -130,7 +103,7 @@ class GCLParse(object):
     ]
     short_month_date_patterns = [
         (
-            r"((?:(Jan|Feb|Mar|Apr|May|June|July|Aug|Sept?|Oct|Nov|Dec)\.?(?: +)?(?:([0-9]{1,2})\b,?)?(?: +)?)?(\d{4}))",
+            r"((?:(Jan|Feb|Mar|Apr|May|June?|July?|Aug|Sept?|Oct|Nov|Dec)\.?(?: +)?(?:([0-9]{1,2})\b,?)?(?: +)?)?(\d{4}))",
             "",
         ),
     ]
@@ -170,7 +143,7 @@ class GCLParse(object):
         (r"(?<! |\()(\d{4}\))(?: +)?(\(?:en banc\))?$", r" \g<1>"),
         (r"(?<=\.)([A-Z][a-z\']+\.)", r" \g<1>"),
     ]
-    reporter_empty_patterns = r"(?:[\-—–_]+)(?: +)?(?:X)(?: +)?(?:[\-—–_,]+)"
+    reporter_empty_patterns = r"(?:(?:[\-—–_\d ]+))(?:X)(?:(?: +)(?:[\-—–_]+)[, ]+)+"
     reporter_patterns = r"((\d+)(?: +)?(X)(?: +)?([\d\-—–_ ]+)([at,\.\d\-—–_\*¶ ]+)?([n\.\d\-—–_\*¶ ]+)?)"
     special_chars_patterns = [(r"\W", "")]
     strip_patterns = [(r"\n", " "), (r" +", " ")]
@@ -207,6 +180,10 @@ class GCLParse(object):
         # `reporters.json` contains reporters with different variations/flavors mapped to their standard form.
         self.reporters = kwargs.get(
             "reporters", load_json(self.data_dir / "reporters.json", True)
+        )
+        # `months.json` contains a dictionary that maps abbreviations/variations of months to their full names.
+        self.months = kwargs.get(
+            "months", load_json(self.data_dir / "months.json", True)
         )
 
     def _get(self, url_or_id, need_proxy=False):
@@ -394,11 +371,13 @@ class GCLParse(object):
                         el["docket_number"].append(num_)
                     else:
                         case["case_numbers"].append(
-                            {"id": id_, "docket_number": [num_]}
+                            {"id": nullify(id_), "docket_number": [num_]}
                         )
                         break
             else:
-                case["case_numbers"].append({"id": id_, "docket_number": [num_]})
+                case["case_numbers"].append(
+                    {"id": nullify(id_), "docket_number": [num_]}
+                )
 
         case["judges"] = self.gcl_get_judge(opinion, court_code)
         case["personal_opinions"] = None
@@ -714,16 +693,11 @@ class GCLParse(object):
             self.date_patterns,
             sub=False,
         )[0]
-
-        date_format = datetime.strptime(regex(date, self.space_patterns), "%B %d, %Y")
-
+        date_object = datetime.strptime(regex(date, self.space_patterns), "%B %d, %Y")
         if short_month:
-            date = date_format.strftime("%B %d, %Y")
-            if not regex(date, [(r"May|June|July", "")], sub=False):
-                date = date_format.strftime("%b. %d, %Y")
-            return date
+            return shorten_date(date_object)
 
-        return date_format.strftime("%Y-%m-%d")
+        return date_object.strftime("%Y-%m-%d")
 
     def gcl_drop(
         self,
@@ -870,11 +844,17 @@ class GCLParse(object):
                     )
 
         if not docket_numbers:
-            docket_numbers = regex(case_num.get_text(), self.docket_patterns).split(",")
+            docket_numbers = regex(
+                case_num.get_text(),
+                [
+                    (self.docket_clean_patterns, ""),
+                    (r"\([\w ]+\)", ""),
+                    (r",? +and +", ","),
+                ],
+                flags=re.I,
+            ).split(",")
 
-        docket_numbers = regex(
-            docket_numbers, [*self.extra_char_patterns, *self.docket_clean_patterns_1]
-        )
+        docket_numbers = regex(docket_numbers, self.extra_char_patterns)
         # Correct the docket numbers if they start with '-'
         for i, d in enumerate(docket_numbers):
             if d.startswith("-"):
@@ -1425,11 +1405,14 @@ class GCLParse(object):
 
         return cites
 
-    def _fix_court_abbreviations(self, citation):
+    def _fix_abbreviations(self, citation):
         """
-        Fix court abbreviations in a `citation` due to gcl processing issues or non-bluebook adaptations.
+        Fix court and date abbreviations in a `citation` due to gcl processing issues or non-bluebook adaptations.
         """
         if fn := regex(citation, self.approx_court_location_patterns, sub=False):
+            if gn := regex(fn[0], self.date_patterns, sub=False):
+                date = shorten_date(datetime.strptime(gn[0], "%B %d, %Y"))
+                citation = citation.replace(gn[0], date)
             return citation.replace(fn[0], regex(fn[0], self.court_clean_patterns))
 
         return citation
@@ -1447,19 +1430,22 @@ class GCLParse(object):
             if date:
                 date = date[0]
                 [month, day, year] = [nullify(x) for x in date[1:]]
+                month = self.months[month] if month else None
                 approx_location = fn[0].replace(date[0], year)
 
         if approx_location:
             if regex(approx_location, [(r"^\((?: +)?\d+(?: +)?\)$", "")], sub=False):
-                court = self.jurisdictions["court_details"]["Supreme Court"]
+                court = None
 
             for c in self.court_codes:
                 if c in approx_location:
                     court = self.jurisdictions["court_details"][c]
                     break
 
+        total_matches = []
+        # Remove reporters without a known volume or number such as ___ U.S. ___
         for key in self.reporters:
-            if key in key:
+            if key in citation:
                 citation = regex(
                     citation,
                     [
@@ -1467,12 +1453,15 @@ class GCLParse(object):
                             re.escape(key).join(
                                 self.reporter_empty_patterns.split("X")
                             ),
-                            "XXXX",
+                            " ",
                         )
                     ],
                 )
 
-        total_matches = []
+        citation_dic["citation"] = citation = regex(
+            citation, [(r"[\-—–_ ]{2,}[, ]+", " ")]
+        )
+
         for key in self.reporters:
             if key in citation:
                 matches = regex(
@@ -1487,29 +1476,56 @@ class GCLParse(object):
                 total_matches += matches
 
         citation_details = []
-        keys = ["volume", "reporter_name", "first_page", "pages", "footnotes"]
+
+        keys = ["volume", "reporter_abbreviation", "first_page", "pages", "footnotes"]
         for m in total_matches:
-            match = list(map(lambda i: regex(i, self.extra_char_patterns), m[1:]))
+            match = [
+                self.reporters[s] if i == 1 else s
+                for i, s in enumerate(
+                    list(map(lambda i: regex(i, self.comma_space_patterns), m[1:]))
+                )
+            ]
             details = {
                 k: nullify(
                     regex(match[i], [(r"[^0-9\-, ]", ""), *self.extra_char_patterns])
                 )
                 if i > 2
-                else match[i]
+                else nullify(regex(match[i], [(r"^[_-]+$", "")]))
                 for i, k in enumerate(keys)
             }
+
+            if details["reporter_abbreviation"] == "P. C.":
+                court = None
+            
+            if details["reporter_abbreviation"] in ["S. Ct.", "U.S."]:
+                court = self.jurisdictions["court_details"]["Supreme Court"]
+
+            details["edition"] = EDITIONS[details["reporter_abbreviation"]]
+            reporter = REPORTERS[details["edition"]][0]
+            details["reporter_name"] = reporter["name"]
+            details["cite_type"] = reporter["cite_type"]
 
             citation_details += [details]
 
         def _extract_casename(citation):
             return regex(citation, [(r"^(.*?)XXXX+.*", r"\g<1>")])
 
-        possible_casename = _extract_casename(citation)
+        possible_casename = _extract_casename(
+            regex(citation, [(self.docket_clean_patterns, r" \g<1> ")], flags=re.I)
+        )
 
         docket_numbers = []
-
         while True:
-            match = regex(possible_casename, self.docket_number_patterns, sub=False)
+            match = []
+            for x in [self.docket_number_patterns, self.docket_number_comp_patterns]:
+                match = regex(
+                    possible_casename,
+                    x,
+                    sub=False,
+                    flags=re.I,
+                )
+                if match:
+                    break
 
             if not match:
                 break
@@ -1527,6 +1543,7 @@ class GCLParse(object):
                     possible_casename.replace(match[1], ","),
                     self.docket_number_patterns,
                     sub=False,
+                    flags=re.I,
                 ):
                     possible_casename = possible_casename.replace(match[0], " XXXX")
                     break
@@ -1534,15 +1551,23 @@ class GCLParse(object):
                 else:
                     possible_casename = possible_casename.replace(match[1], ",")
 
-        docket_numbers = regex(docket_numbers, self.comma_space_patterns)
-        casename = regex(
-            _extract_casename(possible_casename), self.comma_space_patterns
+        casename = nullify(
+            regex(
+                _extract_casename(possible_casename),
+                self.comma_space_patterns,
+            )
         )
 
         citation_dic["case_name"] = None if casename == citation else casename
         citation_dic["published"] = False if docket_numbers else True
         citation_dic["date"] = {"year": year, "month": month, "day": day}
-        citation_dic["docket_numbers"] = nullify(docket_numbers)
+        citation_dic["docket_numbers"] = nullify(
+            regex(
+                docket_numbers,
+                [(self.docket_clean_patterns, r""), *self.comma_space_patterns],
+                flags=re.I,
+            )
+        )
         citation_dic["citation_details"] = nullify(citation_details)
         citation_dic["court"] = court
 
@@ -1592,9 +1617,7 @@ class GCLParse(object):
 
         def _apply(c, k, extras=True):
             if extras:
-                c = self._fix_court_abbreviations(
-                    regex(c, self.extras_citation_patterns)
-                )
+                c = self._fix_abbreviations(regex(c, self.extras_citation_patterns))
             r[k] = {**r[k], **self._tokenize_citation(c)}
 
         def _longest_cite(k):
@@ -1605,7 +1628,7 @@ class GCLParse(object):
             value = sorted(r[k], key=len, reverse=True)
 
             r[k] = {
-                "citation": regex(value[0], self.docket_clean_patterns_2),
+                "citation": value[0],
                 **{
                     m: None
                     for m in [
@@ -1623,7 +1646,7 @@ class GCLParse(object):
             if blue_citation:
                 for v in value:
                     if citation := self.gcl_long_blue_cite(v):
-                        _apply(self._fix_court_abbreviations(citation), k, False)
+                        _apply(self._fix_abbreviations(citation), k, False)
                         match = True
                         break
 
