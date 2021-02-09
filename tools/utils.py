@@ -4,13 +4,12 @@ import unicodedata
 import urllib
 from concurrent.futures import ProcessPoolExecutor as future_pool
 from concurrent.futures import ThreadPoolExecutor as thread_future_pool
-
 from os import cpu_count, environ
 from pathlib import Path
 from time import sleep
 
-from pathos.threading import ThreadPool as thread_pool
 from pathos.multiprocessing import ProcessPool as pool
+from pathos.threading import ThreadPool as thread_pool
 from python_anticaptcha import AnticaptchaClient, NoCaptchaTaskProxylessTask
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -29,6 +28,7 @@ __all__ = [
     "multi_run",
     "regex",
     "nullify",
+    "shorten_date",
     "sort_int",
     "deaccent",
     "normalize",
@@ -202,14 +202,16 @@ def create_dir(path):
     return path
 
 
-def multi_run(func, files, threading=False, yield_results=False, cpus=cpu_count(), pathos=False):
+def multi_run(
+    func, files, threading=False, yield_results=False, cpus=cpu_count(), pathos=False
+):
     """
     Wrap a function `func` in a multiprocessing(threading) block good for simultaneous I/O/CPU-bound
     operations involving multiple number of `files`. Set `yield_results` to True if the function intends
     to yield results back to the caller. Use `pathos` to implement dill backend that is useful
     for parallelizing nested and lambda functions.
     """
-    
+
     if pathos:
         if threading:
             p = thread_pool(cpus)
@@ -232,12 +234,27 @@ def multi_run(func, files, threading=False, yield_results=False, cpus=cpu_count(
                 pass
             else:
                 yield _
-            
+
 
 def nullify(input_):
     if not input_:
         input_ = None
     return input_
+
+
+def shorten_date(date_object):
+    """
+    Given a date object `date_object` of the format "Month Day, Year", abbreviate month and return date string.
+    """
+    date = date_object.strftime("%B %d, %Y")
+    
+    if not regex(date, [(r"May|June|July", "")], sub=False):
+        date = date_object.strftime("%b. %d, %Y")
+    
+    elif "September" in date:
+        date = date_object.strftime("Sept. %d, %Y")
+    
+    return date
 
 
 def sort_int(string):
