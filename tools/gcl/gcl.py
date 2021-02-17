@@ -25,141 +25,53 @@ from time import sleep
 
 import requests
 from bs4 import BeautifulSoup as BS
+from bs4 import NavigableString
 from reporters_db import EDITIONS, REPORTERS
 from tqdm import tqdm
+from regexes import GCLRegex
 
 BASE_DIR = Path(__file__).resolve().parents[2]
 sys.path.insert(0, BASE_DIR.__str__())
 
-from tools.utils import (async_get, closest_value, create_dir, deaccent,
-                         hyphen_to_numbers, load_json, multi_run, nullify,
-                         proxy_browser, recaptcha_process, regex,
-                         remove_repeated, rm_tree, shorten_date, sort_int,
-                         switch_ip, validate_url)
+from tools.utils import (
+    uspto_grab_patent_number,
+    closest_value,
+    create_dir,
+    deaccent,
+    hyphen_to_numbers,
+    load_json,
+    multi_run,
+    nullify,
+    proxy_browser,
+    recaptcha_process,
+    regex,
+    remove_repeated,
+    rm_tree,
+    shorten_date,
+    sort_int,
+    switch_ip,
+    validate_url,
+)
 
 __author__ = {"github.com/": ["altabeh"]}
 __all__ = ["GCLParse"]
 
 
-class GCLParse(object):
+class GCLParse(GCLRegex):
     """
     Parser for Google case law pages.
     """
 
     base_url = "https://scholar.google.com/"
+    _prioritize_citations = None
+    _case = None
 
-    # ------ Regex Patterns ------
-    case_patterns = [(r"/scholar_case\?(?:.*?)=(\d+)", r"\g<1>")]
-    casenumber_patterns = [(r"scidkt=(.*?)&", "")]
-    just_number_patterns = [(r"^\d+$", "")]
-    docket_number_patterns = [
-        (
-            r"((?:(?<=,)|(?<=^))(?: +)?Nos?[., ]+(?:\b| +)((?:[\w:\-. ]|\([A-Za-z/]+\))+)+)",
-            "",
-        )
-    ]
-    docket_number_comp_patterns = [(r"((?:(?<=,)|(?<=^)|(?<=No\.)|(?<=Nos\.))(?: +)(\d+[:-][A-Z\d+\-\/ ]+))", "")]
-    docket_appeals_patterns = [(r"(?:\d{2,4}|(?<=, )|(?<=, and)(?: +)?)-\d{1,5}", "")]
-    docket_us_patterns = [(r"\d+(?:-\d+)?", "")]
-    docket_clean_patterns = r"(?:(?<=^)|(?<=,))(?: +)?(?:(?:C\.?A|D(?:[oc]+)?ke?ts?|MDL| +|Case|Crim|Civ)+(?:il|inal)?(?:(?:Action|CV|A|[. ])+)?)?((?:C\.A|Nos?)\.:?)(?: )?"
-    patent_number_pattern = r"(?:(?:RE|PP|D|AI|X|H|T)? ?\d{1,2}[,./]\-?)?(?:(?:RE|PP|D|AI|X|H|T) ?\d{2,3}|\d{3})[,./]\-?\d{3}(?: ?AI)?\b"
-    patent_reference_pattern = r'["`\'#’]+(\d{3,4}) ?(?:[Aa]pplication|[Pp]atent)\b'
-    claim_patterns_1 = (
-        r"[Cc]laims?([\d\-, and]+)(?:[\w ]+)(?:(?:[\(\"“ ]+)?(?: ?the ?)?[#`\'’]+(\d+))"
-    )
-    claim_patterns_2 = r"(?<=[cC]laim[s ])(?:([\d,\- ]+)(?:(?:[, ]+)?and ([\d\- ]+))*)+"
-    patent_number_patterns_1 = [(r" " + patent_number_pattern, "")]
-    patent_number_patterns_2 = [(r"[USnitedpPaNso. ]+" + patent_number_pattern, "")]
-    judge_patterns = [
-        (
-            r"^(m[rs]s?\.? )?C[Hh][Ii][Ee][Ff] J[Uu][Dd][Gg][Ee][Ss]? |^(m[rs]s?\.? )?(?:C[Hh][Ii][Ee][Ff] )?J[Uu][Ss][Tt][Ii][Cc][Ee][Ss]? |^P[rR][Ee][Ss][Ee][nN][T]: |^B[eE][fF][oO][rR][Ee]: | J[Uu][Dd][Gg][Ee][Ss]?[:.]?$|, [UJSC. ]+:?$|, (?:[USD. ]+)?[J. ]+:?$|, J[Uu][Ss][Tt][Ii][Cc][Ee][Ss]?\.?$",
-            "",
-        )
-    ]
-    judge_dissent_concur_patterns = r"(?<=\$)([^\$][\w\W][^\$]+((?:[Cc]oncurring|[Dd]issenting)[a-z.:;,\- ]+))(?=\$)"
-    judge_clean_patterns_1 = [
-        (
-            r", joined$| ?—$|^Opinion of the Court by |, United States District Court| ?Pending before the Court are:?| ?Opinion for the court filed by[\w\'., ]+| delivered the opinion of the Court\.|^Appeal from ",
-            "",
-        )
-    ]
-    judge_clean_patterns_2 = [
-        (
-            r"^(?:the )?hon\. |^(?:the )?honorable |^before:? |^present:? |^m[rs]s?\.? |, (?:u\.?\s\.?)?d?\.?j\.\.?$|, j\.s\.c\.$",
-            "",
-        )
-    ]
-    judge_clean_patterns_3 = [
-        (
-            r"senior|chief|u\.?s\.?|united states|circuit|district|magistrate|chief|court|judges?",
-            "",
-        )
-    ]
-    date_patterns = [
-        (
-            r"((?:January|February|March|April|May|June|July|August|September|October|November|December)(?:[0-9, ]+))",
-            "",
-        )
-    ]
-    short_month_date_patterns = [
-        (
-            r"((?:(Jan|Feb|Mar|Apr|May|June?|July?|Aug|Sept?|Oct|Nov|Dec)\.?(?: +)?(?:([0-9]{1,2})\b,?)?(?: +)?)?(\d{4}))",
-            "",
-        ),
-    ]
-    long_bluebook_patterns = [
-        (r"(?:^in re:?| +v\.? +).*(?:en banc|ed\.|cir\.|\d{4})\)$", "")
-    ]
-    extras_citation_patterns = [
-        (
-            r",(?:(?:[\d& ,\-\*]+)|(?:[nat&\- \*\d]+(?:[\. ]+(?:(?:(?:[\.\- ]+)?\d+)?)+ ?)?))(?= \(|,)",
-            "",
-        ),
-        (
-            r"((?:^in re:?|(?:.)* v\.? +).*(?:\(en banc|ed\.|Cir\.|\d{4})\))(?:(?:(?: +)?\(.*?\))+)?$",
-            r"\g<1>",
-        ),
-        (
-            r"^(?:[\w\'\-\.]+)?\"(?: +)?| +\(\".*?\"\)|\b at ?\*?(?: +)?(?:\d+(?: ?\- ?\d+)?)+",
-            "",
-        ),
-        (r"Fed\. ?Appx\.", "F. App'x"),
-        (r"F\. ?Supp\. ?(\d+)d", r"F. Supp. \g<1>d"),
-        (r"L\. ?Ed\. ?(\d+)d", r"L. Ed. \g<1>d"),
-        (r"S\.Ct\.", "S. Ct."),
-    ]
-    federal_court_patterns = [(r"( ?([,-]) ([\w:. \']+) (\d{4}))$", "")]
-    state_court_patterns = [(r"( ?([-,]) ([\w. ]+): (.*?) (\d{4}))$", "")]
-    approx_court_location_patterns = [
-        (r"(\([\w\.,\' ]+\))(?: +)?(?:\(en banc\))?$", "")
-    ]
-    court_clean_patterns = [
-        (r"Cir\.(\d+)", r"Cir. \g<1>"),
-        (r"Fed\.Cir\.", "Fed. Cir."),
-        (r"CCPA", "C.C.P.A."),
-        (r"PTAB", "P.T.A.B."),
-        (r"Dept", "Dep't"),
-        (r"([\(| ])(Fed|Cir)(?!\.)\b", r"\g<1>\g<2>."),
-        (r"(?<! |\()(\d{4}\))(?: +)?(\(?:en banc\))?$", r" \g<1>"),
-        (r"(?<=\.)([A-Z][a-z\']+\.)", r" \g<1>"),
-    ]
-    reporter_empty_patterns = r"(?:(?:[\-—–_\d ]+))(?:X)(?:(?: +)(?:[\-—–_]+)[, ]+)+"
-    reporter_patterns = r"((\d+)(?: +)?(X)(?: +)?([\d\-—–_ ]+)([at,\.\d\-—–_\*¶ ]+)?([n\.\d\-—–_\*¶ ]+)?)"
-    special_chars_patterns = [(r"\W", "")]
-    strip_patterns = [(r"\n", " "), (r" +", " ")]
-    extra_char_patterns = [(r"^[,. ]+|[,. ]+$", "")]
-    comma_space_patterns = [(r"^[, ]+|[, ]+$", "")]
-    space_patterns = [(r"^ +| +$", "")]
-    end_sentence_patterns = [
-        (
-            r"(?:AFFIRMED|ORDERED|REMANDED|DENIED|REVERSED|GRANTED|[pP][aA][rR][tT]|@@@@\[[\d\*]+\]|[.!?])[\"\'”’]?$",
-            "",
-        )
-    ]
-    roman_patterns = [(r"^[MDCLXVI](?:M|D|C{0,4}|L|X{0,4}|V|I{0,4})$", "")]
-    abbreviation_patterns = [(r"^[JS][Rr]\.$", "")]
-    page_patterns = [(r"(?: +)?\+page\[\d+\]\+ +", " ")]
-    clean_footnote_patterns = [(r" ?@@@@\[[\d\*]+\] ?", " ")]
+    # ------ Labels ------
+    paragraph_label = "$" * 4
+    footnote_label = "@" * 4
+    citation_label = "#" * 4
+    blockquote_label_s, blockquote_label_e = "$qq$", "$/qq$"
+    pre_label_s, pre_label_e = "$rr$", "$/rr$"
 
     def __init__(self, **kwargs):
         self.data_dir = kwargs.get("data_dir", BASE_DIR / "tools" / "gcl" / "data")
@@ -186,997 +98,57 @@ class GCLParse(object):
             "months", load_json(self.data_dir / "months.json", True)
         )
 
-    def _get(self, url_or_id, need_proxy=False):
-        """
-        Request to access the content of a Google Scholar case law page with a valid `url_or_id`.
-
-        Args
-        ----
-        :param need_proxy: ---> bool: if True, start switching proxy IP after each request
-                                      to reduce risk of getting blocked.
-        """
-        url = url_or_id
-        if regex(url_or_id, self.just_number_patterns, sub=False):
-            url = self.base_url + f"scholar_case?case={url_or_id}"
-
-        res_content = ""
-
-        if need_proxy:
-            proxy = proxy_browser()
-            proxy.get(url)
-            res_content = proxy.page_source
-            status = 200
-
-            if not res_content:
-                status = 0
-
-            else:
-                # Obtain a `404` error indicator if server returned html.
-                if regex(res_content, [(r"class=\"gs_med\"", "")], sub=False):
-                    status = 404
-                # Solve recaptcha if encountered.
-                elif regex(res_content, [(r"id=\"gs_captcha_c\"", "")], sub=False):
-                    EXPECTED_RESULT = "You are verified"
-                    recaptcha = recaptcha_process(url, proxy)
-                    assert EXPECTED_RESULT in recaptcha
-                switch_ip()
-
-        else:
-            response = requests.get(url)
-            response.encoding = response.apparent_encoding
-            status = response.status_code
-            if status == 200:
-                res_content = response.text
-
-        if status == 404:
-            print(f'URL "{url}" not found')
-
-        if status not in [200, 404]:
-            raise Exception(f"Server response: {status}")
-
-        return status, res_content
-
-    def gcl_parse(
-        self,
-        path_or_url: str,
-        skip_patent=False,
-        return_data=False,
-        need_proxy=False,
-        random_sleep=False,
-    ):
-        """
-        Parses a Google case law page under an `html_path` or at a `url` and serializes/saves all relevant information
-        to a json file.
-
-        Args
-        ----
-        :param path_or_url: ---> str: a path to an html file or a valid url of a Google case law page.
-        :param skip_patent: ---> bool: if true, skips downloading and scraping patent information.
-        :param random_sleep: ---> bool: if True, sleep for randomly selected seconds before making
-                                      a new request.
-        """
-        html_text = ""
-        if not Path(path_or_url).is_file():
-            html_text = tuple(self._get(path_or_url, need_proxy))[1]
-            if random_sleep:
-                sleep(randint(2, 10))
-        else:
-            with open(path_or_url, "r") as f:
-                html_text = f.read()
-
-        html_text = BS(deaccent(html_text), "html.parser")
-
-        opinion = html_text.find(id="gs_opinion")
-
-        # Return empty set if case law page was not found (`404` error).
-        # Store the case ID with a `404` error.
-        if not opinion:
-            print(f'Serialization failed for "{path_or_url}"')
-            path_404 = self.data_dir / "json" / f"404_{self.suffix}.json"
-            not_downloaded = load_json(path_404)
-            with open(path_404.__str__(), "w") as f:
-                case_id = regex(
-                    path_or_url, [(r"(?:.*scholar_case\?case=)?(\d+)(?:.*)?", r"\g<1>")]
-                )
-                not_downloaded[case_id] = case_id
-                json.dump(not_downloaded, f, indent=4)
-            return {}
-
-        opinion.find(id="gs_dont_print").replaceWith("")
-        op_c = str(opinion)
-        links = opinion.find_all("a")
-        case_id = self.gcl_get_id(html_text)
-        self._footnote_id(opinion)
-        full_case_name = self._full_casename(opinion)
-        opinion.find(id="gsl_case_name").replaceWith("")
-
-        case = {
-            "id": case_id,
-            "full_case_name": full_case_name,
-            "case_numbers": [],
-            "citation": None,
-        }
-
-        case["citation"], court_info = self.gcl_citor(html_text)
-        case["short_citation"] = []
-
-        page_number_tags = opinion.find_all("a", class_="gsl_pagenum")
-
-        case["first_page"], case["last_page"] = None, None
-        if page_number_tags:
-            pages = [p.get_text() for p in page_number_tags]
-            case["first_page"], case["last_page"] = int(pages[0]), int(pages[-1])
-
-        for center in opinion.select("center > b"):
-            case["short_citation"].append(center.get_text())
-            center.replaceWith("")
-
-        self._fix_broken_links(page_number_tags)
-
-        case["cites_to"] = {}
-        for i, l in enumerate(links):
-            c = i + 1
-            if fn := l.attrs:
-                if fn.get("href", None) and "/scholar_case?" in fn["href"]:
-                    case_citation = regex(l.get_text(), self.extra_char_patterns)
-                    case_name = None
-                    if gn := l.find("i"):
-                        case_name = regex(gn.get_text(), self.comma_space_patterns)
-                    id_ = regex(l.attrs["href"], self.case_patterns, sub=False)[0]
-
-                    # The key `identifier` may be used to trace different variations of
-                    # the same citation in the case text specially when substituting a
-                    # case ID with its citation. E.g. #123456789[identifier].
-                    var = {"citation": case_citation, "identifier": f"[{c}]"}
-                    ct = {
-                        "case_name": case_name,
-                        "variations": [var],
-                    }
-                    if not case["cites_to"]:
-                        case["cites_to"] = {id_: [ct]}
-                    else:
-                        if case["cites_to"].get(id_, None):
-                            cites = case["cites_to"][id_]
-                            not_accounted = True
-                            for el in cites:
-                                if el["case_name"] == case_name:
-                                    variants = [v["citation"] for v in el["variations"]]
-                                    if case_citation not in variants:
-                                        el["variations"] += [var]
-                                    not_accounted = False
-                                    break
-
-                            # If some variation of a citation does not exist in the cited cases already:
-                            if not_accounted:
-                                cites += [ct]
-                        else:
-                            case["cites_to"][id_] = [ct]
-
-                    l.replaceWith(f" ####{id_}[{c}] ")
-
-        case["date"] = self._get_date(opinion)
-        case["court"] = self.jurisdictions["court_details"][court_info]
-
-        court_code = case["court"].get("court_code", None)
-        jurisdiction = case["court"].get("jurisdiction", None)
-        # Insert the case number if the case is still unpublished
-        case["citation"] = case["citation"].replace(
-            "XXXXXX", self._casenumber(html_text, jurisdiction, court_code, True)[0]
-        )
-
-        for id_, num_ in self._casenumber(opinion, jurisdiction, court_code):
-            if fn := case["case_numbers"]:
-                for el in fn:
-                    if id_ == el["id"]:
-                        el["docket_number"].append(num_)
-                    else:
-                        case["case_numbers"].append(
-                            {"id": nullify(id_), "docket_number": [num_]}
-                        )
-                        break
-            else:
-                case["case_numbers"].append(
-                    {"id": nullify(id_), "docket_number": [num_]}
-                )
-
-        case["judges"] = self.gcl_get_judge(opinion, court_code)
-        case["personal_opinions"] = None
-
-        patents = []
-        patent_numbers = self._get_patents(opinion)
-        for key, value in self._get_claims(opinion).items():
-            for patent_number in patent_numbers:
-                if patent_number.endswith(key):
-                    patent_found, claims = self.gcl_patent_data(
-                        patent_number, case_id, skip_patent, True
-                    )
-                    patents.append(
-                        {
-                            "patent_number": patent_number,
-                            "patent_found": patent_found,
-                            "claims": claims,
-                            "cited_claims": [
-                                int(i)
-                                for i in value
-                                if regex(i, self.just_number_patterns, sub=False)
-                                and int(i) <= len(claims)
-                            ],
-                        }
-                    )
-                    break
-
-        case["patents_in_suit"] = patents
-        case["html"] = op_c
-        case["training_text"] = ""
-        case["footnotes"] = []
-
-        small_tag = opinion.find_all("small")
-        if small_tag:
-            footnotes = small_tag[-1].find_all("a", class_="gsl_hash")
-            for tag in footnotes:
-                parent_tag = tag.parent
-                # Remove footnote tag identifier from the end of case file.
-                tag.replaceWith("")
-                case["footnotes"].append(
-                    {
-                        "identifier": f"{tag.attrs['name']}",
-                        "context": regex(parent_tag.get_text(), self.space_patterns),
-                    }
-                )
-
-        self._replace_tags(opinion, court_code)
-
-        case["training_text"] = regex(opinion.get_text(), self.strip_patterns)
-
-        case["personal_opinions"] = self._personal_opinion(
-            case["training_text"], case["judges"]
-        )
-
-        with open(
-            str(
-                create_dir(self.data_dir / "json" / f"json_{self.suffix}")
-                / f"{case_id}.json"
-            ),
-            "w",
-        ) as f:
-            json.dump(case, f, indent=4)
-
-        if return_data:
-            return case
-
-    def gcl_get_id(self, html_text):
-        """
-        Retrieve the case ID given the html of the case file.
-        """
-        return regex(
-            str(html_text.find(id="gs_tbar_lt")), self.case_patterns, sub=False
-        )[0]
-
-    def gcl_get_judge(self, opinion, court_code, just_locate=False):
-        """
-        Extract judge names from `opinion`.
-
-        Args
-        ----
-        :param opinion: ---> BeautifulSoup object corresponding to html page of the opinion.
-        :param court_code: ---> str: the court code to have further control on the parsed judge data.
-        :param just_locate: ---> bool: just locate the tag containing judge names and return.
-        """
-        initial_cleaning_patterns = [
-            *self.page_patterns,
-            *self.clean_footnote_patterns,
-            *self.judge_clean_patterns_1,
-        ]
-        judge_tag = ""
-        for tag in opinion.find_all("p"):
-            if not tag.find("h2"):
-                tag_text = regex(tag.get_text(), initial_cleaning_patterns)
-                if regex(tag_text, self.judge_patterns, sub=False):
-                    judge_tag = tag
-                    break
-
-        if just_locate:
-            return judge_tag
-
-        # Exclude the Supreme Court judges as it is not so useful.
-        if judge_tag and court_code not in ["us"]:
-            judges = regex(judge_tag.get_text(), initial_cleaning_patterns)
-            judges = regex(
-                judges,
-                [
-                    *self.judge_clean_patterns_2,
-                    (" and ", ", "),
-                    *self.extra_char_patterns,
-                    *self.judge_clean_patterns_3,
-                ],
-                flags=re.I,
-            )
-            judges = regex(
-                "".join(judges).split(","), [*self.comma_space_patterns, (r":", "")]
-            )
-
-            for i, person in enumerate(judges):
-                if regex(person, self.roman_patterns, sub=False) or regex(
-                    person, self.abbreviation_patterns, sub=False
-                ):
-                    judges[i - 1] = f"{judges[i-1]}, {person}"
-                    judges.pop(i)
-                elif not person:
-                    judges.pop(i)
-
-            judges = [
-                " ".join(
-                    [
-                        l.lower().capitalize()
-                        if not regex(l, self.roman_patterns, sub=False)
-                        else l
-                        for l in name.split()
-                    ]
-                )
-                for name in [j for j in judges if j]
-            ]
-            judges = regex(
-                judges,
-                [
-                    (
-                        r"(?<=[\'’])\w|\b[a-z]+(?=\.)",
-                        lambda match: f"{match.group(0).capitalize()}",
-                    )
-                ],
-            )
-            return judges
-        return []
-
-    def gcl_citor(self, data):
-        """
-        Create a bluebook citation for a given input html, url or path to an html file
-        of a Google case law page.
-
-        Args
-        ----
-        :param data: ---> str, BeautifulSoup obj: A url, path to the Google
-                          case law page or its case ID or its BeautifulSoup object.
-        """
-        html_text = ""
-        if isinstance(data, BS):
-            html_text = data
-        else:
-            if not Path(data).is_file():
-                html_text = tuple(self._get(data))[1]
-            else:
-                with open(data, "r") as f:
-                    html_text = f.read()
-
-        if not isinstance(html_text, BS):
-            html_text = BS(html_text, "html.parser")
-
-        citation = regex(
-            html_text.find(id="gs_hdr_md").get_text(), self.extra_char_patterns
-        )
-        [court_name, court_type, state] = [""] * 3
-        try:
-            cdata = regex(citation, self.federal_court_patterns, sub=False)
-            if not cdata:
-                citation = regex(citation, [(r" ?[,-] ((\d{4}))$", r" (\g<1>)")])
-                return citation, "Supreme Court"
-            else:
-                cdata = cdata[0]
-            delimiter, court_name, year = cdata[1:]
-
-            # Dist. Court by itself is vague. It defaults to District Court of D.C. or D.D.C.
-            # E.g. x v. y, Dist. Court ---> x v. y, D.D.C.
-            if court_name in ["Dist. Court"]:
-                court_name = "D.D.C."
-            else:
-                fn = self.jurisdictions["federal_courts"].get(court_name, None)
-                if fn is not None:
-                    court_name = fn
-                else:
-                    # Fixes a district court that is only the state name.
-                    # E.g. x v. y, Dist. Court, North Carolina ---> x v. y, D.N.C.
-                    possible_court_type = regex(
-                        citation.replace(cdata[0], "").split(",")[-1],
-                        self.space_patterns,
-                    )
-                    state_abbr = self.jurisdictions["states_territories"][court_name]
-                    if "Dist." in possible_court_type and state_abbr:
-                        court_name = (
-                            f"D. {state_abbr}"
-                            if regex(state_abbr, [(r"[a-z]", "")], sub=False)
-                            else f"D.{state_abbr}"
-                        )
-                    else:
-                        raise KeyError
-
-            court_name_spaced = f"{court_name} " if court_name else ""
-            if not court_name:
-                case_number = "" if delimiter == "-" else f", No. XXXXXX"
-                date = year if delimiter == "-" else self._get_date(html_text, True)
-                citation = regex(
-                    citation.replace(
-                        cdata[0], f"{case_number} ({court_name_spaced}{date})"
-                    ),
-                    self.strip_patterns,
-                )
-                return citation, "Supreme Court"
-
-            # If Fed. Cl. and D.D.C. appear in a citation, add a placeholder ', Federal Courts'
-            # to continue using the following lines without having to modify the regex.
-            # E.g. x v. y, No 2021-2344 (Fed. Cl. 2021) ---> x v. y, No 2021-2344, Federal Courts (Fed. Cl. 2021)
-            replace_with = (
-                f" ({court_name_spaced}{year})"
-                if court_name not in ["Fed. Cl.", "D.D.C."]
-                else f", Federal Courts ({court_name_spaced}{year})"
-            )
-            citation = regex(
-                citation.replace(cdata[0], replace_with), self.strip_patterns
-            )
-            cdata = regex(
-                citation,
-                [(r"( ?([-,]) ([\w:. \']+) \(([\w:. \']+)\))$", "")],
-                sub=False,
-            )[0]
-
-            delimiter, court_type = cdata[1:3]
-            court_type = self.jurisdictions["federal_courts"][court_type]
-            court_type_spaced = f"{court_type} " if court_type else ""
-            # Encountering a dash after publication in Google cases means that the case has been published.
-            # So no case number is needed according to bluebook if a dash is encountered.
-            case_number = "" if delimiter == "-" else f", No. XXXXXX"
-            date = year if delimiter == "-" else self._get_date(html_text, True)
-            citation = regex(
-                citation.replace(
-                    cdata[0],
-                    f"{case_number} ({court_type_spaced}{court_name_spaced}{date})",
-                ),
-                self.strip_patterns,
-            )
-
-        except KeyError:
-            [court_name, state, year] = [""] * 3
-            cdata = regex(citation, self.state_court_patterns, sub=False)
-            if not cdata:
-                citation = regex(citation, [(r" ?[,-] ((\d{4}))$", r" (\g<1>)")])
-                return citation, "Supreme Court"
-            else:
-                cdata = cdata[0]
-
-            delimiter = ""
-            for i, c in enumerate(cdata):
-                if i == 1:
-                    delimiter = c
-                if i == 2:
-                    state = regex(
-                        c, [(r"\.", ""), (r"([A-Z-a-z])(?=[A-Z]|\b)", r"\g<1>.")]
-                    )
-                    # States which don't get abbreviated:
-                    if c in ["Alaska", "Idaho", "Iowa", "Ohio", "Utah"]:
-                        state = c
-                elif i == 3:
-                    d = c.split(",")[0]
-                    court_name = self.jurisdictions["state_courts"][d]
-                    # New York Supreme Court is cited as 'N.Y. Sup. Ct.'
-                    if state == "N.Y." and d == "Supreme Court":
-                        court_name = "Sup. Ct."
-                elif i == 4:
-                    year = c
-
-            state_spaced = "" if "Commw" in court_name else f"{state} "
-            court_name_spaced = f"{court_name} "
-            case_number = "" if delimiter == "-" else f", No. XXXXXX"
-            date = year if delimiter == "-" else self._get_date(html_text, True)
-            citation = regex(
-                citation.replace(
-                    cdata[0], f"{case_number} ({state_spaced}{court_name_spaced}{date})"
-                ),
-                self.strip_patterns,
-            )
-        return citation, regex(
-            " ".join([state, court_type, court_name]),
-            [*self.space_patterns, *self.strip_patterns],
-        )
-
-    def _get_date(self, opinion, short_month=False):
-        """
-        Extract the decision date for a court `opinion` with the format `Day Month, Year`
-        format and convert it to `Year-Month-Day`.
-
-        Args
-        ----
-        :param short_month: ---> bool: if true, returns the date like `%b. %d, %Y`.
-        """
-        date = regex(
-            opinion.find_all(
-                lambda tag: tag.name == "center"
-                and regex(tag.get_text(), self.date_patterns, sub=False)
-            )[-1].get_text(),
-            self.date_patterns,
-            sub=False,
-        )[0]
-        date_object = datetime.strptime(regex(date, self.space_patterns), "%B %d, %Y")
-        if short_month:
-            return shorten_date(date_object)
-
-        return date_object.strftime("%Y-%m-%d")
-
-    def gcl_drop(
-        self,
-        remove_redundant=False,
-        remove_patent=False,
-        external_list=None,
-    ):
-        """
-        Show the redundant (unpublished) cases. Only keep the published ones
-        if `keep_published` is set to True. Add an arbitrary `external_list`
-        to the bunch of cases to be removed.
-
-        Args
-        ----
-        :param remove_redundant: ---> bool: if True, will remove the serialized data and
-                                            patent information of the redundant (unpublished) cases.
-        :param external_list: ---> list: an arbitrary list of case IDs whose serialized data are found
-                                         in `json_suffix`, which too need to be removed.
-        :param remove_patent: ---> bool: if True, remove patent data.
-        """
-        directory = self.data_dir / "json" / f"json_{self.suffix}"
-        json_files = list((directory).glob("*.json"))
-
-        name_patterns, docket_patterns, ids = [], [], []
-        for f in tqdm(json_files, total=len(json_files)):
-            info = load_json(f)
-            dc = [info["date"]] + [info["court"]["court_code"]]
-            name_patterns += ["".join([info["full_case_name"].lower()] + dc)]
-
-            docket_patterns += [
-                "".join(
-                    ["".join(c["docket_number"]).lower() for c in info["case_numbers"]]
-                    + dc
-                )
-            ]
-
-            ids += [""] if info["short_citation"] else [info["id"]]
-
-        patterns = name_patterns + docket_patterns
-        indices = [
-            fn
-            for value in set(patterns)
-            if len(fn := [i for i, v in enumerate(patterns) if v == value]) > 1
-        ]
-        ids.extend(ids)
-        repeated_ids = set([ids[i] for i in set(reduce(concat, indices)) if ids[i]])
-        print(f"There are {len(repeated_ids)} repeated cases in {str(directory)}")
-
-        def _remove_data(case_id, label):
-            """Remove all data related to the case ID `case_id` from the `data` folder."""
-            path = directory / f"{case_id}.json"
-
-            if path.is_file():
-                path.unlink()
-
-            if remove_patent:
-                patent_folder = (
-                    self.data_dir / "patent" / f"patent_{self.suffix}" / case_id
-                )
-                if patent_folder.is_dir():
-                    rm_tree(patent_folder)
-
-            print(f"Case data with ID {case_id} ({label}) was removed successfully")
-
-        if remove_redundant:
-            print("Starting to remove redundant (unpublished) cases...")
-            list(
-                _remove_data(case_id, "redundant")
-                for case_id in tqdm(repeated_ids, total=len(repeated_ids))
-            )
-
-        else:
-            redundent_cases = {
-                x: self.gcl_citation_summary(x, False)[x] for x in repeated_ids
+    @property
+    def case(self):
+        if self._case is None:
+            self._case = {
+                "id": None,
+                "full_case_name": None,
+                "case_numbers": [],
+                "citation": None,
+                "short_citation": [],
+                "first_page": None,
+                "last_page": None,
+                "cites_to": {},
+                "date": None,
+                "court": {},
+                "judges": [],
+                "personal_opinions": {},
+                "patents_in_suit": [],
+                "html": None,
+                "training_text": None,
+                "footnotes": [],
             }
-            print(f"Redundent cases: {redundent_cases}")
+        return self._case
 
-        if external_list:
-            print("Starting to remove cases with IDs stored in external list...")
-            list(
-                _remove_data(case_id, "external")
-                for case_id in tqdm(external_list, total=len(external_list))
-            )
-
-    @staticmethod
-    def _footnote_id(opinion):
+    @property
+    def prioritize_citations(self):
         """
-        Obtain all the footnote ids cited in the text and replace them with
-        a unique identifier '@@@@[id]' for tracking purposes.
+        Sort citations in a gcl file based on priorities. If a citation has party names,
+        plaintiffs will be given a `0`, and defendants will be labeled with a `1`.
+        Otherwise, `2` will be used.
         """
-        footnote_identifiers = opinion.find_all(
-            lambda tag: tag.name == "sup" and tag.find("a")
-        )
-        if footnote_identifiers:
-            for tag in footnote_identifiers:
-                if tag.parent.attrs and tag.parent.attrs["id"] == "gsl_case_name":
-                    tag.replaceWith("")
-                    opinion.find_all("small")[-1].find(
-                        lambda tag: tag.name == "p" and tag.find("a", class_="gsl_hash")
-                    ).replaceWith("")
-                else:
-                    tag.replaceWith(
-                        f" @@@@{tag.find('a').attrs['name'].replace('r', '')} "
-                    )
-
-    def _full_casename(self, opinion):
-        """
-        Extract full case name from the `opinion`.
-        """
-        return regex(
-            opinion.find(id="gsl_case_name").get_text(),
-            [*self.strip_patterns, *self.comma_space_patterns],
-        )
-
-    def _casenumber(
-        self, opinion, jurisdiction=None, court_code=None, only_casenumber=False
-    ):
-        """
-        Extract the case IDs and docket numbers of any case related
-        to `opinion`.
-
-        Args
-        ----
-        :param only_casenumber: ---> bool: if True, return only the case numbers.
-        """
-        case_num = opinion.select_one("center > a")
-        case_ids_ = [""]
-        if fn := case_num.attrs:
-            case_ids_ = regex(fn["href"], self.casenumber_patterns, sub=False)[0].split(
-                "+"
-            )
-
-        docket_numbers = []
-
-        if jurisdiction == "F":
-            if court_code:
-                if court_code not in ["us"]:
-                    docket_numbers = regex(
-                        case_num.get_text(), self.docket_appeals_patterns, sub=False
-                    )
-                elif court_code in ["us"]:
-                    docket_numbers = regex(
-                        case_num.get_text(), self.docket_us_patterns, sub=False
-                    )
-
-        if not docket_numbers:
-            docket_numbers = regex(
-                case_num.get_text(),
+        if not self._prioritize_citations:
+            citations = reduce(
+                concat,
                 [
-                    (self.docket_clean_patterns, ""),
-                    (r"\([\w ]+\)", ""),
-                    (r",? +and +", ","),
+                    [(key, var["citation"], 2) for var in c["variations"]]
+                    for key, val in self.case["cites_to"].items()
+                    for c in val
                 ],
-                flags=re.I,
-            ).split(",")
+                [],
+            )
 
-        docket_numbers = regex(docket_numbers, self.extra_char_patterns)
-        # Correct the docket numbers if they start with '-'
-        for i, d in enumerate(docket_numbers):
-            if d.startswith("-"):
-                docket_numbers[i] = f'{docket_numbers[i-1].split("-")[0]}{d}'
-
-        if only_casenumber:
-            return docket_numbers
-
-        dn = len(docket_numbers)
-        ci = len(case_ids_)
-        if dn > ci:
-            return zip(case_ids_ * (dn - ci + 1), docket_numbers)
-
-        return zip(case_ids_, docket_numbers)
-
-    @staticmethod
-    def _fix_broken_links(page_number_tags):
-        """
-        Consolidate double links created due to page numbers.
-        """
-        for a in page_number_tags:
-            if fn := a.previous_sibling:
-                if (
-                    fn.name == "a"
-                    and fn.attrs["href"]
-                    and "scholar_case?" in fn.attrs["href"]
+            for name in citations:
+                if nm := regex(
+                    name[1], [(r"^(.*?) v\.? (.*)", "")], sub=False, flags=re.I
                 ):
-                    if gn := a.next_sibling.next_sibling:
-                        if (
-                            gn.name == "a"
-                            and gn.attrs["href"]
-                            and gn.attrs["href"] == fn.attrs["href"]
-                        ):
-                            if zn := gn.i:
-                                zn.unwrap()
-                                gn.smooth()
-                            gn.string = regex(fn.get_text() + gn.text, [(r" +", " ")])
-                            fn.decompose()
+                    citations += [(name[0], nm[0][i], i) for i in (0, 1)]
 
-    def _replace_tags(self, opinion, court_code):
-        """
-        Remove or replace all the tags with their appropriate labels.
-        """
-        for el in opinion.find_all("center"):
-            el.replaceWith("")
+            # Sort citations bsaed on priority (plaintiffs > defendants > plaintiffs v. defendants)
+            self._prioritize_citations = sorted(citations, key=lambda x: x[2])
 
-        for h in opinion.find_all("h2"):
-            if court_code in ["us"]:
-                if "Syllabus" not in h.get_text():
-                    h.replaceWith("")
-            else:
-                h.replaceWith("")
-
-        for p in opinion.find_all("a", class_="gsl_pagenum"):
-            p.replaceWith(f" +page[{p.get_text()}]+ ")
-
-        for a in opinion.find_all("a", class_="gsl_pagenum2"):
-            a.replaceWith("")
-
-        for bq in opinion.find_all("blockquote"):
-            text = bq.get_text()
-            if text:
-                bq.replaceWith(f" $qq$ {text} $/qq$ ")
-
-        for pre in opinion.find_all("pre"):
-            text = pre.get_text()
-            if text:
-                pre.replaceWith(f" $rr$ {text} $/rr$ ")
-
-        # Locate tag with judge names and remove it along with every <p></p> coming before this tag.
-        # Meant to clean up the text by removing the party names.
-        judge_tag = self.gcl_get_judge(opinion, court_code, True)
-        end_replace = False
-        # Remove everything in the non-Supreme Court cases up to the paragraph with judge information.
-        if judge_tag and court_code not in ["us"]:
-            for p in opinion.find_all("p"):
-                if not end_replace:
-                    if p == judge_tag and judge_tag not in p.find_all("p"):
-                        end_replace = True
-                    if judge_tag not in p.find_all("p"):
-                        p.replaceWith("")
-                else:
-                    break
-
-        # Remove everything before Syllabus for Supreme Court cases.
-        if court_code in ["us"]:
-            for h in opinion.find_all(lambda tag: tag.name in ["p", "h2"]):
-                if not end_replace:
-                    if h.name == "h2":
-                        if "Syllabus" in h.get_text():
-                            end_replace = True
-                        h.replaceWith("")
-                    else:
-                        if judge_tag:
-                            if h == judge_tag and judge_tag not in h.find_all("p"):
-                                end_replace = True
-                            if judge_tag not in h.find_all("p"):
-                                h.replaceWith("")
-                else:
-                    break
-
-        for p in opinion.find_all("p"):
-            text = p.get_text()
-            if not text:
-                p.replaceWith("")
-            else:
-                if regex(text, self.end_sentence_patterns, sub=False):
-                    p.replaceWith(f"{text} $$$$ ")
-                else:
-                    p.replaceWith(text)
-
-        small = opinion.find_all("small")
-        if small:
-            small[-1].replaceWith("")
-
-    def _personal_opinion(self, training_text, judges):
-        """
-        Determine if a case from Circuit Courts involves personal opinion of a judge(s)
-        e.g. "dissent" or "concur". Return a dictionary including the name of every judge
-        hearing the case, together with a sub-key "index_span" that shows the range of positional
-        indices of the personal opinion located in `training_text`.
-        """
-        opinion_tags = list(
-            re.finditer(self.judge_dissent_concur_patterns, training_text)
-        )
-        op_dict, indices = {"concur": None, "dissent": None}, {}
-
-        for i, tag in enumerate(opinion_tags):
-            indices[i] = tag.start()
-
-        for judge in judges:
-            for i, tag in enumerate(opinion_tags):
-                if judge.lower() in tag.group(1).lower():
-                    op_type = filter(
-                        lambda x: x in tag.group(0).lower(),
-                        ["concurring", "dissenting"],
-                    )
-                    for o in op_type:
-                        dc = regex(o, [(r"r?ing$", "")])
-
-                        if op_dict[dc] is None:
-                            op_dict[dc] = []
-
-                        # Fix the end index of each tuple in `index_span` by replacing it with
-                        # the start index of the next index, if any. Otherwise,
-                        # replace the end index with the length of `training_text`.
-                        end_index = len(training_text)
-                        if i < len(opinion_tags) - 1:
-                            end_index = indices[i + 1]
-
-                        op_dict[dc] += [
-                            {"judge": judge, "index_span": (tag.start(), end_index)}
-                        ]
-        return op_dict
-
-    def _get_patents(self, opinion):
-        """
-        Scrape the patent numbers cited in an `opinion`.
-        """
-        text = opinion.get_text()
-        # Remove page numbers and line-breaks.
-        modified_opinion = regex(text, [*self.page_patterns, *self.strip_patterns])
-        patents = regex(modified_opinion, self.patent_number_patterns_1, sub=False)
-        # Make sure that patterns like ("'#number patent") are there to sift through
-        # extracted patents and keep the ones cited later in the case text.
-        patent_refs = set(
-            regex(modified_opinion, [(self.patent_reference_pattern, "")], sub=False)
-        )
-        if patent_refs:
-            patents = [
-                f"US{self.uspto_grab_patent_number(x)}"
-                for x in patents
-                if x[-3:] in patent_refs
-                or regex(x, self.special_chars_patterns)[-4:] in patent_refs
-            ]
-        elif regex(text, [(r"[pP]atents-in-[sS]uit", "")]):
-            patents = [f"US{self.uspto_grab_patent_number(x)}" for x in patents]
-
-        return remove_repeated([x for x in patents if x != "US"])
-
-    def uspto_grab_patent_number(self, number):
-        """
-        Grab the patent number (str) given an application `number` (str) from
-        https://patentcenter.uspto.gov/. If `number` is a valid patent number,
-        then return the cleaned patent number.
-
-        Example
-        -------
-        >>> uspto_grab_patent_number('11/685,188')
-        '7631336'
-
-        >>> uspto_grab_patent_number('4,566,345')
-        '4566345
-
-        """
-        clean_number = regex(
-            number, [*self.extra_char_patterns, *self.special_chars_patterns]
-        )
-
-        if "/" in number:
-            url = f"https://patentcenter.uspto.gov/#!/applications/{clean_number}"
-            res_content = async_get(
-                url, '//*[@id="maincontent"]/div/div/div/div[2]/div[2]/div[3]/div/a'
-            )
-            soup = BS(res_content, "html.parser")
-            patent_number_a = soup.find(
-                lambda tag: tag.name == "a"
-                and tag.attrs.get("ng-bind", None) == "app.patentNumber()"
-            )
-            return (
-                regex(patent_number_a.get_text(), self.special_chars_patterns)
-                if patent_number_a
-                else ""
-            )
-
-        return clean_number
-
-    def _get_claims(self, opinion):
-        """
-        Extract the claim numbers cited in an `opinion`.
-        """
-        small_tag = opinion.find_all("small")
-        footnotes_data, footnote_tags = {}, []
-        if small_tag:
-            footnotes = small_tag[-1].find_all("a", class_="gsl_hash")
-            for tag in footnotes:
-                parent_tag = tag.parent
-                footnote_tags.append(tag.parent)
-                tag.parent.replaceWith("")
-                footnotes_data[tag.attrs["name"]] = regex(
-                    parent_tag.get_text(), self.space_patterns
-                )
-
-        # Remove page numbers and well as line-breakers.
-        modified_opinion = regex(
-            opinion.get_text(),
-            [(r" \d+\*\d+ ", " "), *self.page_patterns, *self.strip_patterns],
-        )
-
-        # Append the footnote tags back to the opinion.
-        for tag in footnote_tags:
-            opinion.small.append(tag)
-
-        # Bring the footnote context in the text for keeping continuity.
-        for key, val in footnotes_data.items():
-            modified_opinion = modified_opinion.replace(f"@@@@{key}", val)
-
-        modified_opinion = regex(modified_opinion, self.patent_number_patterns_2)
-        # Regex to capture claim numbers followed by a patent number.
-        claims_1 = list(re.finditer(self.claim_patterns_1, modified_opinion))
-
-        claims_from_patent = {}
-        for c in claims_1:
-            new_key = c.group(2)
-            new_value = regex(
-                c.group(1),
-                [
-                    (r"(\d+)[\- ]+(\d+)", r"\g<1>-\g<2>"),
-                    (r"[^0-9\-]+", " "),
-                    *self.strip_patterns,
-                    *self.space_patterns,
-                ],
-            )
-            if claims_from_patent.get(new_key, None):
-                cls = claims_from_patent[new_key]
-                if new_value not in cls:
-                    cls += [new_value]
-            else:
-                claims_from_patent[new_key] = [new_value]
-
-        patent_refs = re.finditer(self.patent_reference_pattern, modified_opinion)
-
-        # Remove claim numbers of the type `claims # of the '# patent` to avoid double count.
-        for c in claims_1:
-            start, end = c.span(1)
-            modified_opinion = (
-                modified_opinion[:start]
-                + "".join(["X"] * (end - start))
-                + modified_opinion[end:]
-            )
-
-        # Regex to capture claim numbers at large or NOT followed by a patent number.
-        claims_2 = re.finditer(self.claim_patterns_2, modified_opinion)
-
-        ref_location = [
-            (match.start(), match.group()) for match in patent_refs if match
-        ]
-
-        claims = {match.start(): match.group() for match in claims_2 if match}
-
-        if ref_location:
-            for key, value in claims.items():
-                new_key = regex(
-                    ref_location[closest_value([ref[0] for ref in ref_location], key)][
-                        1
-                    ],
-                    [(r"[^0-9]+", "")],
-                )
-                new_value = regex(
-                    value,
-                    [
-                        (r"(\d+)[\- ]+(\d+)", r"\g<1>-\g<2>"),
-                        (r"[^0-9\-]+", " "),
-                        *self.strip_patterns,
-                        *self.space_patterns,
-                    ],
-                )
-                if claims_from_patent.get(new_key, None):
-                    cls = claims_from_patent[new_key]
-                    if new_value not in cls:
-                        cls += [new_value]
-                else:
-                    claims_from_patent[new_key] = [new_value]
-
-        for key, value in claims_from_patent.items():
-            value = [hyphen_to_numbers(x).split(" ") for x in value if x]
-            if value:
-                claims_from_patent[key] = sorted(
-                    remove_repeated(reduce(concat, value)), key=sort_int
-                )
-
-        return claims_from_patent
+        return self._prioritize_citations
 
     def gcl_patent_data(
         self, number_or_url: str, case_id=None, skip_patent=False, return_data=False
@@ -1236,10 +208,10 @@ class GCLParse(object):
         else:
             if not skip_patent:
                 url = f"https://patents.google.com/patent/{patent_number}"
-                status, html_text = self._get(url)
+                status, html = self._get(url)
                 if status == 200:
                     found = True
-                    patent = BS(deaccent(html_text), "html.parser")
+                    patent = BS(deaccent(html), "html.parser")
                     claim_tags = patent.select(".claims > *")
                     last_independent_num = 1
                     extra_count = 0
@@ -1303,9 +275,9 @@ class GCLParse(object):
 
     def gcl_citation_summary(self, case_id, suffix=None, return_list=True):
         """
-        Given a `case_id` for a Google case law page, create a summary
-        of the case in terms of its bluebook citation, court and date.
-        If case is not found in the local database, download it first.
+        Given a `case_id` for a gcl page, create a summary of the case in terms
+        of its bluebook citation, court and date. If case is not found in the local
+        database, download it first.
 
         Args
         ----
@@ -1399,15 +371,16 @@ class GCLParse(object):
         cites = {}
         for k, v in case_repo["cites_to"].items():
             cites[k] = reduce(
-                concat, [[var["citation"] for var in i["variations"]] for i in v]
+                concat, [[var["citation"] for var in i["variations"]] for i in v], []
             )
-        cites[case_id] = [case_repo["citation"]]
 
+        cites[case_id] = [case_repo["citation"]]
         return cites
 
     def _fix_abbreviations(self, citation):
         """
-        Fix court and date abbreviations in a `citation` due to gcl processing issues or non-bluebook adaptations.
+        Fix court and date abbreviations in a `citation` due to gcl processing
+        issues or non-bluebook adaptations.
         """
         if fn := regex(citation, self.approx_court_location_patterns, sub=False):
             if gn := regex(fn[0], self.date_patterns, sub=False):
@@ -1417,161 +390,339 @@ class GCLParse(object):
 
         return citation
 
-    def _tokenize_citation(self, citation):
+    def gcl_parse(
+        self,
+        path_or_url: str,
+        skip_patent=False,
+        return_data=False,
+        need_proxy=False,
+        random_sleep=False,
+    ):
         """
-        Tokenize court data, reporter data, docket numbers, publication date,
-        and case name from a valid `citation`.
+        Parses a Google case law page (gcl) under an `html_path` or at a `url`
+        and serializes/saves all relevant information to a json file.
+
+        Args
+        ----
+        :param path_or_url: ---> str: a path to an html file or a valid url of a gcl page.
+        :param skip_patent: ---> bool: if true, skips downloading and scraping patent information.
+        :param random_sleep: ---> bool: if True, sleep for randomly selected seconds before making
+                                        a new request.
         """
-        citation_dic = {"citation": citation}
+        html_text = ""
+        if not Path(path_or_url).is_file():
+            html_text = tuple(self._get(path_or_url, need_proxy))[1]
+            if random_sleep:
+                sleep(randint(2, 10))
+        else:
+            with open(path_or_url, "r") as f:
+                html_text = f.read()
 
-        [approx_location, court, day, month, year] = [None] * 5
-        if fn := regex(citation, self.approx_court_location_patterns, sub=False):
-            date = regex(fn[0], self.short_month_date_patterns, sub=False)
-            if date:
-                date = date[0]
-                [month, day, year] = [nullify(x) for x in date[1:]]
-                month = self.months[month] if month else None
-                approx_location = fn[0].replace(date[0], year)
+        self.html = BS(deaccent(html_text), "html.parser")
+        self._opinion(path_or_url)
+        self._get_id()
+        self._replace_footnotes()
+        self._full_casename()
+        self._pages()
+        self._short_citation()
+        self._consolidate_broken_tags()
+        self._replace_a_tags()
+        self.gcl_get_date()
+        self._citation_details()
+        self.gcl_get_judge()
+        self._patents_in_suit(skip_patent)
+        self._serialize_footnotes()
+        self._replace_generic_tags()
+        self._training_text()
+        self._personal_opinion()
 
-        if approx_location:
-            if regex(approx_location, [(r"^\((?: +)?\d+(?: +)?\)$", "")], sub=False):
-                court = None
+        with open(
+            str(
+                create_dir(self.data_dir / "json" / f"json_{self.suffix}")
+                / f"{self.case['id']}.json"
+            ),
+            "w",
+        ) as f:
+            json.dump(self.case, f, indent=4)
 
-            for c in self.court_codes:
-                if c in approx_location:
-                    court = self.jurisdictions["court_details"][c]
+        if return_data:
+            return self.case
+
+        self._case = None
+        return
+
+    def gcl_get_judge(self, html=None, court_code=None, just_locate=False):
+        """
+        Extract judges' names from the `html` of the opinion page.
+
+        Args
+        ----
+        :param html: ---> BeautifulSoup object corresponding to html of the opinion page.
+        :param court_code: ---> str: the court code to have further control on the parsed judge data.
+        :param just_locate: ---> bool: just locate the tag containing judge names and return.
+        """
+
+        if not html:
+            html = self.opinion
+
+        initial_cleaning_patterns = [
+            *self.page_patterns,
+            *self.clean_footnote_patterns,
+            *self.judge_clean_patterns_1,
+        ]
+        judge_tag = ""
+
+        for tag in html.find_all("p"):
+            if not tag.find("h2"):
+                tag_text = regex(tag.get_text(), initial_cleaning_patterns)
+                if regex(tag_text, self.judge_patterns, sub=False):
+                    judge_tag = tag
                     break
 
-        total_matches = []
-        # Remove reporters without a known volume or number such as ___ U.S. ___
-        for key in self.reporters:
-            if key in citation:
-                citation = regex(
-                    citation,
-                    [
-                        (
-                            re.escape(key).join(
-                                self.reporter_empty_patterns.split("X")
-                            ),
-                            " ",
-                        )
-                    ],
-                )
+        if just_locate:
+            return judge_tag
 
-        citation_dic["citation"] = citation = regex(
-            citation, [(r"[\-—–_ ]{2,}[, ]+", " ")]
-        )
+        if not court_code:
+            court_code = self.case["court"].get("court_code", None)
 
-        for key in self.reporters:
-            if key in citation:
-                matches = regex(
-                    citation,
-                    [(re.escape(key).join(self.reporter_patterns.split("X")), "")],
-                    sub=False,
-                )
+        # Exclude the Supreme Court judges as it is not so useful.
+        judges = []
+        if judge_tag and court_code not in ["us"]:
+            judges = regex(judge_tag.get_text(), initial_cleaning_patterns)
+            judges = regex(
+                "".join(
+                    regex(
+                        judges,
+                        [
+                            *self.judge_clean_patterns_2,
+                            (" and ", ", "),
+                            *self.extra_char_patterns,
+                            *self.judge_clean_patterns_3,
+                        ],
+                        flags=re.I,
+                    )
+                ).split(","),
+                [*self.comma_space_patterns, (r":", "")],
+            )
 
-                for match in matches:
-                    citation = citation.replace(match[0], "XXXX")
-
-                total_matches += matches
-
-        citation_details = []
-
-        keys = ["volume", "reporter_abbreviation", "first_page", "pages", "footnotes"]
-        for m in total_matches:
-            match = [
-                self.reporters[s] if i == 1 else s
-                for i, s in enumerate(
-                    list(map(lambda i: regex(i, self.comma_space_patterns), m[1:]))
-                )
-            ]
-            details = {
-                k: nullify(
-                    regex(match[i], [(r"[^0-9\-, ]", ""), *self.extra_char_patterns])
-                )
-                if i > 2
-                else nullify(regex(match[i], [(r"^[_-]+$", "")]))
-                for i, k in enumerate(keys)
-            }
-
-            if details["reporter_abbreviation"] == "P. C.":
-                court = None
-            
-            if details["reporter_abbreviation"] in ["S. Ct.", "U.S."]:
-                court = self.jurisdictions["court_details"]["Supreme Court"]
-
-            details["edition"] = EDITIONS[details["reporter_abbreviation"]]
-            reporter = REPORTERS[details["edition"]][0]
-            details["reporter_name"] = reporter["name"]
-            details["cite_type"] = reporter["cite_type"]
-
-            citation_details += [details]
-
-        def _extract_casename(citation):
-            return regex(citation, [(r"^(.*?)XXXX+.*", r"\g<1>")])
-
-        possible_casename = _extract_casename(
-            regex(citation, [(self.docket_clean_patterns, r" \g<1> ")], flags=re.I)
-        )
-
-        docket_numbers = []
-        while True:
-            match = []
-            for x in [self.docket_number_patterns, self.docket_number_comp_patterns]:
-                match = regex(
-                    possible_casename,
-                    x,
-                    sub=False,
-                    flags=re.I,
-                )
-                if match:
-                    break
-
-            if not match:
-                break
-
-            match = match[0]
-
-            if "XXXX" in match[1]:
-                possible_casename = possible_casename.replace(match[0], " XXXX")
-                break
-
-            else:
-                docket_numbers += regex(match[1], [(r",? +and +", ",")]).split(",")
-
-                if not regex(
-                    possible_casename.replace(match[1], ","),
-                    self.docket_number_patterns,
-                    sub=False,
-                    flags=re.I,
+            for i, person in enumerate(judges):
+                if regex(person, self.roman_patterns, sub=False) or regex(
+                    person, self.abbreviation_patterns, sub=False
                 ):
-                    possible_casename = possible_casename.replace(match[0], " XXXX")
-                    break
+                    judges[i - 1] = f"{judges[i-1]}, {person}"
+                    judges.pop(i)
+                elif not person:
+                    judges.pop(i)
 
+            judges = regex(
+                [
+                    " ".join(
+                        [
+                            l.lower().capitalize()
+                            if not regex(l, self.roman_patterns, sub=False)
+                            else l
+                            for l in name.split()
+                        ]
+                    )
+                    for name in [j for j in judges if j]
+                ],
+                [
+                    (
+                        r"(?<=[\'’])\w|\b[a-z]+(?=\.)",
+                        lambda match: f"{match.group(0).capitalize()}",
+                    )
+                ],
+            )
+
+        self.case["judges"] = judges
+        return judges
+
+    def gcl_citor(self, data=None):
+        """
+        Create a bluebook citation for a given input html, url or path to an html file
+        of a gcl page.
+
+        Args
+        ----
+        :param data: ---> str, BeautifulSoup obj: A url, path to the Google
+                          case law page or its case ID or its BeautifulSoup object.
+                          Defaults to `self.html`.
+        """
+        html, html_text = "", ""
+
+        if not data:
+            data = self.html
+
+        if isinstance(data, BS):
+            html = data
+
+        else:
+            if not Path(data).is_file():
+                html_text = tuple(self._get(data))[1]
+            else:
+                with open(data, "r") as f:
+                    html_text = f.read()
+
+            html = BS(html_text, "html.parser")
+
+        citation = regex(html.find(id="gs_hdr_md").get_text(), self.extra_char_patterns)
+        [court_name, court_type, state] = [""] * 3
+        try:
+            cdata = regex(citation, self.federal_court_patterns, sub=False)
+            if not cdata:
+                citation = regex(citation, [(r" ?[,-] ((\d{4}))$", r" (\g<1>)")])
+                return citation, "Supreme Court"
+            else:
+                cdata = cdata[0]
+            delimiter, court_name, year = cdata[1:]
+
+            # Dist. Court by itself is vague. It defaults to District Court of D.C. or D.D.C.
+            # E.g. x v. y, Dist. Court ---> x v. y, D.D.C.
+            if court_name in ["Dist. Court"]:
+                court_name = "D.D.C."
+            else:
+                fn = self.jurisdictions["federal_courts"].get(court_name, None)
+                if fn is not None:
+                    court_name = fn
                 else:
-                    possible_casename = possible_casename.replace(match[1], ",")
+                    # Fixes a district court that is only the state name.
+                    # E.g. x v. y, Dist. Court, North Carolina ---> x v. y, D.N.C.
+                    possible_court_type = regex(
+                        citation.replace(cdata[0], "").split(",")[-1],
+                        self.space_patterns,
+                    )
+                    state_abbr = self.jurisdictions["states_territories"][court_name]
+                    if "Dist." in possible_court_type and state_abbr:
+                        court_name = (
+                            f"D. {state_abbr}"
+                            if regex(state_abbr, [(r"[a-z]", "")], sub=False)
+                            else f"D.{state_abbr}"
+                        )
+                    else:
+                        raise KeyError
 
-        casename = nullify(
-            regex(
-                _extract_casename(possible_casename),
-                self.comma_space_patterns,
+            court_name_spaced = f"{court_name} " if court_name else ""
+            if not court_name:
+                case_number = "" if delimiter == "-" else f", No. XXXXXX"
+                date = year if delimiter == "-" else self.gcl_get_date(html, True)
+                citation = regex(
+                    citation.replace(
+                        cdata[0], f"{case_number} ({court_name_spaced}{date})"
+                    ),
+                    self.strip_patterns,
+                )
+                return citation, "Supreme Court"
+
+            # If Fed. Cl. and D.D.C. appear in a citation, add a placeholder ', Federal Courts'
+            # to continue using the following lines without having to modify the regex.
+            # E.g. x v. y, No 2021-2344 (Fed. Cl. 2021) ---> x v. y, No 2021-2344, Federal Courts (Fed. Cl. 2021)
+            replace_with = (
+                f" ({court_name_spaced}{year})"
+                if court_name not in ["Fed. Cl.", "D.D.C."]
+                else f", Federal Courts ({court_name_spaced}{year})"
             )
+            citation = regex(
+                citation.replace(cdata[0], replace_with), self.strip_patterns
+            )
+            cdata = regex(
+                citation,
+                [(r"( ?([-,]) ([\w:. \']+) \(([\w:. \']+)\))$", "")],
+                sub=False,
+            )[0]
+
+            delimiter, court_type = cdata[1:3]
+            court_type = self.jurisdictions["federal_courts"][court_type]
+            court_type_spaced = f"{court_type} " if court_type else ""
+            # Encountering a dash after publication in Google cases means that the case has been published.
+            # So no case number is needed according to bluebook if a dash is encountered.
+            case_number = "" if delimiter == "-" else f", No. XXXXXX"
+            date = year if delimiter == "-" else self.gcl_get_date(html, True)
+            citation = regex(
+                citation.replace(
+                    cdata[0],
+                    f"{case_number} ({court_type_spaced}{court_name_spaced}{date})",
+                ),
+                self.strip_patterns,
+            )
+
+        except KeyError:
+            [court_name, state, year] = [""] * 3
+            cdata = regex(citation, self.state_court_patterns, sub=False)
+            if not cdata:
+                citation = regex(citation, [(r" ?[,-] ((\d{4}))$", r" (\g<1>)")])
+                return citation, "Supreme Court"
+            else:
+                cdata = cdata[0]
+
+            delimiter = ""
+            for i, c in enumerate(cdata):
+                if i == 1:
+                    delimiter = c
+                if i == 2:
+                    state = regex(
+                        c, [(r"\.", ""), (r"([A-Z-a-z])(?=[A-Z]|\b)", r"\g<1>.")]
+                    )
+                    # States which don't get abbreviated:
+                    if c in ["Alaska", "Idaho", "Iowa", "Ohio", "Utah"]:
+                        state = c
+                elif i == 3:
+                    d = c.split(",")[0]
+                    court_name = self.jurisdictions["state_courts"][d]
+                    # New York Supreme Court is cited as 'N.Y. Sup. Ct.'
+                    if state == "N.Y." and d == "Supreme Court":
+                        court_name = "Sup. Ct."
+                elif i == 4:
+                    year = c
+
+            state_spaced = "" if "Commw" in court_name else f"{state} "
+            court_name_spaced = f"{court_name} "
+            case_number = "" if delimiter == "-" else f", No. XXXXXX"
+            date = year if delimiter == "-" else self.gcl_get_date(html, True)
+            citation = regex(
+                citation.replace(
+                    cdata[0], f"{case_number} ({state_spaced}{court_name_spaced}{date})"
+                ),
+                self.strip_patterns,
+            )
+        return citation, regex(
+            " ".join([state, court_type, court_name]),
+            [*self.space_patterns, *self.strip_patterns],
         )
 
-        citation_dic["case_name"] = None if casename == citation else casename
-        citation_dic["published"] = False if docket_numbers else True
-        citation_dic["date"] = {"year": year, "month": month, "day": day}
-        citation_dic["docket_numbers"] = nullify(
-            regex(
-                docket_numbers,
-                [(self.docket_clean_patterns, r""), *self.comma_space_patterns],
-                flags=re.I,
-            )
-        )
-        citation_dic["citation_details"] = nullify(citation_details)
-        citation_dic["court"] = court
+    def gcl_get_date(self, html=None, short_month=False):
+        """
+        Extract the decision date for the `html` of court opinion with
+        the format `Day Month, Year` format and convert it to `Year-Month-Day`.
 
-        return citation_dic
+        Args
+        ----
+        :param short_month: ---> bool: if true, returns the date like `%b. %d, %Y`.
+        """
+        __ = False
+        if not html:
+            __ = True
+            html = self.opinion
+
+        date = regex(
+            html.find_all(
+                lambda tag: tag.name == "center"
+                and regex(tag.get_text(), self.date_patterns, sub=False)
+            )[-1].get_text(),
+            self.date_patterns,
+            sub=False,
+        )[0]
+
+        date_object = datetime.strptime(regex(date, self.space_patterns), "%B %d, %Y")
+        date_string = date_object.strftime("%Y-%m-%d")
+
+        if short_month:
+            date_string = shorten_date(date_object)
+
+        if __:
+            self.case["date"] = date_string
+            return
+
+        return date_string
 
     def gcl_bundle_cites(self, blue_citation=False):
         """
@@ -1672,6 +823,8 @@ class GCLParse(object):
         with open(cites.__str__(), "w") as f:
             json.dump(r, f, indent=4)
 
+        return
+
     def gcl_make_list(self, filename):
         """
         Create a csv file that contains existing case summaries in
@@ -1704,3 +857,972 @@ class GCLParse(object):
                 ]
             )
             csvfile.writerows(case_summaries)
+
+        return
+
+    def gcl_drop(
+        self,
+        remove_redundant=False,
+        remove_patent=False,
+        external_list=None,
+    ):
+        """
+        Show the redundant (unpublished) cases. Only keep the published ones
+        if `keep_published` is set to True. Add an arbitrary `external_list`
+        to the bunch of cases to be removed.
+
+        Args
+        ----
+        :param remove_redundant: ---> bool: if True, will remove the serialized data and
+                                            patent information of the redundant (unpublished) cases.
+        :param external_list: ---> list: an arbitrary list of case IDs whose serialized data are found
+                                         in `json_suffix`, which too need to be removed.
+        :param remove_patent: ---> bool: if True, remove patent data.
+        """
+        directory = self.data_dir / "json" / f"json_{self.suffix}"
+        json_files = list((directory).glob("*.json"))
+
+        name_patterns, docket_patterns, ids = [], [], []
+        for f in tqdm(json_files, total=len(json_files)):
+            info = load_json(f)
+            dc = [info["date"]] + [info["court"]["court_code"]]
+            name_patterns += ["".join([info["full_case_name"].lower()] + dc)]
+
+            docket_patterns += [
+                "".join(
+                    ["".join(c["docket_number"]).lower() for c in info["case_numbers"]]
+                    + dc
+                )
+            ]
+
+            ids += [""] if info["short_citation"] else [info["id"]]
+
+        patterns = name_patterns + docket_patterns
+        indices = [
+            fn
+            for value in set(patterns)
+            if len(fn := [i for i, v in enumerate(patterns) if v == value]) > 1
+        ]
+        ids.extend(ids)
+        repeated_ids = set([ids[i] for i in set(reduce(concat, indices, [])) if ids[i]])
+        print(f"There are {len(repeated_ids)} repeated cases in {str(directory)}")
+
+        def _remove_data(case_id, label):
+            """Remove all data related to the case ID `case_id` from the `data` folder."""
+            path = directory / f"{case_id}.json"
+
+            if path.is_file():
+                path.unlink()
+
+            if remove_patent:
+                patent_folder = (
+                    self.data_dir / "patent" / f"patent_{self.suffix}" / case_id
+                )
+                if patent_folder.is_dir():
+                    rm_tree(patent_folder)
+
+            print(f"Case data with ID {case_id} ({label}) was removed successfully")
+
+        if remove_redundant:
+            print("Starting to remove redundant (unpublished) cases...")
+            list(
+                _remove_data(case_id, "redundant")
+                for case_id in tqdm(repeated_ids, total=len(repeated_ids))
+            )
+
+        else:
+            redundant_cases = {
+                x: self.gcl_citation_summary(x, False)[x] for x in repeated_ids
+            }
+            print(f"Redundant cases: {redundant_cases}")
+
+        if external_list:
+            print("Starting to remove cases with IDs stored in external list...")
+            list(
+                _remove_data(case_id, "external")
+                for case_id in tqdm(external_list, total=len(external_list))
+            )
+
+        return
+
+    def _get(self, url_or_id, need_proxy=False):
+        """
+        Request to access the content of a Google Scholar case law page with a valid `url_or_id`.
+
+        Args
+        ----
+        :param need_proxy: ---> bool: if True, start switching proxy IP after each request
+                                      to reduce risk of getting blocked.
+        """
+        url = url_or_id
+        if regex(url_or_id, self.just_number_patterns, sub=False):
+            url = self.base_url + f"scholar_case?case={url_or_id}"
+
+        res_content = ""
+
+        if need_proxy:
+            proxy = proxy_browser()
+            proxy.get(url)
+            res_content = proxy.page_source
+            status = 200
+
+            if not res_content:
+                status = 0
+
+            else:
+                # Obtain a `404` error indicator if server returned html.
+                if regex(res_content, [(r"class=\"gs_med\"", "")], sub=False):
+                    status = 404
+                # Solve recaptcha if encountered.
+                elif regex(res_content, [(r"id=\"gs_captcha_c\"", "")], sub=False):
+                    EXPECTED_RESULT = "You are verified"
+                    recaptcha = recaptcha_process(url, proxy)
+                    assert EXPECTED_RESULT in recaptcha
+                switch_ip()
+
+        else:
+            response = requests.get(url)
+            response.encoding = response.apparent_encoding
+            status = response.status_code
+            if status == 200:
+                res_content = response.text
+
+        if status == 404:
+            print(f'URL "{url}" not found')
+
+        if status not in [200, 404]:
+            raise Exception(f"Server response: {status}")
+
+        return status, res_content
+
+    def _opinion(self, path_or_url):
+        """
+        Get the opinion text from `path_or_url` to a gcl document.
+        """
+        self.opinion = self.html.find(id="gs_opinion")
+
+        # Return empty set if case law page was not found (`404` error).
+        # Store the case ID with a `404` error.
+        if not self.opinion:
+            print(f'Serialization failed for "{path_or_url}"')
+            path_404 = self.data_dir / "json" / f"404_{self.suffix}.json"
+            not_downloaded = load_json(path_404)
+            with open(path_404.__str__(), "w") as f:
+                case_id = regex(
+                    path_or_url, [(r"(?:.*scholar_case\?case=)?(\d+)(?:.*)?", r"\g<1>")]
+                )
+                not_downloaded[case_id] = case_id
+                json.dump(not_downloaded, f, indent=4)
+            return {}
+
+        self.opinion.find(id="gs_dont_print").replaceWith("")
+        self.case["html"] = self.opinion.__str__()
+        self.links = self.opinion.find_all("a")
+        return
+
+    def _get_id(self):
+        """
+        Retrieve the case ID given the html of the case file.
+        """
+        self.case["id"] = regex(
+            str(self.html.find(id="gs_tbar_lt")), self.case_patterns, sub=False
+        )[0]
+        return
+
+    def _replace_footnotes(self):
+        """
+        Obtain all the footnote IDs cited in the text and replace them with
+        a unique identifier '@@@@[id]' for tracking purposes.
+        """
+        footnote_identifiers = self.opinion.find_all(
+            lambda tag: tag.name == "sup" and tag.find("a")
+        )
+        if footnote_identifiers:
+            for tag in footnote_identifiers:
+                if tag.parent.attrs and tag.parent.attrs["id"] == "gsl_case_name":
+                    tag.replaceWith("")
+                    self.opinion.find_all("small")[-1].find(
+                        lambda tag: tag.name == "p" and tag.find("a", class_="gsl_hash")
+                    ).replaceWith("")
+                else:
+                    tag.replaceWith(
+                        f" {self.footnote_label}{tag.find('a').attrs['name'].replace('r', '')} "
+                    )
+        return
+
+    def _full_casename(self):
+        """
+        Extract full case name from the opinion.
+        """
+        gsl_case_name = self.opinion.find(id="gsl_case_name")
+        self.case["full_case_name"] = regex(
+            gsl_case_name.get_text(),
+            [*self.strip_patterns, *self.comma_space_patterns],
+        )
+        gsl_case_name.replaceWith("")
+        return
+
+    def _pages(self):
+        """
+        Extract the first and last page of the opinion, if published.
+        """
+        if page_nums := self._page_number_tags():
+            pages = [p.get_text() for p in page_nums]
+            self.case["first_page"], self.case["last_page"] = int(pages[0]), int(
+                pages[-1]
+            )
+        return
+
+    def _page_number_tags(self):
+        """
+        Find all the tags containing page numbers.
+        """
+        return self.opinion.find_all("a", class_="gsl_pagenum")
+
+    def _short_citation(self):
+        """
+        Extract short citation(s) of the case, if published.
+        """
+        for center in self.opinion.select("center > b"):
+            self.case["short_citation"].append(center.get_text())
+            center.replaceWith("")
+        return
+
+    def _casenumber(self, html=None, only_casenumber=False):
+        """
+        Extract the case IDs and docket numbers of any case related
+        to `html` of the opinion document.
+
+        Args
+        ----
+        :param only_casenumber: ---> bool: if True, return only the case numbers.
+        """
+
+        if not html:
+            html = self.opinion
+
+        case_num = html.select_one("center > a")
+        case_ids_ = [""]
+        if fn := case_num.attrs:
+            case_ids_ = regex(fn["href"], self.casenumber_patterns, sub=False)[0].split(
+                "+"
+            )
+
+        docket_numbers = []
+
+        court_code = self.case["court"].get("court_code", None)
+        jurisdiction = self.case["court"].get("jurisdiction", None)
+
+        if jurisdiction == "F":
+            if court_code:
+                if court_code not in ["us"]:
+                    docket_numbers = regex(
+                        case_num.get_text(), self.docket_appeals_patterns, sub=False
+                    )
+                elif court_code in ["us"]:
+                    docket_numbers = regex(
+                        case_num.get_text(), self.docket_us_patterns, sub=False
+                    )
+
+        if not docket_numbers:
+            docket_numbers = regex(
+                case_num.get_text(),
+                [
+                    (self.docket_clean_patterns, ""),
+                    (r"\([\w ]+\)", ""),
+                    (r",? +and +", ","),
+                ],
+                flags=re.I,
+            ).split(",")
+
+        docket_numbers = regex(docket_numbers, self.extra_char_patterns)
+        # Correct the docket numbers if they start with '-'
+        for i, d in enumerate(docket_numbers):
+            if d.startswith("-"):
+                docket_numbers[i] = f'{docket_numbers[i-1].split("-")[0]}{d}'
+
+        if only_casenumber:
+            return docket_numbers
+
+        dn = len(docket_numbers)
+        ci = len(case_ids_)
+        if dn > ci:
+            return zip(case_ids_ * (dn - ci + 1), docket_numbers)
+
+        return zip(case_ids_, docket_numbers)
+
+    def _consolidate_broken_tags(self):
+        """
+        Consolidate broken <i> tags or double <a> tags created due to page numbers.
+        """
+        for a in self._page_number_tags():
+            if fn := a.previous_sibling:
+                # Fix <a>A</a> page number <a>B</a> into <a>AB</a> page number
+                if (
+                    fn.name == "a"
+                    and fn.attrs["href"]
+                    and "scholar_case?" in fn.attrs["href"]
+                ):
+                    if gn := a.next_sibling.next_sibling:
+                        if (
+                            gn.name == "a"
+                            and gn.attrs["href"]
+                            and gn.attrs["href"] == fn.attrs["href"]
+                        ):
+                            if zn := gn.i:
+                                zn.unwrap()
+                                gn.smooth()
+                            gn.string = regex(fn.get_text() + gn.text, [(r" +", " ")])
+                            fn.decompose()
+
+                # Consolidate <i>A</i> page number <i>B</i> into <i>AB...</i> page number.
+                if gn := fn.previous_sibling:
+                    if gn.name == "i":
+                        if regex(fn, [(r"^ +$", "")], sub=False):
+                            if dn := a.next_sibling:
+                                if regex(dn, [(r"^ +$", "")], sub=False):
+                                    if dn.next_sibling:
+                                        if cn := dn.next_sibling.next_sibling:
+                                            if cn.name == "i":
+                                                gn.string = regex(
+                                                    f"{gn.text} {cn.get_text()}",
+                                                    [(r" +", " ")],
+                                                )
+                                                cn.decompose()
+
+        # Consolidate <i>A</i> <i>B</i> into <i>AB...</i>.
+        for i in self.opinion.find_all("i"):
+            next_tag = i.next_sibling
+
+            if isinstance(next_tag, NavigableString):
+                next_tag = next_tag.next_sibling
+                if (
+                    regex(i.next_sibling, [(r"^ +$", "")], sub=False)
+                    and next_tag
+                    and next_tag.name == "i"
+                ):
+                    next_tag.string = regex(
+                        i.get_text() + i.next_sibling + next_tag.text, [(r" +", " ")]
+                    )
+                    i.decompose()
+        return
+
+    def _replace_a_tags(self):
+        """
+        Replace every valid citation within the case wrapped in <a> tags
+        linking to a gcl page with a unique ID and collect the citation.
+        """
+        cites = {}
+        for i, l in enumerate(self.links):
+            c = f"[{i + 1}]"
+            if fn := l.attrs:
+                if fn.get("href", None) and "/scholar_case?" in fn["href"]:
+                    case_citation = regex(l.get_text(), self.extra_char_patterns)
+                    case_name = None
+                    if gn := l.find("i"):
+                        case_name = regex(gn.get_text(), self.comma_space_patterns)
+                    id_ = regex(l.attrs["href"], self.case_patterns, sub=False)[0]
+
+                    # The key `identifier` may be used to trace different variations of
+                    # the same citation in the case text specially when substituting a
+                    # case ID with its citation. E.g. #123456789[identifier].
+                    var = {"citation": case_citation, "identifier": c}
+                    ct = {
+                        "case_name": case_name,
+                        "variations": [var],
+                    }
+                    if not cites:
+                        cites = {id_: [ct]}
+                    else:
+                        if cites.get(id_, None):
+                            cite_data = cites[id_]
+                            not_accounted = True
+                            for el in cite_data:
+                                if el["case_name"] == case_name:
+                                    variants = [v["citation"] for v in el["variations"]]
+                                    if case_citation not in variants:
+                                        el["variations"] += [var]
+                                    else:
+                                        c = el["variations"][
+                                            variants.index(case_citation)
+                                        ]["identifier"]
+                                    not_accounted = False
+                                    break
+
+                            # If some variation of a citation does not exist in the cited cases already:
+                            if not_accounted:
+                                cite_data += [ct]
+                        else:
+                            cites[id_] = [ct]
+
+                    # Change <i>A</i> to <em>A</em> if it is adjacent to an <a> tag.
+                    # This will avoid allowing replacement of broken <i> tags with
+                    # citation label later.
+                    for adjacent in [l.next_sibling, l.prev_sibling]:
+                        if adjacent and adjacent.name == "i":
+                            adjacent.name = "em"
+
+                    l.replaceWith(f" {self.citation_label}{id_}{c} ")
+
+        self.case["cites_to"] = cites
+        return
+
+    def _citation_details(self):
+        """
+        Extract and serialize citation details such as case citation,
+        court information, and case number(s).
+        """
+        self.case["citation"], court_info = self.gcl_citor()
+        self.case["court"] = self.jurisdictions["court_details"][court_info]
+
+        # Insert the case number if the case is still unpublished
+        self.case["citation"] = self.case["citation"].replace(
+            "XXXXXX", self._casenumber(self.html, True)[0]
+        )
+
+        # Serialize case numbers.
+        for id_, num_ in self._casenumber():
+            if fn := self.case["case_numbers"]:
+                for el in fn:
+                    if id_ == el["id"]:
+                        el["docket_number"].append(num_)
+                    else:
+                        self.case["case_numbers"].append(
+                            {"id": nullify(id_), "docket_number": [num_]}
+                        )
+                        break
+            else:
+                self.case["case_numbers"].append(
+                    {"id": nullify(id_), "docket_number": [num_]}
+                )
+        return
+
+    def _replace_i_tags(self, html):
+        """
+        Replace those <i> tags in `html` not inside an <a> tag with citation label + num
+        if the content of <i> tag is inside the corresponding case name/citation.
+        """
+        for case_name in self.prioritize_citations:
+            for i in html.find_all("i"):
+                i_tag = regex(i.get_text(), self.boundary_patterns)
+                cleaned_i_tag = regex(i_tag, [(r"[,.]+$", "")])
+
+                if (
+                    i_tag
+                    and regex(
+                        case_name[1],
+                        [(r"\b" + re.escape(cleaned_i_tag) + r"\b", "")],
+                        sub=False,
+                    )
+                    and len(i_tag) > 2
+                    and cleaned_i_tag not in ["id", "Id"]
+                    and not regex(cleaned_i_tag, self.boundary_patterns, sub=False)
+                ):
+
+                    end_character = ""
+                    for end in [".", ",", "'s"]:
+                        if i_tag.endswith(end):
+                            end_character = end
+                    i.replaceWith(
+                        f" {self.citation_label}{case_name[0]} {end_character}"
+                    )
+        return
+
+    def _get_claim_numbers(self):
+        """
+        Extract the claim numbers cited in a gcl court case from
+        patents that are involved in the lawsuit.
+        """
+        small_tag = self.opinion.find_all("small")
+        footnotes_data, footnote_tags = {}, []
+        if small_tag:
+            footnotes = small_tag[-1].find_all("a", class_="gsl_hash")
+            for tag in footnotes:
+                parent_tag = tag.parent
+                footnote_tags.append(tag.parent)
+                tag.parent.replaceWith("")
+                footnotes_data[tag.attrs["name"]] = regex(
+                    parent_tag.get_text(), self.space_patterns
+                )
+
+        # Remove page numbers and well as line-breakers.
+        modified_opinion = regex(
+            self.opinion.get_text(),
+            [(r" \d+\*\d+ ", " "), *self.page_patterns, *self.strip_patterns],
+        )
+
+        # Append the footnote tags back to the opinion.
+        for tag in footnote_tags:
+            self.opinion.small.append(tag)
+
+        # Bring the footnote context in the text for keeping continuity.
+        for key, val in footnotes_data.items():
+            modified_opinion = modified_opinion.replace(
+                f"{self.footnote_label}{key}", val
+            )
+
+        # Patent numbers should be extracted here to include those cited in the footnotes.
+        self._get_patent_numbers(modified_opinion)
+
+        modified_opinion = regex(modified_opinion, self.patent_number_patterns_2)
+
+        # Regex to capture claim numbers followed by a patent number.
+        claims_1 = re.finditer(self.claim_patterns_1, modified_opinion)
+
+        claim_numbers = {}
+        for c in claims_1:
+            new_key = c.group(2)
+            new_value = regex(
+                c.group(1),
+                [
+                    (r"(\d+)[\- ]+(\d+)", r"\g<1>-\g<2>"),
+                    (r"[^0-9\-]+", " "),
+                    *self.strip_patterns,
+                    *self.space_patterns,
+                ],
+            )
+            if claim_numbers.get(new_key, None):
+                cls = claim_numbers[new_key]
+                if new_value not in cls:
+                    cls += [new_value]
+            else:
+                claim_numbers[new_key] = [new_value]
+
+            # Remove claim numbers of the type `claims # of the '# patent` to avoid double count.
+            start, end = c.span(1)
+            modified_opinion = (
+                modified_opinion[:start]
+                + "".join(["X"] * (end - start))
+                + modified_opinion[end:]
+            )
+
+        patent_refs = re.finditer(self.patent_reference_patterns, modified_opinion)
+
+        # Regex to capture claim numbers at large or NOT followed by a patent number.
+        claims_2 = re.finditer(self.claim_patterns_2, modified_opinion)
+
+        ref_location = [
+            (match.start(), match.group()) for match in patent_refs if match
+        ]
+
+        # If there is only one patent, take that in.
+        if not ref_location and len(fn := self.patent_numbers) == 1:
+            ref_location += [(0, fn[0][-3:])]
+
+        claims = {match.start(): match.group() for match in claims_2 if match}
+
+        if ref_location:
+            for key, value in claims.items():
+                new_key = regex(
+                    ref_location[closest_value([ref[0] for ref in ref_location], key)][
+                        1
+                    ],
+                    [(r"[^0-9]+", "")],
+                )
+                new_value = regex(
+                    value,
+                    [
+                        (r"(\d+)[\- ]+(\d+)", r"\g<1>-\g<2>"),
+                        (r"[^0-9\-]+", " "),
+                        *self.strip_patterns,
+                        *self.space_patterns,
+                    ],
+                )
+                if claim_numbers.get(new_key, None):
+                    cls = claim_numbers[new_key]
+                    if new_value not in cls:
+                        cls += [new_value]
+                else:
+                    claim_numbers[new_key] = [new_value]
+
+        for key, value in claim_numbers.items():
+            value = [hyphen_to_numbers(x).split(" ") for x in value if x]
+            if value:
+                claim_numbers[key] = sorted(
+                    remove_repeated(reduce(concat, value, [])), key=sort_int
+                )
+
+        return claim_numbers
+
+    def _tokenize_citation(self, citation):
+        """
+        Tokenize court data, reporter data, docket numbers, publication date,
+        and case name from a valid `citation`.
+        """
+        citation_dic = {"citation": citation}
+
+        [approx_location, court, day, month, year] = [None] * 5
+        if fn := regex(citation, self.approx_court_location_patterns, sub=False):
+            date = regex(fn[0], self.short_month_date_patterns, sub=False)
+            if date:
+                date = date[0]
+                [month, day, year] = [nullify(x) for x in date[1:]]
+                month = self.months[month] if month else None
+                approx_location = fn[0].replace(date[0], year)
+
+        if approx_location:
+            if regex(approx_location, [(r"^\((?: +)?\d+(?: +)?\)$", "")], sub=False):
+                court = None
+
+            for c in self.court_codes:
+                if c in approx_location:
+                    court = self.jurisdictions["court_details"][c]
+                    break
+
+        total_matches = []
+        # Remove reporters without a known volume or number such as ___ U.S. ___
+        for key in self.reporters:
+            if key in citation:
+                citation = regex(
+                    citation,
+                    [
+                        (
+                            re.escape(key).join(
+                                self.reporter_empty_patterns.split("X")
+                            ),
+                            " ",
+                        )
+                    ],
+                )
+
+        citation_dic["citation"] = citation = regex(
+            citation, [(r"[\-—–_ ]{2,}[, ]+", " ")]
+        )
+
+        for key in self.reporters:
+            if key in citation:
+                matches = regex(
+                    citation,
+                    [(re.escape(key).join(self.reporter_patterns.split("X")), "")],
+                    sub=False,
+                )
+
+                for match in matches:
+                    citation = citation.replace(match[0], "XXXX")
+
+                total_matches += matches
+
+        citation_details = []
+
+        keys = ["volume", "reporter_abbreviation", "first_page", "pages", "footnotes"]
+        for m in total_matches:
+            match = [
+                self.reporters[s] if i == 1 else s
+                for i, s in enumerate(
+                    list(map(lambda i: regex(i, self.comma_space_patterns), m[1:]))
+                )
+            ]
+            details = {
+                k: nullify(
+                    regex(match[i], [(r"[^0-9\-, ]", ""), *self.extra_char_patterns])
+                )
+                if i > 2
+                else nullify(regex(match[i], [(r"^[_-]+$", "")]))
+                for i, k in enumerate(keys)
+            }
+
+            if details["reporter_abbreviation"] == "P. C.":
+                court = None
+
+            if details["reporter_abbreviation"] in ["S. Ct.", "U.S."]:
+                court = self.jurisdictions["court_details"]["Supreme Court"]
+
+            details["edition"] = EDITIONS[details["reporter_abbreviation"]]
+            reporter = REPORTERS[details["edition"]][0]
+            details["reporter_name"] = reporter["name"]
+            details["cite_type"] = reporter["cite_type"]
+
+            citation_details += [details]
+
+            return
+
+        def _extract_casename(citation):
+            return regex(citation, [(r"^(.*?)XXXX+.*", r"\g<1>")])
+
+        possible_casename = _extract_casename(
+            regex(citation, [(self.docket_clean_patterns, r" \g<1> ")], flags=re.I)
+        )
+
+        docket_numbers = []
+        while True:
+            match = []
+            for x in [self.docket_number_patterns, self.docket_number_comp_patterns]:
+                match = regex(
+                    possible_casename,
+                    x,
+                    sub=False,
+                    flags=re.I,
+                )
+                if match:
+                    break
+
+            if not match:
+                break
+
+            match = match[0]
+
+            if "XXXX" in match[1]:
+                possible_casename = possible_casename.replace(match[0], " XXXX")
+                break
+
+            else:
+                docket_numbers += regex(match[1], [(r",? +and +", ",")]).split(",")
+
+                if not regex(
+                    possible_casename.replace(match[1], ","),
+                    self.docket_number_patterns,
+                    sub=False,
+                    flags=re.I,
+                ):
+                    possible_casename = possible_casename.replace(match[0], " XXXX")
+                    break
+
+                else:
+                    possible_casename = possible_casename.replace(match[1], ",")
+
+        casename = nullify(
+            regex(
+                _extract_casename(possible_casename),
+                self.comma_space_patterns,
+            )
+        )
+
+        citation_dic["case_name"] = None if casename == citation else casename
+        citation_dic["published"] = False if docket_numbers else True
+        citation_dic["date"] = {"year": year, "month": month, "day": day}
+        citation_dic["docket_numbers"] = nullify(
+            regex(
+                docket_numbers,
+                [(self.docket_clean_patterns, r""), *self.comma_space_patterns],
+                flags=re.I,
+            )
+        )
+        citation_dic["citation_details"] = nullify(citation_details)
+        citation_dic["court"] = court
+
+        return citation_dic
+
+    def _get_patent_numbers(self, opinion):
+        """
+        Get the patent numbers cited in the court case.
+        """
+        patent_numbers = regex(opinion, self.patent_number_patterns_1, sub=False)
+        # Make sure that patterns like `'#number patent or patent '#number` are there to sift through
+        # extracted patent numbers and keep the ones cited later in the case text.
+        patent_refs = set(
+            filter(
+                None,
+                reduce(
+                    concat,
+                    [
+                        i
+                        for i in regex(
+                            opinion,
+                            [(self.patent_reference_patterns, "")],
+                            sub=False,
+                        )
+                    ],
+                    (),
+                ),
+            )
+        )
+
+        if len(patent_numbers) > 1:
+            patent_numbers = [
+                f"{uspto_grab_patent_number(x)}"
+                for x in patent_numbers
+                if x[-3:] in patent_refs
+                or regex(x, self.special_chars_patterns)[-4:] in patent_refs
+            ]
+
+        if len(patent_numbers) == 1 or (
+            not patent_refs
+            and regex(opinion, [(r"[pP]atents-in-[sS]uit", "")], sub=False)
+        ):
+            patent_numbers = [f"{uspto_grab_patent_number(x)}" for x in patent_numbers]
+
+        self.patent_numbers = remove_repeated([x for x in patent_numbers if x != "US"])
+        return
+
+    def _patents_in_suit(self, skip_patent):
+        """
+        Collect and store all relevant patents in suit including the text of all claims
+        with the claims cited in the text of a gcl file identified.
+        """
+        patents = []
+        for key, value in self._get_claim_numbers().items():
+            for patent_number in self.patent_numbers:
+                if patent_number.endswith(key):
+                    patent_found, claims = self.gcl_patent_data(
+                        patent_number, self.case["id"], skip_patent, True
+                    )
+                    patents.append(
+                        {
+                            "patent_number": patent_number,
+                            "patent_found": patent_found,
+                            "claims": claims,
+                            "cited_claims": [
+                                int(i)
+                                for i in value
+                                if regex(i, self.just_number_patterns, sub=False)
+                                and int(i) <= len(claims)
+                            ],
+                        }
+                    )
+                    break
+
+        self.case["patents_in_suit"] = patents
+        return
+
+    def _serialize_footnotes(self):
+        """
+        Serialize the footnotes and remove their associated tags from the end of case file.
+        """
+        if small_tag := self.opinion.find_all("small"):
+            self._replace_i_tags(small_tag[-1])
+            footnotes = small_tag[-1].find_all("a", class_="gsl_hash")
+            for tag in footnotes:
+                parent_tag = tag.parent
+                tag.replaceWith("")
+                self.case["footnotes"].append(
+                    {
+                        "identifier": f"{tag.attrs['name']}",
+                        "context": regex(parent_tag.get_text(), self.space_patterns),
+                    }
+                )
+
+        self._prioritize_citations = None
+        return
+
+    def _replace_generic_tags(self):
+        """
+        Remove or replace all the tags at large with their appropriate labels.
+        """
+        court_code = self.case["court"].get("court_code", None)
+
+        for el in self.opinion.find_all("center"):
+            el.replaceWith("")
+
+        for h in self.opinion.find_all("h2"):
+            if court_code in ["us"]:
+                if "Syllabus" not in h.get_text():
+                    h.replaceWith("")
+            else:
+                h.replaceWith("")
+
+        for p in self.opinion.find_all("a", class_="gsl_pagenum"):
+            p.replaceWith(f" +page[{p.get_text()}]+ ")
+
+        for a in self.opinion.find_all("a", class_="gsl_pagenum2"):
+            a.replaceWith("")
+
+        self._replace_i_tags(self.opinion)
+
+        for bq in self.opinion.find_all("blockquote"):
+            text = bq.get_text()
+            if text:
+                bq.replaceWith(
+                    f" {self.blockquote_label_s} {text} {self.blockquote_label_e} "
+                )
+
+        for pre in self.opinion.find_all("pre"):
+            text = pre.get_text()
+            if text:
+                pre.replaceWith(f" {self.pre_label_s} {text} {self.pre_label_e} ")
+
+        # Locate tag with judge names and remove it along with every <p></p> coming before this tag.
+        # Meant to clean up the text by removing the party names.
+        judge_tag = self.gcl_get_judge(just_locate=True)
+        end_replace = False
+        # Remove everything in the non-Supreme Court cases up to the paragraph with judge information.
+        if judge_tag and court_code not in ["us"]:
+            for p in self.opinion.find_all("p"):
+                if not end_replace:
+                    if p == judge_tag and judge_tag not in p.find_all("p"):
+                        end_replace = True
+                    if judge_tag not in p.find_all("p"):
+                        p.replaceWith("")
+                else:
+                    break
+
+        # Remove everything before Syllabus for Supreme Court cases.
+        if court_code in ["us"]:
+            for h in self.opinion.find_all(lambda tag: tag.name in ["p", "h2"]):
+                if not end_replace:
+                    if h.name == "h2":
+                        if "Syllabus" in h.get_text():
+                            end_replace = True
+                        h.replaceWith("")
+                    else:
+                        if judge_tag:
+                            if h == judge_tag and judge_tag not in h.find_all("p"):
+                                end_replace = True
+                            if judge_tag not in h.find_all("p"):
+                                h.replaceWith("")
+                else:
+                    break
+
+        for p in self.opinion.find_all("p"):
+            text = p.get_text()
+            if not text:
+                p.replaceWith("")
+            else:
+                if regex(text, self.end_sentence_patterns, sub=False):
+                    p.replaceWith(f"{text} {self.paragraph_label} ")
+                else:
+                    p.replaceWith(text)
+
+        small = self.opinion.find_all("small")
+        if small:
+            small[-1].replaceWith("")
+
+        return
+
+    def _training_text(self):
+        """
+        Create the final labeled text of the opinion for training purposes.
+        """
+        self.case["training_text"] = regex(self.opinion.get_text(), self.strip_patterns)
+        return
+
+    def _personal_opinion(self):
+        """
+        Determine if a case from Circuit Courts involves personal opinion of a judge(s)
+        e.g. "dissent" or "concur". Return a dictionary including the name of every judge
+        hearing the case, together with a sub-key "index_span" that shows the range of positional
+        indices of the personal opinion located in `training_text`.
+        """
+        training_text, judges = self.case["training_text"], self.case["judges"]
+        opinion_tags = list(
+            re.finditer(self.judge_dissent_concur_patterns, training_text)
+        )
+        opinion_dict, indices = {"concur": None, "dissent": None}, {}
+
+        for i, tag in enumerate(opinion_tags):
+            indices[i] = tag.start()
+
+        for judge in judges:
+            for i, tag in enumerate(opinion_tags):
+                if judge.lower() in tag.group(1).lower():
+                    op_type = filter(
+                        lambda x: x in tag.group(0).lower(),
+                        ["concurring", "dissenting"],
+                    )
+                    for o in op_type:
+                        dc = regex(o, [(r"r?ing$", "")])
+
+                        if opinion_dict[dc] is None:
+                            opinion_dict[dc] = []
+
+                        # Fix the end index of each tuple in `index_span` by replacing it with
+                        # the start index of the next index, if any. Otherwise,
+                        # replace the end index with the length of `training_text`.
+                        end_index = len(training_text)
+                        if i < len(opinion_tags) - 1:
+                            end_index = indices[i + 1]
+
+                        opinion_dict[dc] += [
+                            {"judge": judge, "index_span": (tag.start(), end_index)}
+                        ]
+        self.case["personal_opinions"] = opinion_dict
+        return
