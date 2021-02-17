@@ -8,6 +8,7 @@ from os import cpu_count, environ
 from pathlib import Path
 from time import sleep
 
+from bs4 import BeautifulSoup as BS
 from pathos.multiprocessing import ProcessPool as pool
 from pathos.threading import ThreadPool as thread_pool
 from python_anticaptcha import AnticaptchaClient, NoCaptchaTaskProxylessTask
@@ -40,6 +41,7 @@ __all__ = [
     "proxy_browser",
     "recaptcha_process",
     "async_get",
+    "uspto_grab_patent_number",
 ]
 
 SELENIUM_OPTIONS = webdriver.ChromeOptions()
@@ -247,13 +249,13 @@ def shorten_date(date_object):
     Given a date object `date_object` of the format "Month Day, Year", abbreviate month and return date string.
     """
     date = date_object.strftime("%B %d, %Y")
-    
+
     if not regex(date, [(r"May|June|July", "")], sub=False):
         date = date_object.strftime("%b. %d, %Y")
-    
+
     elif "September" in date:
         date = date_object.strftime("Sept. %d, %Y")
-    
+
     return date
 
 
@@ -451,3 +453,42 @@ def async_get(url, xpath):
     finally:
         r = SELENIUM_DRIVER.page_source
         return r
+
+
+def uspto_grab_patent_number(number):
+    """
+    Grab the patent number (str) given an application `number` (str) from
+    https://patentcenter.uspto.gov/. If `number` is a valid patent number,
+    then return the cleaned patent number.
+
+    Example
+    -------
+    >>> uspto_grab_patent_number('11/685,188')
+    'US7631336'
+
+    >>> uspto_grab_patent_number('4,566,345')
+    'US4566345
+
+    """
+    clean_number = re.sub(r"\W", "", number)
+
+    if "/" in number:
+        
+        def _standardize(string):
+            return "US" + regex(string, [(r"\W|US|(?: +)?[A-Z]\d$", "")])
+        
+        url = f"https://patentcenter.uspto.gov/#!/applications/{clean_number}"
+        res_content = async_get(
+            url, '//*[@id="maincontent"]/div/div/div/div[2]/div[2]/div[3]/div/a'
+        )
+        soup = BS(res_content, "html.parser")
+
+        possible_elements = ['a[ng-bind="app.patentNumber()"]', 'a[ng-bind="bib.earliestPublicationNumber()"]']
+       
+        for p in possible_elements:
+            if a := soup.select_one(p):
+                return _standardize(a.get_text())
+
+        return ""
+
+    return "US" + clean_number
