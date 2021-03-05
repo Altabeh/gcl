@@ -4,11 +4,13 @@ import unicodedata
 import urllib
 from concurrent.futures import ProcessPoolExecutor as future_pool
 from concurrent.futures import ThreadPoolExecutor as thread_future_pool
+from datetime import datetime
 from os import cpu_count, environ
 from pathlib import Path
 from time import sleep
 
-from bs4 import BeautifulSoup as BS
+import requests
+from dateutil import parser
 from pathos.multiprocessing import ProcessPool as pool
 from pathos.threading import ThreadPool as thread_pool
 from python_anticaptcha import AnticaptchaClient, NoCaptchaTaskProxylessTask
@@ -35,13 +37,13 @@ __all__ = [
     "normalize",
     "closest_value",
     "hyphen_to_numbers",
-    "remove_repeated",
+    "rm_repeated",
     "validate_url",
     "switch_ip",
     "proxy_browser",
     "recaptcha_process",
     "async_get",
-    "uspto_grab_patent_number",
+    "get",
 ]
 
 SELENIUM_OPTIONS = webdriver.ChromeOptions()
@@ -285,7 +287,7 @@ def normalize(text):
     return unicodedata.normalize("NFD", text)
 
 
-def closest_value(list_, value):
+def closest_value(list_, value, none_allowed=True):
     """
     Take an unsorted list of integers and return index of the value closest to an integer.
     """
@@ -294,8 +296,15 @@ def closest_value(list_, value):
     for _index, i in enumerate(list_):
         if value > i:
             list_[_index] = value - i
+    if m := min(list_):
+        if none_allowed or m <= value:
+            return list_.index(m)
+        else:
+            return
 
-    return list_.index(min(list_))
+
+def timestamp(date_string):
+    return datetime.timestamp(parser.parse(date_string))
 
 
 def hyphen_to_numbers(string):
@@ -320,7 +329,7 @@ def hyphen_to_numbers(string):
     return " ".join(final_list)
 
 
-def remove_repeated(l):
+def rm_repeated(l):
     """
     Remove repeated elements of a list while keeping the order intact.
     """
@@ -455,40 +464,23 @@ def async_get(url, xpath):
         return r
 
 
-def uspto_grab_patent_number(number):
+def get(url, json=False):
     """
-    Grab the patent number (str) given an application `number` (str) from
-    https://patentcenter.uspto.gov/. If `number` is a valid patent number,
-    then return the cleaned patent number.
-
-    Example
-    -------
-    >>> uspto_grab_patent_number('11/685,188')
-    'US7631336'
-
-    >>> uspto_grab_patent_number('4,566,345')
-    'US4566345
-
+    Request to make a get request to a given `url`.
     """
-    clean_number = re.sub(r"\W", "", number)
+    res_content = ""
+    response = requests.get(url)
+    response.encoding = response.apparent_encoding
+    status = response.status_code
 
-    if "/" in number:
-        
-        def _standardize(string):
-            return "US" + regex(string, [(r"\W|US|(?: +)?[A-Z]\d$", "")])
-        
-        url = f"https://patentcenter.uspto.gov/#!/applications/{clean_number}"
-        res_content = async_get(
-            url, '//*[@id="maincontent"]/div/div/div/div[2]/div[2]/div[3]/div/a'
-        )
-        soup = BS(res_content, "html.parser")
+    if status == 200:
+        res_content = response.text
+        if json:
+            res_content = response.json()
 
-        possible_elements = ['a[ng-bind="app.patentNumber()"]', 'a[ng-bind="bib.earliestPublicationNumber()"]']
-       
-        for p in possible_elements:
-            if a := soup.select_one(p):
-                return _standardize(a.get_text())
+    if status == 404:
+        print(f'URL "{url}" not found')
 
-        return ""
-
-    return "US" + clean_number
+    if status not in [200, 404]:
+        raise Exception(f"Server response: {status}")
+    return status, res_content
