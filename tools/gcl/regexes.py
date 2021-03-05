@@ -1,8 +1,9 @@
-
 """
-Regex patterns used in the GCLParse class 
+Regex patterns used in the GCLParse and USPTOscrape classes 
 go in here.
 """
+
+import re
 
 class GCLRegex:
     case_patterns = [(r"/scholar_case\?(?:.*?)=(\d+)", r"\g<1>")]
@@ -23,11 +24,12 @@ class GCLRegex:
     patent_number_pattern = r"(?:(?:RE|PP|D|AI|X|H|T)? ?\d{1,2}[,./]\-?)?(?:(?:RE|PP|D|AI|X|H|T) ?\d{2,3}|\d{3})[,./]\-?\d{3}(?: ?AI)?\b"
     patent_reference_patterns = r'["`\'#’]+(\d{3,4}) ?(?:[Aa]pplication|[Pp]atent)\b|(?:[Aa]pplication|[Pp]atent)\b +["`\'#’]+(\d{3,4})'
     claim_patterns_1 = (
-        r"[Cc]laims?([\d\-, and]+)(?:[\w ]+)(?:(?:[\(\"“ ]+)?(?: ?the ?)?[#`\'’]+(\d+))"
+        r"[Cc]laims?([\d\-, and]+)(?:[\w ]+)(?:(?:[\(\"“ ]+)?(?: ?the ?)?(?!##+)[#`\'’]+(\d+))"
     )
     claim_patterns_2 = r"(?<=[cC]laim[s ])(?:([\d,\- ]+)(?:(?:[, ]+)?and ([\d\- ]+))*)+"
     patent_number_patterns_1 = [(r" " + patent_number_pattern, "")]
     patent_number_patterns_2 = [(r"[USnitedpPaNso. ]+" + patent_number_pattern, "")]
+    standard_patent_patterns = [(r"\W|US|(?: +)?[A-Z]\d$", "")]
     judge_patterns = [
         (
             r"^(m[rs]s?\.? )?C[Hh][Ii][Ee][Ff] J[Uu][Dd][Gg][Ee][Ss]? |^(m[rs]s?\.? )?(?:C[Hh][Ii][Ee][Ff] )?J[Uu][Ss][Tt][Ii][Cc][Ee][Ss]? |^P[rR][Ee][Ss][Ee][nN][T]: |^B[eE][fF][oO][rR][Ee]: | J[Uu][Dd][Gg][Ee][Ss]?[:.]?$|, [UJSC. ]+:?$|, (?:[USD. ]+)?[J. ]+:?$|, J[Uu][Ss][Tt][Ii][Cc][Ee][Ss]?\.?$",
@@ -103,11 +105,6 @@ class GCLRegex:
     ]
     reporter_empty_patterns = r"(?:(?:[\-—–_\d ]+))(?:X)(?:(?: +)(?:[\-—–_]+)[, ]+)+"
     reporter_patterns = r"((\d+)(?: +)?(X)(?: +)?([\d\-—–_ ]+)([at,\.\d\-—–_\*¶ ]+)?([n\.\d\-—–_\*¶ ]+)?)"
-    special_chars_patterns = [(r"\W", "")]
-    strip_patterns = [(r"\n", " "), (r" +", " ")]
-    extra_char_patterns = [(r"^[,. ]+|[,. ]+$", "")]
-    comma_space_patterns = [(r"^[, ]+|[, ]+$", "")]
-    space_patterns = [(r"^ +| +$", "")]
     boundary_patterns = [(r"^(?:[Tt]he |[.,;:\"\'\[\(\- ])+|[;:\"\'\)\]\- ]+$|'s$", "")]
     end_sentence_patterns = [
         (
@@ -119,3 +116,32 @@ class GCLRegex:
     abbreviation_patterns = [(r"^[JS][Rr]\.$", "")]
     page_patterns = [(r"(?: +)?\+page\[\d+\]\+ +", " ")]
     clean_footnote_patterns = [(r" ?@@@@\[[\d\*]+\] ?", " ")]
+
+
+class GeneralRegex:
+    special_chars_patterns = [(r"\W", "")]
+    strip_patterns = [(r"\n", " "), (r" +", " ")]
+    extra_char_patterns = [(r"^[,. ]+|[,. ]+$", "")]
+    comma_space_patterns = [(r"^[, ]+|[, ]+$", "")]
+    space_patterns = [(r"^ +| +$", "")]
+    extention_patterns = [(r"(?:\.txt|-page-).*$", "")]
+    proceedingnum_patterns = [(r"^[A-Z\d-]+\d", "")]
+
+
+class PTABRegex:
+    claim_num_patterns = re.compile(r"(?:us)?(?:pat:)?claim-?number")
+    claim_text_patterns = re.compile(r"(?:us)?(?:pat:)?claim-?text")
+    claim_ref_patterns = re.compile(r"(?:us)?(?:pat:)?claim-?reference")
+    date_patterns = re.compile(r"(?:us)?(?:com|pat)?:?(?:official|mailroom)?date")
+    claimset_tag_patterns = re.compile(r"(?:pat:)?claimse?t?")
+    unnecessary_patterns = [
+        r"(?:us)?(?:com|pat):patent-?image",
+        r"(?:us)?(?:com|pat):claim-?label-?text",
+        r"(?:us)?(?:com|pat):header-?text",
+        r"(?:us)?(?:com|pat):footer-?text",
+        r"(?:us)?(?:com|pat)?:?boundary-?data"
+    ]
+    claim_tag_patterns = [(r"(?:us)?(?:pat)?:?claim\b", "")]
+    id_ref_tag_patterns = ["pat:id-?refs", "com:id-?refs"]
+    id_tag_patterns = ["pat:id", "com:id", "id"]
+    claim_patterns = r"(?<=[cC]laim[s ])(?:([\(\)\d,\-–— ]+)(?:(?:[, ]+)?(?:and|through) ([\d\-–— ]+))*)+"
