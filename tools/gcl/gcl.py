@@ -263,17 +263,32 @@ class GCLParse(GCLRegex, GeneralRegex):
                     )
                     info["url"] = url
                     info["patent_number"] = patent_number
-                    print(f"Saving patent data for Patent No. {patent_number}...")
-                    create_dir(json_path.parent)
-                    with open(json_path.__str__(), "w") as f:
-                        json.dump(info, f, indent=4)
+                    if info["title"] and info["claims"]:
+                        print(f"Saving patent data for Patent No. {patent_number}...")
+                        create_dir(json_path.parent)
+                        with open(json_path.__str__(), "w") as f:
+                            json.dump(info, f, indent=4)
 
         if return_data:
-            if info["title"] is None:
+            if not found:
+                return found, []
+
+            if not info["title"]:
                 if patent_number:
-                    print(
-                        f"Patent No. {patent_number} has not been downloaded yet. Please set `skip_patent=False`"
-                    )
+                    if skip_patent:
+                        print(
+                            f"Patent No. {patent_number} has not been downloaded yet. Please set `skip_patent=False`"
+                        )
+                    else:
+                        print(
+                            f"Invalid patent number detected; saving Patent No. {patent_number} stopped"
+                        )
+                return found, []
+
+            if not info["claims"]:
+                print(
+                    f"Invalid patent number detected; saving Patent No. {patent_number} stopped"
+                )
                 return found, []
 
             return found, info["claims"]
@@ -422,9 +437,12 @@ class GCLParse(GCLRegex, GeneralRegex):
         else:
             with open(path_or_url, "r") as f:
                 html_text = f.read()
-
         self.html = BS(deaccent(html_text), "html.parser")
         self._opinion(path_or_url)
+
+        if not self.opinion:
+            return self.case
+
         self._get_id()
         self._replace_footnotes()
         self._full_casename()
@@ -774,7 +792,8 @@ class GCLParse(GCLRegex, GeneralRegex):
         def _apply(c, k, extras=True):
             if extras:
                 c = self._fix_abbreviations(regex(c, self.extras_citation_patterns))
-            r[k] = {**r[k], **self._tokenize_citation(c)}
+            if c:
+                r[k] = {**r[k], **self._tokenize_citation(c)}
 
         def _longest_cite(k):
             """
@@ -822,7 +841,7 @@ class GCLParse(GCLRegex, GeneralRegex):
 
                 if not r[k]["case_name"] or r[k]["case_name"] not in r[k]["citation"]:
                     r[k]["needs_review"] = True
-        
+
         list(multi_run(_longest_cite, r.keys(), threading=True, pathos=True))
 
         with open(cites.__str__(), "w") as f:
@@ -1369,10 +1388,12 @@ class GCLParse(GCLRegex, GeneralRegex):
         # Patent numbers should be extracted here to include those cited in the footnotes.
         self._get_patent_numbers(modified_opinion)
 
-        modified_opinion = regex(modified_opinion, self.patent_number_patterns_2)
+        modified_opinion = regex(
+            modified_opinion, self.patent_number_patterns_2, flags=re.I
+        )
 
         # Regex to capture claim numbers followed by a patent number.
-        claims_1 = re.finditer(self.claim_patterns_1, modified_opinion)
+        claims_1 = re.finditer(self.claim_patterns_1, modified_opinion, flags=re.I)
 
         claim_numbers = {}
         for c in claims_1:
@@ -1411,11 +1432,6 @@ class GCLParse(GCLRegex, GeneralRegex):
             (match.start(), match.group()) for match in patent_refs if match
         ]
 
-        # If there is only one patent, take that in.
-        if not ref_location and (len(fn := self.patent_numbers) == 1):
-            p_ref = fn[0]
-            ref_location += [(0, p_ref[0][-3:] if p_ref[0] else p_ref[1][-3:])]
-
         claims = {match.start(): match.group() for match in claims_2 if match}
 
         if ref_location:
@@ -1444,6 +1460,34 @@ class GCLParse(GCLRegex, GeneralRegex):
                 else:
                     claim_numbers[new_key] = [new_value]
 
+            # If no claim is associated with any patent reference, count those in with empty cited claims.
+            for pat_ref in self.patent_refs:
+                if not claim_numbers.get(pat_ref, None):
+                    claim_numbers[pat_ref] = [""]
+
+        # If there is only one patent, or a collectively referenced set of patents, take them in.
+        if not ref_location:
+            # If integer reference patterns are not found, look for e.g. "the Patent(s)" as an alternative.
+            noninteger_refs = regex(
+                modified_opinion,
+                self.special_patent_ref_patterns,
+                sub=False,
+                flags=re.I,
+            )
+            if (noninteger_refs and self.patent_numbers) or len(
+                self.patent_numbers
+            ) == 1:
+                for p in self.patent_numbers:
+                    for i in range(2):
+                        if p[i] and not claim_numbers.get(ref_num := p[i][-3:], None):
+                            claim_numbers[ref_num] = [""]
+                            self.patent_refs.add(ref_num)
+                            break
+                    # If noninteger reference patterns point to a single patent, stop the loop at first iteration.
+                    if noninteger_refs and not noninteger_refs[0][1]:
+                        break
+
+        # Expand the range of claims e.g. 1-4 --> 1, 2, 3, 4.
         for key, value in claim_numbers.items():
             value = [hyphen_to_numbers(x).split(" ") for x in value if x]
             if value:
@@ -1467,6 +1511,7 @@ class GCLParse(GCLRegex, GeneralRegex):
                         )
                     )
                     del claim_numbers[p[1][-3:]]
+
         return claim_numbers
 
     def _tokenize_citation(self, citation):
@@ -1635,11 +1680,14 @@ class GCLParse(GCLRegex, GeneralRegex):
                 y
                 for y in map(
                     lambda x: (regex(x, [(r"(?!/)\W", "")]), None),
-                    regex(opinion, self.patent_number_patterns_1, sub=False),
+                    regex(
+                        opinion, self.patent_number_patterns_1, sub=False, flags=re.I
+                    ),
                 )
                 if y[0] != "US"
             ]
         )
+
         # Make sure that patterns like `'#number patent or patent '#number` are there to sift through
         # extracted patent numbers and keep the ones cited later in the case text.
         self.patent_refs = set(
@@ -1659,13 +1707,13 @@ class GCLParse(GCLRegex, GeneralRegex):
                 ),
             )
         )
+
         if len(patent_numbers) > 1:
             patent_numbers = [
-                [p for p in self._patent_from_application(x[0])]
-                for x in patent_numbers
+                [p for p in self._patent_from_application(x[0])] for x in patent_numbers
             ]
 
-        if len(patent_numbers) == 1 or (
+        elif len(patent_numbers) == 1 or (
             not self.patent_refs
             and regex(opinion, [(r"[pP]atents-in-[sS]uit", "")], sub=False)
         ):
@@ -1697,25 +1745,26 @@ class GCLParse(GCLRegex, GeneralRegex):
                     mixed_claim_numbers = set(claims.keys()) if claims else set()
                     if uc := self._updated_claims(appl_number):
                         extra = uc
-                        mixed_claim_numbers |= set(
-                            map(str, uc[0]["updated_claims"].keys())
+                        mixed_claim_numbers |= set(uc[0]["updated_claims"].keys())
+
+                    # Only append a patent if it has nonempty claimset.
+                    if claims:
+                        patents.append(
+                            {
+                                "patent_number": patent_number or None,
+                                "application_number": appl_number or None,
+                                "patent_found": patent_found,
+                                "claims": claims,
+                                "extra": extra,
+                                "cited_claims": [
+                                    int(i)
+                                    for i in value
+                                    if regex(i, self.just_number_patterns, sub=False)
+                                    and i in set(map(str, mixed_claim_numbers))
+                                ],
+                            }
                         )
-                    patents.append(
-                        {
-                            "patent_number": patent_number or None,
-                            "application_number": appl_number or None,
-                            "patent_found": patent_found,
-                            "claims": claims,
-                            "extra": extra,
-                            "cited_claims": [
-                                int(i)
-                                for i in value
-                                if regex(i, self.just_number_patterns, sub=False)
-                                and i in mixed_claim_numbers
-                            ],
-                        }
-                    )
-                    break
+                        break
 
         self.case["patents_in_suit"] = patents
         return
@@ -1740,7 +1789,7 @@ class GCLParse(GCLRegex, GeneralRegex):
         """
         if number[-3:] in self.patent_refs or number[-4:] in self.patent_refs:
             return True
-        
+
         return False
 
     def _patent_from_application(self, number):
@@ -1771,10 +1820,17 @@ class GCLParse(GCLRegex, GeneralRegex):
                 )
                 if isinstance(appl_data, list):
                     for ap in appl_data:
-                        for pnum in ["patentNumberText", "patentNumber"]:
+                        for pnum in ["patentNumberText", "applicationNumberText"]:
                             if kn := ap.get(pnum, None):
                                 if self._is_cited(kn):
-                                    yield f"US{kn}", standard_number
+                                    country = (
+                                        docs.get("corrAddrCountryCd", None) or "US"
+                                    )
+                                    if pnum == "applicationNumberText":
+                                        kn = ap["patentNumberText"]
+                                        if not kn:
+                                            country = ""
+                                    yield f"{country}{kn}", standard_number
                                 else:
                                     yield None, standard_number
                 else:
