@@ -5,6 +5,7 @@ go in here.
 
 import re
 
+
 class GCLRegex:
     case_patterns = [(r"/scholar_case\?(?:.*?)=(\d+)", r"\g<1>")]
     casenumber_patterns = [(r"scidkt=(.*?)&", "")]
@@ -21,14 +22,24 @@ class GCLRegex:
     docket_appeals_patterns = [(r"(?:\d{2,4}|(?<=, )|(?<=, and)(?: +)?)-\d{1,5}", "")]
     docket_us_patterns = [(r"\d+(?:-\d+)?", "")]
     docket_clean_patterns = r"(?:(?<=^)|(?<=,))(?: +)?(?:(?:C\.?A|D(?:[oc]+)?ke?ts?|MDL| +|Case|Crim|Civ)+(?:il|inal)?(?:(?:Action|CV|A|[. ])+)?)?((?:C\.A|Nos?)\.:?)(?: )?"
-    patent_number_pattern = r"(?:(?:RE|PP|D|AI|X|H|T)? ?\d{1,2}[,./]\-?)?(?:(?:RE|PP|D|AI|X|H|T) ?\d{2,3}|\d{3})[,./]\-?\d{3}(?: ?AI)?\b"
-    patent_reference_patterns = r'["`\'#’]+(\d{3,4}) ?(?:[Aa]pplication|[Pp]atent)\b|(?:[Aa]pplication|[Pp]atent)\b +["`\'#’]+(\d{3,4})'
-    claim_patterns_1 = (
-        r"[Cc]laims?([\d\-, and]+)(?:[\w ]+)(?:(?:[\(\"“ ]+)?(?: ?the ?)?(?!##+)[#`\'’]+(\d+))"
+    patent_number_pattern = r"(?:(?:re|pp|d|ai|x|h|t)?(?:[ -]+)?\d{1,2} ?\-?[,./;] ?\-?)?(?:(?:re|pp|d|ai|x|h|t)(?:[ -]+)?\d{2,3}|\d{3}) ?\-?[,./;] ?\-?\d{3}(?: ?ai)?\b"
+    patent_reference_patterns = r'(?:the|["`\'#’]+) ?(\d{3,4}) ?(?:[Aa]pplication|[Pp]atent)\b|(?:[Aa]pplication|[Pp]atent)\b +["`\'#’]+(\d{3,4})'
+    special_patent_ref_patterns = [
+        (r'(\((?:collectively,?)?(?:\s+)?(?:the\s+)?"(?:[\w\' ]+)?patent(s)?"\))', "")
+    ]
+    claim_patterns_1 = r"claims?([\d\-, and:]+)(?!claim)(?:(?:[\w\( ](?!claim))+)(?:(?:[\(\"“ ]+)?(?: ?the ?)?(?!##+)(?:the|[\"`\'#’]+) ?(\d+)(?:\s+patent)?)"
+    claim_patterns_2 = (
+        r"(?<=[cC]laim[s ])(?:([\d,\- :]+)(?:(?:[, ]+)?(?:and|through) ([\d\- ]+))*)+"
     )
-    claim_patterns_2 = r"(?<=[cC]laim[s ])(?:([\d,\- ]+)(?:(?:[, ]+)?and ([\d\- ]+))*)+"
-    patent_number_patterns_1 = [(r" " + patent_number_pattern, "")]
-    patent_number_patterns_2 = [(r"[USnitedpPaNso. ]+" + patent_number_pattern, "")]
+    patent_number_patterns_1 = [
+        (
+            r"(?:us|no[s.]+|number(?:s|ed)?|pat(?:\.|ents?)|and|then?|[,;:`'’]) ?("
+            + patent_number_pattern
+            + ")",
+            "",
+        )
+    ]
+    patent_number_patterns_2 = [(r"[uspniteda. ]+" + patent_number_pattern, "")]
     standard_patent_patterns = [(r"\W|US|(?: +)?[A-Z]\d$", "")]
     judge_patterns = [
         (
@@ -139,7 +150,7 @@ class PTABRegex:
         r"(?:us)?(?:com|pat):claim-?label-?text",
         r"(?:us)?(?:com|pat):header-?text",
         r"(?:us)?(?:com|pat):footer-?text",
-        r"(?:us)?(?:com|pat)?:?boundary-?data"
+        r"(?:us)?(?:com|pat)?:?boundary-?data",
     ]
     claim_tag_patterns = [(r"(?:us)?(?:pat)?:?claim\b", "")]
     id_ref_tag_patterns = ["pat:id-?refs", "com:id-?refs"]
