@@ -27,7 +27,7 @@ from tqdm import tqdm
 BASE_DIR = Path(__file__).resolve().parents[1]
 sys.path.insert(0, BASE_DIR.__str__())
 
-from utils import (closest_value, create_dir, deaccent, get, regex,
+from utils import (closest_value, create_dir, deaccent, get, load_json, regex,
                    rm_repeated, timestamp, validate_url)
 
 from regexes import GeneralRegex, PTABRegex
@@ -256,7 +256,7 @@ class USPTOscrape(PTABRegex, GeneralRegex):
         errorBag = []
 
         if (fn := transactions_folder / f"transactions_{appl_number}.json").is_file():
-            transactions = self.load_external(fn.__str__())
+            transactions = load_json(fn)
 
         else:
             while True:
@@ -551,9 +551,9 @@ class USPTOscrape(PTABRegex, GeneralRegex):
             sleep(1)
             metadata = {}
             r = requests.post(
-                    url=url,
-                    json=self.query_params,
-                    headers=self.headers,
+                url=url,
+                json=self.query_params,
+                headers=self.headers,
             )
             try:
                 metadata = r.json()
@@ -686,7 +686,9 @@ class USPTOscrape(PTABRegex, GeneralRegex):
                     info["patent_number"] = patent_number
                     if info["title"] and info["claims"]:
                         with open(json_path.__str__(), "w") as f:
-                            print(f"Saving patent data for Patent No. {patent_number}...")
+                            print(
+                                f"Saving patent data for Patent No. {patent_number}..."
+                            )
                             create_dir(json_path.parent)
                             json.dump(info, f, indent=4)
 
@@ -703,23 +705,13 @@ class USPTOscrape(PTABRegex, GeneralRegex):
                     else:
                         print(
                             f"Invalid patent number detected; saving Patent No. {patent_number} stopped"
-                        )                         
+                        )
                 return found, []
-            
+
             if not info["claims"]:
                 print(
                     f"Invalid patent number detected; saving Patent No. {patent_number} stopped"
-                        )
+                )
                 return found, []
-            
-            return found, info["claims"]
 
-    @staticmethod
-    def load_external(external_file):
-        """
-        Load an external json file.
-        """
-        data = {}
-        with open(external_file, "r") as f:
-            data = json.load(f)
-        return data
+            return found, info["claims"]
