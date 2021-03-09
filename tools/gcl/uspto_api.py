@@ -684,18 +684,34 @@ class USPTOscrape(PTABRegex, GeneralRegex):
                     )
                     info["url"] = url
                     info["patent_number"] = patent_number
-                    print(f"Saving patent data for Patent No. {patent_number}...")
-                    create_dir(json_path.parent)
-                    with open(json_path.__str__(), "w") as f:
-                        json.dump(info, f, indent=4)
+                    if info["title"] and info["claims"]:
+                        with open(json_path.__str__(), "w") as f:
+                            print(f"Saving patent data for Patent No. {patent_number}...")
+                            create_dir(json_path.parent)
+                            json.dump(info, f, indent=4)
 
         if return_data:
-            if info["title"] is None:
-                print(
-                    f"Patent No. {patent_number} has not been downloaded yet. Please set `skip_patent=False`"
-                )
+            if not found:
                 return found, []
 
+            if not info["title"]:
+                if patent_number:
+                    if skip_patent:
+                        print(
+                            f"Patent No. {patent_number} has not been downloaded yet. Please set `skip_patent=False`"
+                        )
+                    else:
+                        print(
+                            f"Invalid patent number detected; saving Patent No. {patent_number} stopped"
+                        )                         
+                return found, []
+            
+            if not info["claims"]:
+                print(
+                    f"Invalid patent number detected; saving Patent No. {patent_number} stopped"
+                        )
+                return found, []
+            
             return found, info["claims"]
 
     @staticmethod
