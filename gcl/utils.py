@@ -31,6 +31,7 @@ __all__ = [
     "multi_run",
     "regex",
     "nullify",
+    "timestamp",
     "shorten_date",
     "sort_int",
     "deaccent",

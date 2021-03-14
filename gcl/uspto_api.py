@@ -9,7 +9,6 @@ PEDS, transaction history, IFW and etc.
 import json
 import random
 import re
-import sys
 from copy import deepcopy
 from datetime import datetime
 from functools import reduce
@@ -24,13 +23,9 @@ from bs4 import BeautifulSoup as BS
 from dateutil import parser
 from tqdm import tqdm
 
-BASE_DIR = Path(__file__).resolve().parents[1]
-sys.path.insert(0, BASE_DIR.__str__())
-
-from utils import (closest_value, create_dir, deaccent, get, load_json, regex,
-                   rm_repeated, timestamp, validate_url)
-
-from regexes import GeneralRegex, PTABRegex
+from gcl.regexes import GeneralRegex, PTABRegex
+from gcl.settings import root_dir
+from gcl.utils import *
 
 
 class USPTOscrape(PTABRegex, GeneralRegex):
@@ -48,7 +43,7 @@ class USPTOscrape(PTABRegex, GeneralRegex):
         self.data_dir = create_dir(
             kwargs.get(
                 "data_dir",
-                BASE_DIR / "gcl" / "uspto-data" / self.relative_url.split("/")[0],
+                root_dir / "gcl" / "uspto-data" / self.relative_url.split("/")[0],
             )
         )
         if isinstance(self.data_dir, str):
@@ -660,7 +655,7 @@ class USPTOscrape(PTABRegex, GeneralRegex):
                                     if num > 1:
                                         if fn := regex(
                                             context,
-                                            [(r"\s+claim\s+(\d+)", "")],
+                                            [(r"\s+claims?(?:\s+)?(\d+)", "")],
                                             sub=False,
                                             flags=re.I,
                                         ):

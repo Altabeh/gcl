@@ -14,7 +14,6 @@ from __future__ import absolute_import
 
 import json
 import re
-import sys
 from csv import QUOTE_ALL, writer
 from datetime import datetime
 from functools import reduce
@@ -29,17 +28,10 @@ from bs4 import NavigableString
 from reporters_db import EDITIONS, REPORTERS
 from tqdm import tqdm
 
-from regexes import GCLRegex, GeneralRegex
-from uspto_api import USPTOscrape
-
-BASE_DIR = Path(__file__).resolve().parents[2]
-sys.path.insert(0, BASE_DIR.__str__())
-
-from tools.utils import (closest_value, create_dir, deaccent,
-                         hyphen_to_numbers, load_json, multi_run, nullify,
-                         proxy_browser, recaptcha_process, regex, rm_repeated,
-                         rm_tree, shorten_date, sort_int, switch_ip,
-                         validate_url)
+from gcl.regexes import GCLRegex, GeneralRegex
+from gcl.settings import root_dir
+from gcl.uspto_api import USPTOscrape
+from gcl.utils import *
 
 __author__ = {"github.com/": ["altabeh"]}
 __all__ = ["GCLParse"]
@@ -62,7 +54,7 @@ class GCLParse(GCLRegex, GeneralRegex):
     pre_label_s, pre_label_e = "$rr$", "$/rr$"
 
     def __init__(self, **kwargs):
-        self.data_dir = kwargs.get("data_dir", BASE_DIR / "tools" / "gcl" / "data")
+        self.data_dir = kwargs.get("data_dir", root_dir / "gcl" / "data")
         if isinstance(self.data_dir, str):
             self.data_dir = Path(self.data_dir)
         # `jurisdictions.json` contains all U.S. states, territories and federal/state court names,
@@ -239,7 +231,7 @@ class GCLParse(GCLRegex, GeneralRegex):
                                     if num > 1:
                                         if fn := regex(
                                             context,
-                                            [(r"\s+claim\s+(\d+)", "")],
+                                            [(r"\s+claims?(?:\s+)?(\d+)", "")],
                                             sub=False,
                                             flags=re.I,
                                         ):
