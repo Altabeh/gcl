@@ -20,7 +20,7 @@ to install the package. Make sure that once `selenium` is installed, you have th
 
 To scrape and download a case law page, let us choose a case law page
 
-[ https://scholar.google.com/scholar_case?case=9862061449582190482](https://)
+https://scholar.google.com/scholar_case?case=9862061449582190482
 
 and use the following snippet to get things started:
 
