@@ -29,7 +29,7 @@ from reporters_db import EDITIONS, REPORTERS
 from tqdm import tqdm
 
 from gcl.regexes import GCLRegex, GeneralRegex
-from gcl.settings import root_dir
+from gcl.settings import root_dir, default_data_dir
 from gcl.uspto_api import USPTOscrape
 from gcl.utils import *
 
@@ -42,6 +42,7 @@ class GCLParse(GCLRegex, GeneralRegex):
     Parser for Google case law pages.
     """
 
+    default_data_dir = root_dir / "gcl" / "data"
     base_url = "https://scholar.google.com/"
     _prioritize_citations = None
     _case = None
@@ -54,13 +55,13 @@ class GCLParse(GCLRegex, GeneralRegex):
     pre_label_s, pre_label_e = "$rr$", "$/rr$"
 
     def __init__(self, **kwargs):
-        self.data_dir = kwargs.get("data_dir", root_dir / "gcl" / "data")
+        self.data_dir = kwargs.get("data_dir", default_data_dir)
         if isinstance(self.data_dir, str):
             self.data_dir = Path(self.data_dir)
         # `jurisdictions.json` contains all U.S. states, territories and federal/state court names,
         # codes, and abbreviations.
         self.jurisdictions = kwargs.get(
-            "jurisdictions", load_json(self.data_dir / "jurisdictions.json", True)
+            "jurisdictions", load_json(default_data_dir / "jurisdictions.json", True)
         )
         # Will be used to label all folders inside `data_dir`.
         self.suffix = kwargs.get("suffix", "")
@@ -71,11 +72,11 @@ class GCLParse(GCLRegex, GeneralRegex):
         )
         # `reporters.json` contains reporters with different variations/flavors mapped to their standard form.
         self.reporters = kwargs.get(
-            "reporters", load_json(self.data_dir / "reporters.json", True)
+            "reporters", load_json(default_data_dir / "reporters.json", True)
         )
         # `months.json` contains a dictionary that maps abbreviations/variations of months to their full names.
         self.months = kwargs.get(
-            "months", load_json(self.data_dir / "months.json", True)
+            "months", load_json(default_data_dir / "months.json", True)
         )
         # USPTO scraper of transactions history between examiner and appellant including ptab decisions.
         # This is needed if the appellant is not satisfied with the decision and seeks to appeal to the federal court.
