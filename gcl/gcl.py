@@ -1741,7 +1741,7 @@ class GCLParse(GCLRegex, GeneralRegex):
                         mixed_claim_numbers |= set(uc[0]["updated_claims"].keys())
 
                     # Only append a patent if it has nonempty claimset.
-                    if claims:
+                    if mixed_claim_numbers:
                         patents.append(
                             {
                                 "patent_number": patent_number or None,
