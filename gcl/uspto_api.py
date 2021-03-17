@@ -25,29 +25,20 @@ from tqdm import tqdm
 
 from gcl.regexes import GeneralRegex, PTABRegex
 from gcl.settings import root_dir
-from gcl.utils import *
+from gcl.utils import (closest_value, create_dir, deaccent, get, load_json,
+                       regex, rm_repeated, timestamp, validate_url)
 
 
 class USPTOscrape(PTABRegex, GeneralRegex):
-
+    """
+    A class that uses USPTO APIs to download and parse useful data for the gcl class.
+    """
     base_url = "https://developer.uspto.gov/"
     headers = {"Content-Type": "application/json", "Accept": "application/json"}
-    today = datetime.date(datetime.now()).strftime("%Y-%m-%d")
-
     query_params = {}
 
     def __init__(self, **kwargs):
-        # Default relative url will be `ptab-api/decisions/json` but it can be adjusted to
-        # any other API offered by USPTO.
-        self.relative_url = kwargs.get("relative_url", "ptab-api/decisions/json")
-        self.data_dir = create_dir(
-            kwargs.get(
-                "data_dir",
-                root_dir / "gcl" / "uspto-data" / self.relative_url.split("/")[0],
-            )
-        )
-        if isinstance(self.data_dir, str):
-            self.data_dir = Path(self.data_dir)
+        self.data_dir = create_dir(kwargs.get("data_dir", root_dir / "gcl" / "data"))
         self.suffix = kwargs.get("suffix", "v1")
 
     def ptab_call(self, **kwargs):
@@ -67,7 +58,7 @@ class USPTOscrape(PTABRegex, GeneralRegex):
             self.query_params[key] = value
 
         r = requests.post(
-            url=self.base_url + self.relative_url,
+            url=f"{self.base_url}ptab-api/decisions/json",
             json=self.query_params,
             headers=self.headers,
         )
@@ -77,6 +68,7 @@ class USPTOscrape(PTABRegex, GeneralRegex):
         self.save_metadata(
             metadata,
             suffix=f'-{int(self.query_params["recordStartNumber"]/record_per_call)}',
+            dir_name="ptab-api"
         )
 
         if kwargs.get("getAll", False):
@@ -106,7 +98,7 @@ class USPTOscrape(PTABRegex, GeneralRegex):
 
         r = requests.get(url=url, headers=self.headers)
         metadata = r.json()["response"]
-        self.save_metadata(metadata, suffix=f"-{int(start/rows)}", filename="docs")
+        self.save_metadata(metadata, suffix=f"-{int(start/rows)}", filename="docs", dir_name="bulk-search-api")
         if kwargs.get("getAll", False):
             if e := metadata.get("error", None):
                 raise Exception(f"Server returned {e}.")
@@ -117,7 +109,7 @@ class USPTOscrape(PTABRegex, GeneralRegex):
                 self.bulk_search_download_call(start=start, rows=rows, **kwargs)
                 break
 
-    def save_metadata(self, metadata, suffix="", filename="response"):
+    def save_metadata(self, metadata, suffix="", filename="response", dir_name="uspto-api"):
         """
         Save metadata files downloaded using any method that calls a USPTO API.
 
@@ -128,14 +120,16 @@ class USPTOscrape(PTABRegex, GeneralRegex):
         json_subdir = f"json_{self.suffix}"
         for value in metadata.values():
             json_path = (
-                create_dir(self.data_dir / json_subdir) / f"{filename}{suffix}.json"
+                create_dir(self.data_dir / "uspto" / dir_name / json_subdir)
+                / f"{filename}{suffix}.json"
             )
             with open(json_path.__str__(), "w") as f:
                 json.dump(value, f, indent=4)
 
-    def download_api(self, metadata, pause=False):
+    def ptab_document_download_api(self, metadata, pause=False):
         """
-        Download documents whose metadata are stored in a `metadata` file.
+        Download PTAB documents whose metadata are stored in a `metadata` file
+        by calling PTAB Documents REST API.
 
         Args
         ----
@@ -143,12 +137,13 @@ class USPTOscrape(PTABRegex, GeneralRegex):
         to download a document to avoid getting blocked by the server.
         """
         doc_subdir = f"doc_{self.suffix}"
-        doc_path = create_dir(self.data_dir / doc_subdir) / metadata["documentName"]
+        doc_path = (
+            create_dir(self.data_dir / "uspto" / doc_subdir) / metadata["documentName"]
+        )
         if not doc_path.is_file():
             url = (
                 self.base_url
-                + self.relative_url.split("/")[0]
-                + f'/documents/{metadata["documentIdentifier"]}/download'
+                + f'ptab-api/documents/{metadata["documentIdentifier"]}/download'
             )
             if pause:
                 sleep(1)
@@ -172,15 +167,16 @@ class USPTOscrape(PTABRegex, GeneralRegex):
         :param drop_keys: ---> list: a list of key(s) to drop from metadata files.
         """
         json_subdir = f"json_{self.suffix}"
+        json_dir = self.data_dir / "uspto" / json_subdir
         metadata_files = [
             x
-            for x in (self.data_dir / json_subdir).glob("*.json")
+            for x in json_dir.glob("*.json")
             if not x.name.startswith("aggregated")
         ]
         metadata_files.sort(key=path.getmtime)
 
         print(
-            f"Starting metadata aggrigation of json files under directory {(self.data_dir / json_subdir).__str__()} ..."
+            f"Starting metadata aggrigation of json files under directory {json_dir.__str__()} ..."
         )
 
         total = []
@@ -216,7 +212,7 @@ class USPTOscrape(PTABRegex, GeneralRegex):
 
         with open(
             str(
-                create_dir(self.data_dir / json_subdir / "aggregated")
+                create_dir(self.data_dir / "uspto" / json_subdir / "aggregated")
                 / f"aggregated_{self.suffix}.json"
             ),
             "w",
@@ -245,7 +241,7 @@ class USPTOscrape(PTABRegex, GeneralRegex):
         post_url = f"{base_url}/v2/documents/"
 
         transactions_folder = create_dir(
-            self.data_dir / f"transactions_{self.suffix}" / appl_number
+            self.data_dir / "uspto" / f"transactions_{self.suffix}" / appl_number
         )
 
         errorBag = []
@@ -601,6 +597,7 @@ class USPTOscrape(PTABRegex, GeneralRegex):
 
         json_path = (
             self.data_dir
+            / "uspto"
             / f"patent_{self.suffix}"
             / patent_number
             / f"{patent_number}.json"
