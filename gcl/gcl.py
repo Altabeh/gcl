@@ -28,44 +28,45 @@ from bs4 import NavigableString
 from reporters_db import EDITIONS, REPORTERS
 from tqdm import tqdm
 
+from gcl.google_patents_api import GooglePatents
 from gcl.regexes import GCLRegex, GeneralRegex
-from gcl.settings import default_data_dir, root_dir
+from gcl.settings import root_dir
 from gcl.uspto_api import USPTOscrape
 from gcl.utils import (closest_value, create_dir, deaccent, hyphen_to_numbers,
                        load_json, multi_run, nullify, proxy_browser,
                        recaptcha_process, regex, rm_repeated, rm_tree,
-                       shorten_date, sort_int, switch_ip, validate_url)
+                       shorten_date, sort_int, switch_ip)
 
 __author__ = {"github.com/": ["altabeh"]}
 __all__ = ["GCLParse"]
 
 
-class GCLParse(GCLRegex, GeneralRegex):
+class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
     """
     Parser for Google case law pages.
     """
 
-    default_data_dir = root_dir / "gcl" / "data"
-    base_url = "https://scholar.google.com/"
+    __default_data_dir__ = root_dir / "gcl" / "data"
+    __gs_base_url__ = "https://scholar.google.com/"
     _prioritize_citations = None
     _case = None
 
     # ------ Labels ------
-    paragraph_label = "$" * 4
-    footnote_label = "@" * 4
-    citation_label = "#" * 4
-    blockquote_label_s, blockquote_label_e = "$qq$", "$/qq$"
-    pre_label_s, pre_label_e = "$rr$", "$/rr$"
+    __paragraph_label__ = "$" * 4
+    __footnote_label__ = "@" * 4
+    __citation_label__ = "#" * 4
+    __blockquote_label_s__, __blockquote_label_e__ = "$qq$", "$/qq$"
+    __pre_label_s__, __pre_label_e__ = "$rr$", "$/rr$"
 
     def __init__(self, **kwargs):
-        self.data_dir = create_dir(kwargs.get("data_dir", default_data_dir))
+        self.data_dir = create_dir(kwargs.get("data_dir", self.__default_data_dir__))
         # `jurisdictions.json` contains all U.S. states, territories and federal/state court names,
         # codes, and abbreviations.
         # `reporters.json` contains reporters with different variations/flavors mapped to their standard form.
         # `months.json` contains a dictionary that maps abbreviations/variations of months to their full names.
         for i in ["jurisdictions", "reporters", "months"]:
             setattr(
-                self, i, kwargs.get(i, load_json(default_data_dir / f"{i}.json", True))
+                self, i, kwargs.get(i, load_json(self.__default_data_dir__ / f"{i}.json", True))
             )
         # Will be used to label all folders inside `data_dir`.
         self.court_codes = sorted(
@@ -130,158 +131,6 @@ class GCLParse(GCLRegex, GeneralRegex):
 
         return self._prioritize_citations
 
-    def gcl_patent_data(
-        self, number_or_url: str, case_id=None, skip_patent=False, return_data=False
-    ):
-        """
-        Download and scrape data for a patent with Patent (Application) No. or valid url `number_or_url`.
-
-        Example
-        -------
-        >>> gcl_patent_data('https://patents.google.com/patent/US20150278825A1/en')
-
-        Args
-        ----
-        :param skip_patent: ---> bool: if true, skips downloading patent and rather looks for
-                                 a local patent file under `patents` folder.
-        :param return_data: ---> bool: if true, returns the serialized downloaded data.
-        """
-        [patent_number, url] = [""] * 2
-        info = {
-            "patent_number": patent_number,
-            "url": url,
-            "title": None,
-            "abstract": None,
-            "claims": {},
-        }
-        subfolder = case_id
-
-        if case_id:
-            info["case_id"] = case_id
-
-        else:
-            subfolder = patent_number
-
-        found = False
-
-        try:
-            if validate_url(number_or_url):
-                url = number_or_url
-                if fn := regex(url, [(r"(?<=patent/).*?(?=/|$)", "")], sub=False):
-                    patent_number = fn[0]
-        except:
-            patent_number = number_or_url
-
-        json_path = (
-            self.data_dir
-            / "patent"
-            / f"patent_{self.suffix}"
-            / subfolder
-            / f"{patent_number}.json"
-        )
-
-        if json_path.is_file():
-            if return_data:
-                info = load_json(json_path)
-            found = True
-
-        else:
-            if not skip_patent:
-                url = f"https://patents.google.com/patent/{patent_number}"
-                status, html = self._get(url)
-                if status == 200:
-                    found = True
-                    patent = BS(deaccent(html), "html.parser")
-                    claim_tags = patent.select(".claims > *")
-                    last_independent_num = 1
-                    extra_count = 0
-                    relevant_patterns = [*self.strip_patterns, *self.space_patterns]
-                    for tag in claim_tags:
-                        in_tag = tag.find(
-                            lambda tag: tag.name == "div" and tag.attrs.get("num", None)
-                        )
-                        if in_tag:
-                            num = in_tag.attrs["num"]
-                            if regex(num, [(r"\d$", "")], sub=False):
-                                if "-" in num:
-                                    if not regex(num, [(r"\d+-\d+", "")], sub=False):
-                                        extra_count += (
-                                            1  # Fixes wrong counting of claims.
-                                        )
-                                    num = int(regex(num, [(r"-.*$", "")])) + extra_count
-                                else:
-                                    num = int(num) + extra_count
-                                context = regex(
-                                    tag.get_text(),
-                                    [*relevant_patterns, (r"^\d+\. ", "")],
-                                )
-                                attach_data = {
-                                    "claim_number": num,
-                                    "context": context,
-                                    "dependent_on": None,
-                                }
-                                info["claims"][num] = attach_data
-                                if "claim-dependent" not in tag.attrs["class"]:
-                                    last_independent_num = num
-
-                                else:
-                                    if num > 1:
-                                        if fn := regex(
-                                            context,
-                                            [(r"\s+claims?(?:\s+)?(\d+)", "")],
-                                            sub=False,
-                                            flags=re.I,
-                                        ):
-                                            last_independent_num = int(fn[0])
-
-                                        info["claims"][num][
-                                            "dependent_on"
-                                        ] = last_independent_num
-
-                    abstract_tags = patent.find_all("div", class_="abstract")
-                    abstract = " ".join(
-                        [
-                            regex(ab.get_text(), relevant_patterns)
-                            for ab in abstract_tags
-                        ]
-                    )
-                    info["abstract"] = abstract
-                    info["title"] = regex(
-                        patent.find("h1", attrs={"itemprop": "pageTitle"}).get_text(),
-                        [*relevant_patterns, (r" - Google Patents|^.*? - ", "")],
-                    )
-                    info["url"] = url
-                    info["patent_number"] = patent_number
-                    if info["title"] and info["claims"]:
-                        print(f"Saving patent data for Patent No. {patent_number}...")
-                        create_dir(json_path.parent)
-                        with open(json_path.__str__(), "w") as f:
-                            json.dump(info, f, indent=4)
-
-        if return_data:
-            if not found:
-                return found, []
-
-            if not info["title"]:
-                if patent_number:
-                    if skip_patent:
-                        print(
-                            f"Patent No. {patent_number} has not been downloaded yet. Please set `skip_patent=False`"
-                        )
-                    else:
-                        print(
-                            f"Invalid patent number detected; saving Patent No. {patent_number} stopped"
-                        )
-                return found, []
-
-            if not info["claims"]:
-                print(
-                    f"Invalid patent number detected; saving Patent No. {patent_number} stopped"
-                )
-                return found, []
-
-            return found, info["claims"]
-
     def gcl_citation_summary(self, case_id, suffix=None, return_list=True):
         """
         Given a `case_id` for a gcl page, create a summary of the case in terms
@@ -303,7 +152,7 @@ class GCLParse(GCLRegex, GeneralRegex):
             create_dir(self.data_dir / "json" / f"json_{suffix}") / f"{case_id}.json"
         )
 
-        url = self.base_url + f"scholar_case?case={case_id}"
+        url = f"{self.__gs_base_url__}scholar_case?case={case_id}"
 
         if not path_to_file.is_file():
             print(f"Now downloading the case {case_id}...")
@@ -370,7 +219,7 @@ class GCLParse(GCLRegex, GeneralRegex):
 
                 if not case_repo:
                     case_id = data
-                    url = self.base_url + f"scholar_case?case={case_id}"
+                    url = f"{self.__gs_base_url__}scholar_case?case={case_id}"
                     case_repo = self.gcl_parse(url, return_data=True)
 
         if isinstance(data, Path):
@@ -969,7 +818,7 @@ class GCLParse(GCLRegex, GeneralRegex):
         """
         url = url_or_id
         if regex(url_or_id, self.just_number_patterns, sub=False):
-            url = self.base_url + f"scholar_case?case={url_or_id}"
+            url = f"{self.__gs_base_url__}scholar_case?case={url_or_id}"
 
         res_content = ""
 
@@ -1059,7 +908,7 @@ class GCLParse(GCLRegex, GeneralRegex):
                     ).replaceWith("")
                 else:
                     tag.replaceWith(
-                        f" {self.footnote_label}{tag.find('a').attrs['name'].replace('r', '')} "
+                        f" {self.__footnote_label__}{tag.find('a').attrs['name'].replace('r', '')} "
                     )
         return
 
@@ -1275,7 +1124,7 @@ class GCLParse(GCLRegex, GeneralRegex):
                         if adjacent and adjacent.name == "i":
                             adjacent.name = "em"
 
-                    l.replaceWith(f" {self.citation_label}{id_}{c} ")
+                    l.replaceWith(f" {self.__citation_label__}{id_}{c} ")
 
         self.case["cites_to"] = cites
         return
@@ -1337,7 +1186,7 @@ class GCLParse(GCLRegex, GeneralRegex):
                         if i_tag.endswith(end):
                             end_character = end
                     i.replaceWith(
-                        f" {self.citation_label}{case_name[0]} {end_character}"
+                        f" {self.__citation_label__}{case_name[0]} {end_character}"
                     )
         return
 
@@ -1371,7 +1220,7 @@ class GCLParse(GCLRegex, GeneralRegex):
         # Bring the footnote context in the text for keeping continuity.
         for key, val in footnotes_data.items():
             modified_opinion = modified_opinion.replace(
-                f"{self.footnote_label}{key}", val
+                f"{self.__footnote_label__}{key}", val
             )
 
         # Patent numbers should be extracted here to include those cited in the footnotes.
@@ -1727,8 +1576,13 @@ class GCLParse(GCLRegex, GeneralRegex):
                 ):
                     patent_found, claims = False, {}
                     if patent_number:
-                        patent_found, claims = self.gcl_patent_data(
-                            patent_number, self.case["id"], skip_patent, True
+                        patent_found, claims = self.patent_data(
+                            patent_number,
+                            skip_patent,
+                            False,
+                            ["title", "claims"],
+                            ["claims"],
+                            subfolder=self.case["id"],
                         )
                     extra = []
                     mixed_claim_numbers = set(claims.keys()) if claims else set()
@@ -1881,13 +1735,13 @@ class GCLParse(GCLRegex, GeneralRegex):
             text = bq.get_text()
             if text:
                 bq.replaceWith(
-                    f" {self.blockquote_label_s} {text} {self.blockquote_label_e} "
+                    f" {self.__blockquote_label_s__} {text} {self.__blockquote_label_e__} "
                 )
 
         for pre in self.opinion.find_all("pre"):
             text = pre.get_text()
             if text:
-                pre.replaceWith(f" {self.pre_label_s} {text} {self.pre_label_e} ")
+                pre.replaceWith(f" {self.__pre_label_s__} {text} {self.__pre_label_e__} ")
 
         # Locate tag with judge names and remove it along with every <p></p> coming before this tag.
         # Meant to clean up the text by removing the party names.
@@ -1927,7 +1781,7 @@ class GCLParse(GCLRegex, GeneralRegex):
                 p.replaceWith("")
             else:
                 if regex(text, self.end_sentence_patterns, sub=False):
-                    p.replaceWith(f"{text} {self.paragraph_label} ")
+                    p.replaceWith(f"{text} {self.__paragraph_label__} ")
                 else:
                     p.replaceWith(text)
 

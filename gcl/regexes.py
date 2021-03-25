@@ -131,7 +131,7 @@ class GCLRegex:
 
 class GeneralRegex:
     special_chars_patterns = [(r"\W", "")]
-    strip_patterns = [(r"\n", " "), (r" +", " ")]
+    strip_patterns = [(r"[\t\r\n]", " "), (r" +", " ")]
     extra_char_patterns = [(r"^[,. ]+|[,. ]+$", "")]
     comma_space_patterns = [(r"^[, ]+|[, ]+$", "")]
     space_patterns = [(r"^ +| +$", "")]

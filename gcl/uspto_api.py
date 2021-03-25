@@ -25,17 +25,18 @@ from tqdm import tqdm
 
 from gcl.regexes import GeneralRegex, PTABRegex
 from gcl.settings import root_dir
-from gcl.utils import (closest_value, create_dir, deaccent, get, load_json,
-                       regex, rm_repeated, timestamp, validate_url)
+from gcl.utils import (closest_value, create_dir, deaccent, load_json, regex,
+                       rm_repeated, timestamp)
 
 
 class USPTOscrape(PTABRegex, GeneralRegex):
     """
     A class that uses USPTO APIs to download and parse useful data for the gcl class.
     """
-    base_url = "https://developer.uspto.gov/"
-    headers = {"Content-Type": "application/json", "Accept": "application/json"}
-    query_params = {}
+
+    __uspto_dev_base_url__ = "https://developer.uspto.gov/"
+    __headers__ = {"Content-Type": "application/json", "Accept": "application/json"}
+    __query_params__ = {}
 
     def __init__(self, **kwargs):
         self.data_dir = create_dir(kwargs.get("data_dir", root_dir / "gcl" / "data"))
@@ -45,7 +46,7 @@ class USPTOscrape(PTABRegex, GeneralRegex):
         """
         Call PTAB proceedings and documents REST API.
         """
-        self.query_params = {
+        self.__query_params__ = {
             "dateRangeData": {},
             "facetData": {},
             "parameterData": {},
@@ -55,33 +56,33 @@ class USPTOscrape(PTABRegex, GeneralRegex):
             "recordStartNumber": 0,
         }
         for key, value in kwargs.items():
-            self.query_params[key] = value
+            self.__query_params__[key] = value
 
         r = requests.post(
-            url=f"{self.base_url}ptab-api/decisions/json",
-            json=self.query_params,
-            headers=self.headers,
+            url=f"{self.__uspto_dev_base_url__}ptab-api/decisions/json",
+            json=self.__query_params__,
+            headers=self.__headers__,
         )
 
         metadata = r.json()
-        record_per_call = int(self.query_params["recordTotalQuantity"])
+        record_per_call = int(self.__query_params__["recordTotalQuantity"])
         self.save_metadata(
             metadata,
-            suffix=f'-{int(self.query_params["recordStartNumber"]/record_per_call)}',
-            dir_name="ptab-api"
+            suffix=f'-{int(self.__query_params__["recordStartNumber"]/record_per_call)}',
+            dir_name="ptab-api",
         )
 
         if kwargs.get("getAll", False):
             if e := metadata.get("error", None):
                 raise Exception(f"Server returned {e}.")
             while (
-                self.query_params["recordStartNumber"] + record_per_call
+                self.__query_params__["recordStartNumber"] + record_per_call
                 < metadata["recordTotalQuantity"]
             ):
                 print(
-                    f'Records left: {metadata["recordTotalQuantity"] - self.query_params["recordStartNumber"]}'
+                    f'Records left: {metadata["recordTotalQuantity"] - self.__query_params__["recordStartNumber"]}'
                 )
-                self.query_params["recordStartNumber"] += record_per_call
+                self.__query_params__["recordStartNumber"] += record_per_call
                 self.ptab_call()
                 break
 
@@ -96,9 +97,14 @@ class USPTOscrape(PTABRegex, GeneralRegex):
             for key, val in kwargs.items():
                 url += f"&{key}={val}"
 
-        r = requests.get(url=url, headers=self.headers)
+        r = requests.get(url=url, headers=self.__headers__)
         metadata = r.json()["response"]
-        self.save_metadata(metadata, suffix=f"-{int(start/rows)}", filename="docs", dir_name="bulk-search-api")
+        self.save_metadata(
+            metadata,
+            suffix=f"-{int(start/rows)}",
+            filename="docs",
+            dir_name="bulk-search-api",
+        )
         if kwargs.get("getAll", False):
             if e := metadata.get("error", None):
                 raise Exception(f"Server returned {e}.")
@@ -109,7 +115,9 @@ class USPTOscrape(PTABRegex, GeneralRegex):
                 self.bulk_search_download_call(start=start, rows=rows, **kwargs)
                 break
 
-    def save_metadata(self, metadata, suffix="", filename="response", dir_name="uspto-api"):
+    def save_metadata(
+        self, metadata, suffix="", filename="response", dir_name="uspto-api"
+    ):
         """
         Save metadata files downloaded using any method that calls a USPTO API.
 
@@ -141,13 +149,11 @@ class USPTOscrape(PTABRegex, GeneralRegex):
             create_dir(self.data_dir / "uspto" / doc_subdir) / metadata["documentName"]
         )
         if not doc_path.is_file():
-            url = (
-                self.base_url
-                + f'ptab-api/documents/{metadata["documentIdentifier"]}/download'
-            )
             if pause:
                 sleep(1)
-            r = requests.get(url=url)
+            r = requests.get(
+                url=f'{self.__uspto_dev_base_url__}ptab-api/documents/{metadata["documentIdentifier"]}/download'
+            )
 
             with open(doc_path.__str__(), "wb") as f:
                 f.write(r.content)
@@ -169,9 +175,7 @@ class USPTOscrape(PTABRegex, GeneralRegex):
         json_subdir = f"json_{self.suffix}"
         json_dir = self.data_dir / "uspto" / json_subdir
         metadata_files = [
-            x
-            for x in json_dir.glob("*.json")
-            if not x.name.startswith("aggregated")
+            x for x in json_dir.glob("*.json") if not x.name.startswith("aggregated")
         ]
         metadata_files.sort(key=path.getmtime)
 
@@ -236,9 +240,9 @@ class USPTOscrape(PTABRegex, GeneralRegex):
         """
 
         appl_number = regex(appl_number, self.special_chars_patterns)
-        base_url = "https://patentcenter.uspto.gov/retrieval/public"
-        meta_url = f"{base_url}/v1/applications/sdwp/external/metadata/{appl_number}"
-        post_url = f"{base_url}/v2/documents/"
+        pc_base_url = "https://patentcenter.uspto.gov/retrieval/public"
+        meta_url = f"{pc_base_url}/v1/applications/sdwp/external/metadata/{appl_number}"
+        post_url = f"{pc_base_url}/v2/documents/"
 
         transactions_folder = create_dir(
             self.data_dir / "uspto" / f"transactions_{self.suffix}" / appl_number
@@ -253,7 +257,7 @@ class USPTOscrape(PTABRegex, GeneralRegex):
             while True:
                 sleep(1)
                 transactions = {}
-                r = requests.get(meta_url, headers=self.headers)
+                r = requests.get(meta_url, headers=self.__headers__)
                 try:
                     transactions = r.json()
                     if retry := r.headers.get("Retry-After", None):
@@ -353,7 +357,7 @@ class USPTOscrape(PTABRegex, GeneralRegex):
                         ]
                         documentInformationBag += doc_bag
 
-                headers = deepcopy(self.headers)
+                headers = deepcopy(self.__headers__)
 
                 json_data = {}
                 for bag in documentInformationBag:
@@ -523,7 +527,7 @@ class USPTOscrape(PTABRegex, GeneralRegex):
         """
         url = "https://ped.uspto.gov/api/queries"
 
-        self.query_params = {
+        self.__query_params__ = {
             "searchText": "",
             "fq": [],
             "fl": "*",
@@ -536,15 +540,15 @@ class USPTOscrape(PTABRegex, GeneralRegex):
         }
 
         for key, value in kwargs.items():
-            self.query_params[key] = value
+            self.__query_params__[key] = value
 
         while True:
             sleep(1)
             metadata = {}
             r = requests.post(
                 url=url,
-                json=self.query_params,
-                headers=self.headers,
+                json=self.__query_params__,
+                headers=self.__headers__,
             )
             try:
                 metadata = r.json()
@@ -557,153 +561,3 @@ class USPTOscrape(PTABRegex, GeneralRegex):
                 pass
 
         return metadata
-
-    def patent_data(self, number_or_url: str, skip_patent=False, return_data=False):
-        """
-        Download and scrape data for a patent with Patent (Application) No. or valid url `number_or_url`.
-
-        Example
-        -------
-        >>> patent_data('https://patents.google.com/patent/US20150278825A1/en')
-
-        Args
-        ----
-        :param skip_patent: ---> bool: if true, skips downloading patent and rather looks for
-                                 a local patent file under `patents` folder.
-        :param return_data: ---> bool: if true, returns the serialized downloaded data.
-        """
-        [patent_number, url] = [""] * 2
-        info = {
-            "patent_number": patent_number,
-            "url": url,
-            "title": None,
-            "abstract": None,
-            "claims": {},
-        }
-
-        found = False
-
-        if not number_or_url:
-            print("Please enter a valid patent number or Google Patents URL")
-            return found, {}
-
-        try:
-            if validate_url(number_or_url):
-                url = number_or_url
-                if fn := regex(url, [(r"(?<=patent/).*?(?=/|$)", "")], sub=False):
-                    patent_number = fn[0]
-        except:
-            patent_number = number_or_url
-
-        json_path = (
-            self.data_dir
-            / "uspto"
-            / f"patent_{self.suffix}"
-            / patent_number
-            / f"{patent_number}.json"
-        )
-
-        if json_path.is_file():
-            if return_data:
-                with open(json_path.__str__(), "r") as f:
-                    info = json.load(f)
-            found = True
-
-        else:
-            if not skip_patent:
-                url = f"https://patents.google.com/patent/{patent_number}"
-                status, html = get(url)
-                if status == 200:
-                    found = True
-                    patent = BS(deaccent(html), "html.parser")
-                    claim_tags = patent.select(".claims > *")
-                    last_independent_num = 1
-                    extra_count = 0
-                    relevant_patterns = [*self.strip_patterns, *self.space_patterns]
-                    for tag in claim_tags:
-                        in_tag = tag.find(
-                            lambda tag: tag.name == "div" and tag.attrs.get("num", None)
-                        )
-                        if in_tag:
-                            num = in_tag.attrs["num"]
-                            if regex(num, [(r"\d$", "")], sub=False):
-                                if "-" in num:
-                                    if not regex(num, [(r"\d+-\d+", "")], sub=False):
-                                        extra_count += (
-                                            1  # Fixes wrong counting of claims.
-                                        )
-                                    num = int(regex(num, [(r"-.*$", "")])) + extra_count
-                                else:
-                                    num = int(num) + extra_count
-                                context = regex(
-                                    tag.get_text(),
-                                    [*relevant_patterns, (r"^\d+\. ", "")],
-                                )
-                                attach_data = {
-                                    "claim_number": num,
-                                    "context": context,
-                                    "dependent_on": None,
-                                }
-                                info["claims"][num] = attach_data
-                                if "claim-dependent" not in tag.attrs["class"]:
-                                    last_independent_num = num
-
-                                else:
-                                    if num > 1:
-                                        if fn := regex(
-                                            context,
-                                            [(r"\s+claims?(?:\s+)?(\d+)", "")],
-                                            sub=False,
-                                            flags=re.I,
-                                        ):
-                                            last_independent_num = int(fn[0])
-
-                                        info["claims"][num][
-                                            "dependent_on"
-                                        ] = last_independent_num
-
-                    abstract_tags = patent.find_all("div", class_="abstract")
-                    abstract = " ".join(
-                        [
-                            regex(ab.get_text(), relevant_patterns)
-                            for ab in abstract_tags
-                        ]
-                    )
-                    info["abstract"] = abstract
-                    info["title"] = regex(
-                        patent.find("h1", attrs={"itemprop": "pageTitle"}).get_text(),
-                        [*relevant_patterns, (r" - Google Patents|^.*? - ", "")],
-                    )
-                    info["url"] = url
-                    info["patent_number"] = patent_number
-                    if info["title"] and info["claims"]:
-                        with open(json_path.__str__(), "w") as f:
-                            print(
-                                f"Saving patent data for Patent No. {patent_number}..."
-                            )
-                            create_dir(json_path.parent)
-                            json.dump(info, f, indent=4)
-
-        if return_data:
-            if not found:
-                return found, []
-
-            if not info["title"]:
-                if patent_number:
-                    if skip_patent:
-                        print(
-                            f"Patent No. {patent_number} has not been downloaded yet. Please set `skip_patent=False`"
-                        )
-                    else:
-                        print(
-                            f"Invalid patent number detected; saving Patent No. {patent_number} stopped"
-                        )
-                return found, []
-
-            if not info["claims"]:
-                print(
-                    f"Invalid patent number detected; saving Patent No. {patent_number} stopped"
-                )
-                return found, []
-
-            return found, info["claims"]

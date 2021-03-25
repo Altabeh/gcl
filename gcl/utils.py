@@ -424,8 +424,9 @@ def recaptcha_process(url, driver):
 
 def async_get(url, xpath):
     """
-    Interactive selenium driver for active javascript execution that would
-    be required in the websites that follow an AJAX call for search functionality.
+    Return page source of the `url` by engaging an interactive selenium driver for active
+    javascript execution that would be required in the websites that follow an AJAX call
+    to perform a task.
 
     Args
     ----
@@ -444,7 +445,8 @@ def async_get(url, xpath):
 
 def get(url, json=False):
     """
-    Request to make a get request to a given `url`.
+    Return server response by making a get request to a given `url`.
+    If `json` is set to True, the response will have a serialized structure.
     """
     res_content = ""
     response = requests.get(url)
