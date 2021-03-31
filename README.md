@@ -1,4 +1,5 @@
-https://github.com/StacksLaw/gcl/actions/workflows/tests/badge.svg
+
+![gcl|test](https://github.com/StacksLaw/gcl/actions/workflows/tests.yml/badge.svg)
 
 
 # gcl
