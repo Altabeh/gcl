@@ -17,7 +17,19 @@ from gcl.utils import create_dir, deaccent, get, regex, validate_url
 class GooglePatents:
 
     __gp_base_url__ = "https://patents.google.com/"
-    __relevant_patterns__ = [(r"[\t\r\n]", " "), (r" +", " "), (r"^ +| +$", "")]
+    __relevant_patterns__ = [
+        (r"[\t\r\n]|(?:\.Iaddend\.|\.Iadd\.)+", ""),
+        (r" +", " "),
+        (r"^ +| +$", ""),
+    ]
+    __claim_numbers_patterns__ = [(r"^(?:\s+)?(\d+)\.(?:\s+)?", "")]
+    __dependent_claim_patterns__ = [
+        (
+            r"\s+claims?(?:\s+)?(\d+)(?:(?:\s+)?(or|\-|to|through|and)?(?:[claim\s]+)?(\d+))?|\s+(former|prior|above|foregoing|previous|precee?ding)(?:\s+)?claim(s)?",
+            "",
+        )
+    ]
+    __description_patterns__ = [(r"description\W+(?:line|paragraph)", "")]
     _data = None
 
     def __init__(self, **kwargs):
@@ -39,48 +51,97 @@ class GooglePatents:
         return self._data
 
     def _scrape_claims(self):
-        claim_tags = self.patent.select(".claims > *")
-        last_independent_num = 1
-        extra_count = 0
-        for tag in claim_tags:
-            in_tag = tag.find(
-                lambda tag: tag.name == "div" and tag.attrs.get("num", None)
+        list_index = False
+        claim_container = self.patent.select_one(".claims")
+
+        if claim_container:
+            if claim_container.name in ["ol", "ul"]:
+                list_index = True
+
+            claim_tags = claim_container.find_all(
+                lambda tag: tag.name in ["div", "li", "claim"], recursive=False
             )
-            if in_tag:
-                num = in_tag.attrs["num"]
-                if regex(num, [(r"\d$", "")], sub=False):
-                    if "-" in num:
-                        if not regex(num, [(r"\d+-\d+", "")], sub=False):
-                            extra_count += 1  # Fixes wrong counting of claims.
-                        num = int(regex(num, [(r"-.*$", "")])) + extra_count
-                    else:
-                        num = int(num) + extra_count
-                    context = regex(
-                        tag.get_text(),
-                        [*self.__relevant_patterns__, (r"^\d+\. ", "")],
-                    )
-                    attach_data = {
-                        "claim_number": num,
-                        "context": context,
-                        "dependent_on": None,
-                    }
-                    self.data["claims"][num] = attach_data
-                    if "claim-dependent" not in tag.attrs["class"]:
-                        last_independent_num = num
 
-                    else:
-                        if num > 1:
-                            if fn := regex(
-                                context,
-                                [(r"\s+claims?(?:\s+)?(\d+)", "")],
+            for i, tag in enumerate(claim_tags):
+
+                context = tag.get_text()
+                cited_claims = None
+
+                if list_index:
+                    num = i + 1
+                else:
+                    try:
+                        num = int(
+                            regex(
+                                tag.get_text(),
+                                self.__claim_numbers_patterns__,
                                 sub=False,
-                                flags=re.I,
-                            ):
-                                last_independent_num = int(fn[0])
+                            )[0]
+                        )
+                    except IndexError:
+                        # Sometimes claim numbering is messed up: Example: .Iaddend..Iadd.7
+                        if fn := tag.find(
+                            lambda tag: tag.name in ["claim", "div"],
+                            "claim" in tag.attrs.get("class", []),
+                        ):
+                            if gn := fn.attrs.get("num"):
+                                num = int(
+                                    regex(
+                                        gn,
+                                        [(r"[\[()\]]", ""), (r"^[a-z0\-]", "")],
+                                        flags=re.I,
+                                    )
+                                )
+                            else:
+                                num = i + 1
+                        else:
+                            num = i + 1
 
-                            self.data["claims"][num][
-                                "dependent_on"
-                            ] = last_independent_num
+                context = regex(
+                    context,
+                    [*self.__relevant_patterns__, *self.__claim_numbers_patterns__],
+                )
+                attach_data = {
+                    "claim_number": num,
+                    "context": context,
+                    "dependent_on": None,
+                }
+                self.data["claims"][num] = attach_data
+                if num > 1:
+                    if fn := regex(
+                        context,
+                        self.__dependent_claim_patterns__,
+                        sub=False,
+                        flags=re.I,
+                    ):
+                        # Pick the first occurrence of cited claims.
+                        gn = fn[0]
+
+                        if gn[0]:
+                            if gn[1]:
+                                # A-C or Claim A to C --> dependent_on: [A, B, C].
+                                if gn[2] and regex(gn[1], [(r"to|through|\-", "")]):
+                                    cited_claims = [
+                                        i for i in range(int(gn[0]), int(gn[2]) + 1)
+                                    ]
+                                # Claim A or/and Claim C --> dependent_on: [A, C].
+                                elif gn[2] and regex(gn[1], [(r"or|and", "")]):
+                                    cited_claims = [int(gn[0]), int(gn[2])]
+
+                            else:
+                                # Claim A --> dependent_on: [A].
+                                cited_claims = [int(gn[0])]
+
+                        else:
+                            # ... any one of the former claims --> dependent_on: [A, B, C, ..., previous claim].
+                            if gn[3] and gn[4]:
+                                cited_claims = [i + 1 for i in range(num - 1)]
+
+                            # ... the former claim --> dependent_on: [previous claim].
+                            elif gn[3] and not gn[4]:
+                                cited_claims = [num - 1]
+
+                    self.data["claims"][num]["dependent_on"] = cited_claims
         return
 
     def _scrape_description(self):
@@ -89,19 +150,14 @@ class GooglePatents:
             and tag.has_attr("class")
             and regex(
                 tag.attrs.get("class"),
-                [(r"description-(?:line|paragraph)", "")],
+                self.__description_patterns__,
                 sub=False,
-            )
-            and tag.has_attr("num")
+            )[0]
         )
-        for pl in description_lines:
-            self.data["description"][
-                regex(
-                    pl.attrs["num"],
-                    [(r"[(\[\])]", ""), (r"^[a-z0\-]+", "")],
-                    flags=re.I,
-                )
-            ] = regex(pl.get_text(), self.__relevant_patterns__)
+        for i, pl in enumerate(description_lines):
+            self.data["description"][i + 1] = regex(
+                pl.get_text(), self.__relevant_patterns__
+            )
         return
 
     def _scrape_abstract(self):
@@ -109,7 +165,8 @@ class GooglePatents:
         abstract = " ".join(
             [regex(ab.get_text(), self.__relevant_patterns__) for ab in abstract_tags]
         )
-        self.data["abstract"] = abstract
+        if abstract:
+            self.data["abstract"] = abstract
         return
 
     def _scrape_title(self):
@@ -156,10 +213,12 @@ class GooglePatents:
 
         [patent_number, url] = [""] * 2
 
-        subfolder = patent_number
+        subfolder = filename = patent_number
         for k, v in kwargs.items():
             if k == "subfolder":
                 subfolder = v
+            elif k == "filename":
+                filename = v
             else:
                 self.data[k] = v
 
@@ -175,8 +234,8 @@ class GooglePatents:
             self.data_dir
             / "patent"
             / f"patent_{self.suffix}"
-            / subfolder
-            / f"{patent_number}.json"
+            / f"{patent_number if not subfolder else subfolder}"
+            / f"{patent_number if not filename else filename}.json"
         )
 
         if json_path.is_file():
@@ -234,6 +293,6 @@ class GooglePatents:
                 return found, None
 
             return found, *(self.data[d] for d in return_data)
-        
+
         self._data = None
         return
