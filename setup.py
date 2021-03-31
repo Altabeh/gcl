@@ -1,11 +1,13 @@
-from setuptools import setup, find_packages
 import re
 from pathlib import Path
+
+from setuptools import find_packages, setup
+
 
 def get_property(prop):
     result = re.search(
         r'{}\s*=\s*[\'"]([^\'"]*)[\'"]'.format(prop),
-        (Path(__file__) / "gcl" / "__init__.py").read_text(),
+        (Path.cwd() / "gcl" / "__init__.py").read_text(),
     )
     return result.group(1)
 
