@@ -226,7 +226,12 @@ class USPTOscrape(PTABRegex, GeneralRegex):
         return total
 
     def grab_ifw(
-        self, appl_number: str, doc_codes=None, close_to_date=None, mime_types=None
+        self,
+        appl_number: str,
+        doc_codes=None,
+        close_to_date=None,
+        mime_types=None,
+        skip_download=False,
     ):
         """
         Download image file wrapper for a given application number `appl_number`.
@@ -237,6 +242,8 @@ class USPTOscrape(PTABRegex, GeneralRegex):
         :param close_to_date: ---> str: allows to restrict the downloading of files to those
         with official dates closest to this date.
         :param mime_types: ---> list: contains specific file mime types to be downloaded.
+        :param skip_download: ---> bool: if true, skips downloading data files whose metadata are stored in
+        the transactions.
         """
 
         appl_number = regex(appl_number, self.special_chars_patterns)
@@ -245,7 +252,7 @@ class USPTOscrape(PTABRegex, GeneralRegex):
         post_url = f"{pc_base_url}/v2/documents/"
 
         transactions_folder = create_dir(
-            self.data_dir / "uspto" / f"transactions_{self.suffix}" / appl_number
+            self.data_dir / "uspto" / "ifw" / f"transactions_{self.suffix}" / appl_number
         )
 
         errorBag = []
@@ -325,6 +332,7 @@ class USPTOscrape(PTABRegex, GeneralRegex):
 
             documentInformationBag = []
 
+            # Make the costumer numbers random to reduce retry chances.
             cs_num = str(random.randint(1, 1000000))
             for doc in documents:
                 mail_date = (
@@ -346,7 +354,6 @@ class USPTOscrape(PTABRegex, GeneralRegex):
                                 "bookmarkTitleText": doc["documentDescription"],
                                 "documentIdentifier": doc["documentIdentifier"],
                                 "applicationNumberText": appl_number,
-                                # Make the costumer numbers random to reduce retry chances.
                                 "customerNumber": cs_num,
                                 "mailDateTime": official_date,
                                 "documentCode": doc["documentCode"],
@@ -357,46 +364,49 @@ class USPTOscrape(PTABRegex, GeneralRegex):
                         ]
                         documentInformationBag += doc_bag
 
-                headers = deepcopy(self.__headers__)
-
-                json_data = {}
+                headers, json_data = deepcopy(self.__headers__), {}
                 for bag in documentInformationBag:
                     json_data = {
                         "fileTitleText": doc["documentIdentifier"],
                         "documentInformationBag": [bag],
                     }
-                    headers["Accept"] = f"application/{bag['mimeCategory']}"
-                    while True:
-                        r = requests.post(post_url, json=json_data, headers=headers)
-                        if retry := r.headers.get("Retry-After", None):
-                            print(
-                                f"Accessing {post_url} is blocked for {retry} seconds"
-                            )
-                            sleep(int(retry))
-                        else:
-                            break
+                    if not skip_download:
+                        print(
+                            f"The document with the ID `{bag['documentIdentifier']}` has not been downloaded. Please set `skip_download=False` and try again."
+                        )
+                    else:
+                        headers["Accept"] = f"application/{bag['mimeCategory']}"
+                        while True:
+                            r = requests.post(post_url, json=json_data, headers=headers)
+                            if retry := r.headers.get("Retry-After", None):
+                                print(
+                                    f"Accessing {post_url} is blocked for {retry} seconds"
+                                )
+                                sleep(int(retry))
+                            else:
+                                break
 
-                    filename = regex(
-                        r.headers["Content-Disposition"],
-                        [
-                            (
-                                r".*filename=\d+_",
-                                f"{doc['documentIdentifier']}_",
-                            )
-                        ],
-                    )
+                        filename = regex(
+                            r.headers["Content-Disposition"],
+                            [
+                                (
+                                    r".*filename=\d+_",
+                                    f"{doc['documentIdentifier']}_",
+                                )
+                            ],
+                        )
 
-                    file_path = transactions_folder / filename
-                    with open(file_path.__str__(), "wb") as f:
-                        f.write(r.content)
-                        print(f"{filename} was downloaded and saved successfully")
+                        file_path = transactions_folder / filename
+                        with open(file_path.__str__(), "wb") as f:
+                            f.write(r.content)
+                            print(f"{filename} was downloaded and saved successfully")
 
-                    if file_path.suffix.lower() in [".zip"]:
-                        with ZipFile(file_path.__str__(), "r") as zipf:
-                            zipf.extractall(transactions_folder.__str__())
-                        file_path.unlink()
+                        if file_path.suffix.lower() in [".zip"]:
+                            with ZipFile(file_path.__str__(), "r") as zipf:
+                                zipf.extractall(transactions_folder.__str__())
+                            file_path.unlink()
 
-                    sleep(1)
+                        sleep(1)
 
             paths = []
             for f in transactions_folder.iterdir():
@@ -449,6 +459,8 @@ class USPTOscrape(PTABRegex, GeneralRegex):
             if not claim_number:
                 if cnum := cl.find(self.claim_num_patterns):
                     claim_number = int(cnum.get_text())
+            else:
+                claim_number = int(claim_number)
 
             context = BS(
                 "\n".join([str(c) for c in cl.find_all(self.claim_text_patterns)]),
@@ -465,34 +477,34 @@ class USPTOscrape(PTABRegex, GeneralRegex):
             context = regex(
                 context.get_text(), [*self.space_patterns, (r"^(?:(?:[\d\.\- ])+)", "")]
             )
-            dependent_on = None
-            if fn := cl.find_all(self.claim_ref_patterns):
-                for s in claims:
-                    if gn := set(
-                        filter(
-                            None,
-                            list(
-                                map(
-                                    lambda m: s.attrs.get(m, None), self.id_tag_patterns
-                                )
-                            ),
-                        )
-                    ):
-                        if gn & set(
-                            filter(
-                                None,
-                                list(
-                                    map(
-                                        lambda m: fn[0].attrs.get(m, None),
-                                        self.id_ref_tag_patterns,
-                                    )
-                                ),
-                            )
-                        ):
-                            dependent_on = int(
-                                s.find(self.claim_num_patterns).get_text()
-                            )
-                            break
+            cited_claims = None
+            if fn := regex(
+                context,
+                self.dependent_claim_patterns,
+                sub=False,
+                flags=re.I,
+            ):
+                gn = fn[0]
+
+                if gn[0]:
+                    if gn[1]:
+                        if gn[2] and regex(gn[1], [(r"to|through|\-", "")]):
+                            cited_claims = [
+                                i for i in range(int(gn[0]), int(gn[2]) + 1)
+                            ]
+                        elif gn[2] and regex(gn[1], [(r"or|and", "")]):
+                            cited_claims = [int(gn[0]), int(gn[2])]
+
+                    else:
+                        cited_claims = [int(gn[0])]
+
+                else:
+                    if gn[3] and gn[4]:
+                        cited_claims = [i + 1 for i in range(claim_number - 1)]
+
+                    elif gn[3] and not gn[4]:
+                        cited_claims = [claim_number - 1]
+
             status = re.search(r"^\(([A-Za-z ]+)\)", context)
             if status:
                 context = context.replace(status.group(0), "")
@@ -506,10 +518,10 @@ class USPTOscrape(PTABRegex, GeneralRegex):
                 context = None
 
             data = {
-                "claim_number": int(claim_number),
+                "claim_number": claim_number,
                 "context": context,
                 "status": status,
-                "dependent_on": dependent_on,
+                "dependent_on": cited_claims,
             }
 
             claims_data["updated_claims"][claim_number] = data

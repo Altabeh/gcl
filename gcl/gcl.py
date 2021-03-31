@@ -48,6 +48,7 @@ class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
 
     __default_data_dir__ = root_dir / "gcl" / "data"
     __gs_base_url__ = "https://scholar.google.com/"
+    __suffix__ = None
     _prioritize_citations = None
     _case = None
 
@@ -66,7 +67,9 @@ class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
         # `months.json` contains a dictionary that maps abbreviations/variations of months to their full names.
         for i in ["jurisdictions", "reporters", "months"]:
             setattr(
-                self, i, kwargs.get(i, load_json(self.__default_data_dir__ / f"{i}.json", True))
+                self,
+                i,
+                kwargs.get(i, load_json(self.__default_data_dir__ / f"{i}.json", True)),
             )
         # Will be used to label all folders inside `data_dir`.
         self.court_codes = sorted(
@@ -145,21 +148,21 @@ class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
         """
         data = {"citation": None, "court": None, "date": None}
 
-        if not suffix:
-            suffix = self.suffix
+        self.__suffix__ = self.suffix if not self.__suffix__ else None
+
+        if suffix:
+            self.suffix = suffix
 
         path_to_file = (
-            create_dir(self.data_dir / "json" / f"json_{suffix}") / f"{case_id}.json"
+            create_dir(self.data_dir / "json" / f"json_{self.suffix}")
+            / f"{case_id}.json"
         )
 
         url = f"{self.__gs_base_url__}scholar_case?case={case_id}"
 
         if not path_to_file.is_file():
             print(f"Now downloading the case {case_id}...")
-            s1 = self.suffix
-            self.suffix = suffix
             data = self.gcl_parse(url, return_data=True, random_sleep=True)
-            self.suffix = s1
 
         else:
             data = load_json(path_to_file)
@@ -179,6 +182,10 @@ class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
                             case_summary.append(val)
                     else:
                         case_summary[case_id][key] = val
+        
+        self.suffix = self.__suffix__
+        self.__suffix__ = None
+        
         return case_summary
 
     def gcl_long_blue_cite(self, citation):
@@ -1586,7 +1593,7 @@ class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
                         )
                     extra = []
                     mixed_claim_numbers = set(claims.keys()) if claims else set()
-                    if uc := self._updated_claims(appl_number):
+                    if uc := self._updated_claims(appl_number, skip_patent):
                         extra = uc
                         mixed_claim_numbers |= set(uc[0]["updated_claims"].keys())
 
@@ -1612,14 +1619,20 @@ class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
         self.case["patents_in_suit"] = patents
         return
 
-    def _updated_claims(self, appl_number):
+    def _updated_claims(self, appl_number, skip_download):
+        """
+        Download the data file containing amended claims, if any, from the transaction history for
+        the application with the application number `appl_number`. Set to `skip_download` to False
+        to skip downloading the file.
+        """
         updated_claims = []
         if appl_number:
             xml = self.uspto.grab_ifw(
                 appl_number,
-                doc_codes=["CLM"],
-                mime_types=["XML"],
-                close_to_date=self.case["date"],
+                ["CLM"],
+                ["XML"],
+                self.case["date"],
+                skip_download,
             )
             if xml:
                 updated_claims += [self.uspto.parse_clm(xml[0])]
@@ -1741,7 +1754,9 @@ class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
         for pre in self.opinion.find_all("pre"):
             text = pre.get_text()
             if text:
-                pre.replaceWith(f" {self.__pre_label_s__} {text} {self.__pre_label_e__} ")
+                pre.replaceWith(
+                    f" {self.__pre_label_s__} {text} {self.__pre_label_e__} "
+                )
 
         # Locate tag with judge names and remove it along with every <p></p> coming before this tag.
         # Meant to clean up the text by removing the party names.
