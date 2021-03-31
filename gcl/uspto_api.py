@@ -23,6 +23,7 @@ from bs4 import BeautifulSoup as BS
 from dateutil import parser
 from tqdm import tqdm
 
+from gcl import __version__
 from gcl.regexes import GeneralRegex, PTABRegex
 from gcl.settings import root_dir
 from gcl.utils import (closest_value, create_dir, deaccent, load_json, regex,
@@ -40,7 +41,7 @@ class USPTOscrape(PTABRegex, GeneralRegex):
 
     def __init__(self, **kwargs):
         self.data_dir = create_dir(kwargs.get("data_dir", root_dir / "gcl" / "data"))
-        self.suffix = kwargs.get("suffix", "v1")
+        self.suffix = kwargs.get("suffix", f"v{__version__}")
 
     def ptab_call(self, **kwargs):
         """
@@ -115,9 +116,7 @@ class USPTOscrape(PTABRegex, GeneralRegex):
                 self.bulk_search_download_call(start=start, rows=rows, **kwargs)
                 break
 
-    def save_metadata(
-        self, metadata, suffix="", filename="response", dir_name="uspto-api"
-    ):
+    def save_metadata(self, metadata, suffix="", filename="response", dir_name="meta"):
         """
         Save metadata files downloaded using any method that calls a USPTO API.
 
@@ -146,7 +145,8 @@ class USPTOscrape(PTABRegex, GeneralRegex):
         """
         doc_subdir = f"doc_{self.suffix}"
         doc_path = (
-            create_dir(self.data_dir / "uspto" / doc_subdir) / metadata["documentName"]
+            create_dir(self.data_dir / "uspto" / "ptab-api" / doc_subdir)
+            / metadata["documentName"]
         )
         if not doc_path.is_file():
             if pause:
@@ -173,7 +173,7 @@ class USPTOscrape(PTABRegex, GeneralRegex):
         :param drop_keys: ---> list: a list of key(s) to drop from metadata files.
         """
         json_subdir = f"json_{self.suffix}"
-        json_dir = self.data_dir / "uspto" / json_subdir
+        json_dir = self.data_dir / "uspto" / "meta" / json_subdir
         metadata_files = [
             x for x in json_dir.glob("*.json") if not x.name.startswith("aggregated")
         ]
@@ -215,10 +215,7 @@ class USPTOscrape(PTABRegex, GeneralRegex):
                     ]
 
         with open(
-            str(
-                create_dir(self.data_dir / "uspto" / json_subdir / "aggregated")
-                / f"aggregated_{self.suffix}.json"
-            ),
+            str(create_dir(json_dir / "aggregated") / f"aggregated_{self.suffix}.json"),
             "w",
         ) as f:
             json.dump({"aggregated_data": total}, f, indent=4)
@@ -229,8 +226,8 @@ class USPTOscrape(PTABRegex, GeneralRegex):
         self,
         appl_number: str,
         doc_codes=None,
-        close_to_date=None,
         mime_types=None,
+        close_to_date=None,
         skip_download=False,
     ):
         """
@@ -252,7 +249,11 @@ class USPTOscrape(PTABRegex, GeneralRegex):
         post_url = f"{pc_base_url}/v2/documents/"
 
         transactions_folder = create_dir(
-            self.data_dir / "uspto" / "ifw" / f"transactions_{self.suffix}" / appl_number
+            self.data_dir
+            / "uspto"
+            / "ifw"
+            / f"transactions_{self.suffix}"
+            / appl_number
         )
 
         errorBag = []
@@ -370,7 +371,7 @@ class USPTOscrape(PTABRegex, GeneralRegex):
                         "fileTitleText": doc["documentIdentifier"],
                         "documentInformationBag": [bag],
                     }
-                    if not skip_download:
+                    if skip_download:
                         print(
                             f"The document with the ID `{bag['documentIdentifier']}` has not been downloaded. Please set `skip_download=False` and try again."
                         )

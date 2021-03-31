@@ -1,11 +1,13 @@
+import sys
 import unittest
 from pathlib import Path
-import sys
 
 sys.path.insert(0, Path(__file__).resolve().parents[1].__str__())
 
-from gcl.settings import root_dir
+from gcl import __version__
+
 from gcl.gcl import GCLParse
+from gcl.settings import root_dir
 from gcl.utils import load_json
 
 
@@ -18,14 +20,12 @@ class TestGCLParse(unittest.TestCase):
         Test `.gcl_parse` method of the gcl class.
         """
         self.assertEqual.__self__.maxDiff = None
-        GCL = GCLParse(suffix="test_v1")
+        GCL = GCLParse(suffix=f"test_v{__version__}")
         for id_ in self.__case_id_list__:
             original_data = load_json(root_dir / "gcl_test" / f"test_case_{id_}.json")
-            GCL.gcl_parse(
-                f"https://scholar.google.com/scholar_case?case={id_}"
-            )
+            GCL.gcl_parse(f"https://scholar.google.com/scholar_case?case={id_}")
             test_data = load_json(
-                GCL.data_dir / "json" / "json_test_v1" / f"{id_}.json"
+                GCL.data_dir / "json" / f"json_test_v{__version__}" / f"{id_}.json"
             )
             for k, v in test_data.items():
                 if v is None:

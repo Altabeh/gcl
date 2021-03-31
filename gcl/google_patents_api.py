@@ -10,6 +10,7 @@ import re
 
 from bs4 import BeautifulSoup as BS
 
+from gcl import __version__
 from gcl.settings import root_dir
 from gcl.utils import create_dir, deaccent, get, regex, validate_url
 
@@ -34,7 +35,7 @@ class GooglePatents:
 
     def __init__(self, **kwargs):
         self.data_dir = create_dir(kwargs.get("data_dir", root_dir / "gcl" / "data"))
-        self.suffix = kwargs.get("suffix", "v1")
+        self.suffix = kwargs.get("suffix", f"v{__version__}")
 
     @property
     def data(self):

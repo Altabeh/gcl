@@ -28,6 +28,7 @@ from bs4 import NavigableString
 from reporters_db import EDITIONS, REPORTERS
 from tqdm import tqdm
 
+from gcl import __version__
 from gcl.google_patents_api import GooglePatents
 from gcl.regexes import GCLRegex, GeneralRegex
 from gcl.settings import root_dir
@@ -37,7 +38,6 @@ from gcl.utils import (closest_value, create_dir, deaccent, hyphen_to_numbers,
                        recaptcha_process, regex, rm_repeated, rm_tree,
                        shorten_date, sort_int, switch_ip)
 
-__author__ = {"github.com/": ["altabeh"]}
 __all__ = ["GCLParse"]
 
 
@@ -77,7 +77,7 @@ class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
             key=len,
             reverse=True,
         )
-        self.suffix = kwargs.get("suffix", "")
+        self.suffix = kwargs.get("suffix", f"v{__version__}")
         # USPTO scraper of transactions history between examiner and appellant including ptab decisions.
         # This is needed if the appellant is not satisfied with the decision and seeks to appeal to the federal court.
         self.uspto = USPTOscrape(suffix=self.suffix, data_dir=self.data_dir)
@@ -182,10 +182,10 @@ class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
                             case_summary.append(val)
                     else:
                         case_summary[case_id][key] = val
-        
+
         self.suffix = self.__suffix__
         self.__suffix__ = None
-        
+
         return case_summary
 
     def gcl_long_blue_cite(self, citation):
@@ -1622,7 +1622,7 @@ class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
     def _updated_claims(self, appl_number, skip_download):
         """
         Download the data file containing amended claims, if any, from the transaction history for
-        the application with the application number `appl_number`. Set to `skip_download` to False
+        the application with the application number `appl_number`. Set `skip_download` to False
         to skip downloading the file.
         """
         updated_claims = []
