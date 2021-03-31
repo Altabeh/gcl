@@ -57,4 +57,16 @@ Running this code will save a JSON file `9862061449582190482.json` under the dir
 }
 ```
 
-**Note: ** `need_proxy` is advised to be set to `False` for now since it is still experimental and therefore not recommended to be turned on in this preliminary version. This has the caveat that we cannot run the `GCL` instance in parallel to make multiple queries to Google Scholar as your IP will be temporarily blocked. In the next version, we will make multiple querying operational.
+**Note:** `need_proxy` is advised to be set to `False` for now since it is still experimental and therefore not recommended to be turned on in this preliminary version. This has the caveat that we cannot run the `GCL` instance in parallel to make multiple queries to Google Scholar as your IP will be temporarily blocked. In the next version, we will make multiple querying operational.
+
+# Updates
+
+### v1.2
+
+- An independent module `google_patent_api.py` is added to scrape patent data.
+- EPO patents are now downloadble without claims missing.
+- Patent data can now contain patent descriptions using the option `include_description = True` in `.patent_data()` of the GCLParse class.
+- Claim/description extraction is more fine-grained and robust.
+- `depdendent_on` value for each claim in `patents_in_suit` is now a list. It can take more than one value in case there are references to more than one precedeng claim.
+- The method `.grab_ifw()` of the USPTOscrape class can take `skip_download` argument now to avoid sending requests in case the data file already exists in the local disk.
+- Bug fixes
