@@ -145,6 +145,12 @@ class PTABRegex:
     claim_ref_patterns = re.compile(r"(?:us)?(?:pat:)?claim-?reference")
     date_patterns = re.compile(r"(?:us)?(?:com|pat)?:?(?:official|mailroom)?date")
     claimset_tag_patterns = re.compile(r"(?:pat:)?claimse?t?")
+    dependent_claim_patterns = [
+        (
+            r"\s+claims?(?:\s+)?(\d+)(?:(?:\s+)?(or|\-|to|through|and)?(?:[claim\s]+)?(\d+))?|\s+(former|prior|above|foregoing|previous|precee?ding)(?:\s+)?claim(s)?",
+            "",
+        )
+    ]
     unnecessary_patterns = [
         r"(?:us)?(?:com|pat):patent-?image",
         r"(?:us)?(?:com|pat):claim-?label-?text",
