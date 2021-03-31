@@ -1,11 +1,6 @@
-import sys
 import unittest
-from pathlib import Path
-
-sys.path.insert(0, Path(__file__).resolve().parents[1].__str__())
 
 from gcl import __version__
-
 from gcl.gcl import GCLParse
 from gcl.settings import root_dir
 from gcl.utils import load_json
