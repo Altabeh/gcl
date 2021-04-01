@@ -122,12 +122,16 @@ class GooglePatents:
                         if gn[0]:
                             if gn[1]:
                                 # A-C or Claim A to C --> dependent_on: [A, B, C].
-                                if gn[2] and regex(gn[1], [(r"to|through|\-", "")]):
+                                if gn[2] and regex(
+                                    gn[1], [(r"to|through|\-", "")], sub=False
+                                ):
                                     cited_claims = [
                                         i for i in range(int(gn[0]), int(gn[2]) + 1)
                                     ]
                                 # Claim A or/and Claim C --> dependent_on: [A, C].
-                                elif gn[2] and regex(gn[1], [(r"or|and", "")]):
+                                elif gn[2] and regex(
+                                    gn[1], [(r"or|and", "")], sub=False
+                                ):
                                     cited_claims = [int(gn[0]), int(gn[2])]
 
                             else:
