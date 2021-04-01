@@ -1586,7 +1586,7 @@ class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
                         patent_found, claims = self.patent_data(
                             patent_number,
                             skip_patent,
-                            False,
+                            True,
                             ["title", "claims"],
                             ["claims"],
                             subfolder=self.case["id"],
