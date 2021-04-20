@@ -27,10 +27,8 @@ class GCLRegex:
     special_patent_ref_patterns = [
         (r'(\((?:collectively,?)?(?:\s+)?(?:the\s+)?"(?:[\w\' ]+)?patent(s)?"\))', "")
     ]
-    claim_patterns_1 = r"claims?([\d\-, and:]+)(?!claim)(?:(?:[\w\( ](?!claim))+)(?:(?:[\(\"“ ]+)?(?: ?the ?)?(?!##+)(?:the|[\"`\'#’]+) ?(\d+)(?:\s+patent)?)"
-    claim_patterns_2 = (
-        r"(?<=[cC]laim[s ])(?:([\d,\- :]+)(?:(?:[, ]+)?(?:and|through) ([\d\- ]+))*)+"
-    )
+    claim_patterns_1 = r"claims?([\d\-,:\"”\'’ and]+)(?!claim)(?:(?:[\w\( ](?!claim))+)(?:(?:[\(\"“ ]+)?(?: ?the ?)?(?!##+)(?:the|[\"`\'#’]+) ?(\d+)(?:\s+patent)?)"
+    claim_patterns_2 = r"(?<=[cC]laim[s ])[^,:](?:([\d,\-: ]+)(?:(?:[, ]+)?(?:and|through) ([\d\- ]+))*)+"
     patent_number_patterns_1 = [
         (
             r"(?:us|no[s.]+|number(?:s|ed)?|pat(?:\.|ents?)|and|then?|[,;:`'’]) ?("
@@ -131,7 +129,7 @@ class GCLRegex:
 
 class GeneralRegex:
     special_chars_patterns = [(r"\W", "")]
-    strip_patterns = [(r"[\t\r\n]", " "), (r" +", " ")]
+    strip_patterns = [(r"\s", " "), (r" +", " ")]
     extra_char_patterns = [(r"^[,. ]+|[,. ]+$", "")]
     comma_space_patterns = [(r"^[, ]+|[, ]+$", "")]
     space_patterns = [(r"^ +| +$", "")]
