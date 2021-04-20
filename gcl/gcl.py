@@ -36,7 +36,7 @@ from gcl.uspto_api import USPTOscrape
 from gcl.utils import (closest_value, create_dir, deaccent, hyphen_to_numbers,
                        load_json, multi_run, nullify, proxy_browser,
                        recaptcha_process, regex, rm_repeated, rm_tree,
-                       shorten_date, sort_int, switch_ip)
+                       shorten_date, sort_int, switch_ip, validate_url)
 
 __all__ = ["GCLParse"]
 
@@ -282,6 +282,7 @@ class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
         else:
             with open(path_or_url, "r") as f:
                 html_text = f.read()
+
         self.html = BS(deaccent(html_text), "html.parser")
         self._opinion(path_or_url)
 
@@ -826,6 +827,8 @@ class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
         url = url_or_id
         if regex(url_or_id, self.just_number_patterns, sub=False):
             url = f"{self.__gs_base_url__}scholar_case?case={url_or_id}"
+
+        assert validate_url(url)
 
         res_content = ""
 
