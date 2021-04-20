@@ -8,7 +8,7 @@ from gcl.utils import load_json
 
 class TestGCLParse(unittest.TestCase):
 
-    __case_id_list__ = ["10409615524522799053", "5200024483905774304"]
+    __case_id_list__ = ["4212676157309850321", "5200024483905774304"]
 
     def test_case_parse(self):
         """
@@ -23,10 +23,10 @@ class TestGCLParse(unittest.TestCase):
                 GCL.data_dir / "json" / f"json_test_v{__version__}" / f"{id_}.json"
             )
             for k, v in test_data.items():
-                if v is None:
+                if v is None or isinstance(v, int):
                     self.assertEqual(v, original_data[k])
                     print(f"{k}: OK")
-                else:
+                else:                        
                     if k != "html":
                         self.assertCountEqual(v, original_data[k])
                         print(f"{k}: OK")
