@@ -20,7 +20,7 @@ After cloning the Github repo `gcl`, you should go to the directory where the re
 
 to install the package. Make sure that once `selenium` is installed, you have the chrome driver installed as well. For macOS, we can do this by executing the following command on the terminal:
 
-`brew cask install chromedriver`
+`brew install chromedriver --cask`
 
 ### Test
 
