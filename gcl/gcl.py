@@ -29,7 +29,7 @@ from reporters_db import EDITIONS, REPORTERS
 from tqdm import tqdm
 
 from gcl import __version__
-from gcl.google_patents_api import GooglePatents
+from gcl.google_patents_scrape import GooglePatents
 from gcl.regexes import GCLRegex, GeneralRegex
 from gcl.settings import root_dir
 from gcl.uspto_api import USPTOscrape
