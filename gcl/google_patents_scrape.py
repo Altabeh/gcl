@@ -19,7 +19,7 @@ class GooglePatents:
 
     __gp_base_url__ = "https://patents.google.com/"
     __relevant_patterns__ = [
-        (r"[\t\r\n]", " "),
+        (r"\s", " "),
         (r"(?:\.Iaddend\.|\.Iadd\.)+", " "),
         (r" +", " "),
         (r"^ +| +$", ""),
