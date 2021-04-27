@@ -1445,10 +1445,13 @@ class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
             if details["reporter_abbreviation"] in ["S. Ct.", "U.S."]:
                 court = self.jurisdictions["court_details"]["Supreme Court"]
 
-            details["edition"] = EDITIONS[details["reporter_abbreviation"]]
-            reporter = REPORTERS[details["edition"]][0]
-            details["reporter_name"] = reporter["name"]
-            details["cite_type"] = reporter["cite_type"]
+            details["edition"] = EDITIONS.get(details["reporter_abbreviation"], None)
+            reporter = {}
+            if ed := details["edition"]:
+                reporter = REPORTERS[ed][0]
+            
+            details["reporter_name"] = reporter.get("name", None)
+            details["cite_type"] = reporter.get("cite_type", None)
 
             citation_details += [details]
 
