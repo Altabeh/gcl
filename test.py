@@ -8,7 +8,7 @@ from gcl.utils import load_json
 
 class TestGCLParse(unittest.TestCase):
 
-    __case_id_list__ = ["4212676157309850321", "5200024483905774304"]
+    __case_id_list__ = ["10602157203851565846", "5200024483905774304"]
 
     def test_case_parse(self):
         """

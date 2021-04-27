@@ -1,0 +1,1040 @@
+{
+    "id": "10602157203851565846",
+    "full_case_name": "MORTGAGE GRADER, INC., Plaintiff-Appellant v. FIRST CHOICE LOAN SERVICES INC., NYLX, Inc., Defendants-Appellees.",
+    "case_numbers": [
+        {
+            "id": "2599381264014585507",
+            "docket_number": [
+                "2015-1415"
+            ]
+        }
+    ],
+    "citation": "Mortgage Grader v. FIRST CHOICE LOAN SERVICES, 811 F. 3d 1314 (Fed. Cir. 2016)",
+    "short_citation": [
+        "811 F.3d 1314 (2016)"
+    ],
+    "first_page": 1317,
+    "last_page": 1326,
+    "cites_to": {
+        "7727520732028221301": [
+            {
+                "case_name": "Mortgage Grader, Inc. v. Costco Wholesale Corp.",
+                "variations": [
+                    {
+                        "citation": "Mortgage Grader, Inc. v. Costco Wholesale Corp., 89 F.Supp.3d 1055, 1065 (C.D.Cal.2015)",
+                        "identifier": "[7]"
+                    }
+                ]
+            },
+            {
+                "case_name": "Mortgage Grader II",
+                "variations": [
+                    {
+                        "citation": "Mortgage Grader II, 89 F.Supp.3d at 1063-65",
+                        "identifier": "[17]"
+                    },
+                    {
+                        "citation": "Mortgage Grader II, 89 F.Supp.3d at 1063",
+                        "identifier": "[53]"
+                    }
+                ]
+            }
+        ],
+        "7784134755284986738": [
+            {
+                "case_name": "Alice Corp. Pty., Ltd. v. CLS Bank International et al.",
+                "variations": [
+                    {
+                        "citation": "Alice Corp. Pty., Ltd. v. CLS Bank International et al. [___ U.S. ___], 134 S.Ct. 2347 [189 L.Ed.2d 296]",
+                        "identifier": "[14]"
+                    }
+                ]
+            },
+            {
+                "case_name": null,
+                "variations": [
+                    {
+                        "citation": "134 S.Ct. at 2352",
+                        "identifier": "[32]"
+                    },
+                    {
+                        "citation": "134 S.Ct. at 2356-57",
+                        "identifier": "[80]"
+                    }
+                ]
+            },
+            {
+                "case_name": "Alice",
+                "variations": [
+                    {
+                        "citation": "Alice, 134 S.Ct. at 2355",
+                        "identifier": "[51]"
+                    },
+                    {
+                        "citation": "Alice, 134 S.Ct. at 2359",
+                        "identifier": "[54]"
+                    },
+                    {
+                        "citation": "Alice, 134 S.Ct. at 2359-60",
+                        "identifier": "[90]"
+                    }
+                ]
+            }
+        ],
+        "16025237560214135711": [
+            {
+                "case_name": "Mayo Collaborative Services v. Prometheus Laboratories, Inc.",
+                "variations": [
+                    {
+                        "citation": "Mayo Collaborative Services v. Prometheus Laboratories, Inc., ___ U.S. ___, 132 S.Ct. 1289, 1297, 182 L.Ed.2d 321 (2012)",
+                        "identifier": "[16]"
+                    }
+                ]
+            }
+        ],
+        "9974267406665800057": [
+            {
+                "case_name": null,
+                "variations": [
+                    {
+                        "citation": "Keranos, LLC v. Silicon Storage Tech., Inc., 797 F.3d 1025, 1035 (Fed.Cir. 2015)",
+                        "identifier": "[21]"
+                    }
+                ]
+            },
+            {
+                "case_name": "Keranos",
+                "variations": [
+                    {
+                        "citation": "Keranos, 797 F.3d at 1035",
+                        "identifier": "[26]"
+                    }
+                ]
+            }
+        ],
+        "17099742770462845011": [
+            {
+                "case_name": "Ryan v. Gonzales",
+                "variations": [
+                    {
+                        "citation": "Ryan v. Gonzales, ___ U.S. ___, 133 S.Ct. 696, 708, 184 L.Ed.2d 528 (2013)",
+                        "identifier": "[22]"
+                    }
+                ]
+            }
+        ],
+        "9583298043089919985": [
+            {
+                "case_name": "Ethicon, Inc. v. Quigg",
+                "variations": [
+                    {
+                        "citation": "Ethicon, Inc. v. Quigg, 849 F.2d 1422, 1426 (Fed. Cir.1988)",
+                        "identifier": "[23]"
+                    }
+                ]
+            }
+        ],
+        "17670641980113302580": [
+            {
+                "case_name": "O2 Micro Int'l Ltd. v. Monolithic Power Sys., Inc.",
+                "variations": [
+                    {
+                        "citation": "O2 Micro Int'l Ltd. v. Monolithic Power Sys., Inc., 467 F.3d 1355, 1364-65 (Fed. Cir.2006)",
+                        "identifier": "[24]"
+                    }
+                ]
+            },
+            {
+                "case_name": "O2 Micro",
+                "variations": [
+                    {
+                        "citation": "O2 Micro, 467 F.3d at 1366",
+                        "identifier": "[29]"
+                    },
+                    {
+                        "citation": "O2 Micro, 467 F.3d at 1369",
+                        "identifier": "[67]"
+                    }
+                ]
+            },
+            {
+                "case_name": null,
+                "variations": [
+                    {
+                        "citation": "467 F.3d at 1368",
+                        "identifier": "[88]"
+                    }
+                ]
+            }
+        ],
+        "10159016241767877518": [
+            {
+                "case_name": "Genentech, Inc. v. Amgen, Inc.",
+                "variations": [
+                    {
+                        "citation": "Genentech, Inc. v. Amgen, Inc., 289 F.3d 761, 774 (Fed.Cir. 2002)",
+                        "identifier": "[25]"
+                    }
+                ]
+            },
+            {
+                "case_name": "Genentech",
+                "variations": [
+                    {
+                        "citation": "Genentech, 289 F.3d at 774",
+                        "identifier": "[27]"
+                    }
+                ]
+            }
+        ],
+        "15081369718276515741": [
+            {
+                "case_name": "buySAFE, Inc. v. Google, Inc.",
+                "variations": [
+                    {
+                        "citation": "buySAFE, Inc. v. Google, Inc., 765 F.3d 1350, 1354-55 (Fed.Cir. 2014)",
+                        "identifier": "[33]"
+                    }
+                ]
+            },
+            {
+                "case_name": null,
+                "variations": [
+                    {
+                        "citation": "765 F.3d at 1355",
+                        "identifier": "[61]"
+                    }
+                ]
+            }
+        ],
+        "9815140750432136306": [
+            {
+                "case_name": "Ultramercial, Inc. v. Hulu, LLC",
+                "variations": [
+                    {
+                        "citation": "Ultramercial, Inc. v. Hulu, LLC, 772 F.3d 709 (Fed.Cir.2014)",
+                        "identifier": "[34]"
+                    }
+                ]
+            },
+            {
+                "case_name": "Ultramercial III",
+                "variations": [
+                    {
+                        "citation": "Ultramercial III, 772 F.3d at 713",
+                        "identifier": "[36]"
+                    }
+                ]
+            },
+            {
+                "case_name": "Ultramercial v. Hulu",
+                "variations": [
+                    {
+                        "citation": "Ultramercial v. Hulu, 722 F.3d 1335, 1354 (Fed.Cir.2013) (\"Ultramercial II\")",
+                        "identifier": "[37]"
+                    }
+                ]
+            }
+        ],
+        "1016184849563688785": [
+            {
+                "case_name": "Ultramercial, LLC v. Hulu, LLC",
+                "variations": [
+                    {
+                        "citation": "Ultramercial, LLC v. Hulu, LLC, 657 F.3d 1323, 1330 (Fed.Cir. 2011)",
+                        "identifier": "[35]"
+                    }
+                ]
+            }
+        ],
+        "11223513173496719628": [
+            {
+                "case_name": "Smartflash LLC v. Apple Inc.",
+                "variations": [
+                    {
+                        "citation": "Smartflash LLC v. Apple Inc., 621 Fed.Appx. 995, 1002 (Fed.Cir.2015)",
+                        "identifier": "[38]"
+                    }
+                ]
+            }
+        ],
+        "8676289545795279718": [
+            {
+                "case_name": "Triton Tech of Tex., LLC v. Nintendo of Am., Inc.",
+                "variations": [
+                    {
+                        "citation": "Triton Tech of Tex., LLC v. Nintendo of Am., Inc., 753 F.3d 1375, 1379-80 (Fed.Cir.2014)",
+                        "identifier": "[41]"
+                    }
+                ]
+            }
+        ],
+        "5989665546938472060": [
+            {
+                "case_name": "Apple, Inc. v. Samsung Elecs. Co.",
+                "variations": [
+                    {
+                        "citation": "Apple, Inc. v. Samsung Elecs. Co., 2014 WL 1322028, at *2 (N.D.Cal. Mar. 28, 2014)",
+                        "identifier": "[42]"
+                    }
+                ]
+            }
+        ],
+        "17579289358787666465": [
+            {
+                "case_name": "Landmark Screens, LLC v. Morgan, Lewis, & Bockius, LLP",
+                "variations": [
+                    {
+                        "citation": "Landmark Screens, LLC v. Morgan, Lewis, & Bockius, LLP, 676 F.3d 1354, 1361 (Fed.Cir.2012)",
+                        "identifier": "[44]"
+                    }
+                ]
+            }
+        ],
+        "2429554177212316805": [
+            {
+                "case_name": "Ultimax Cement Mfg. Corp. v. CTS Cement Mfg. Corp.",
+                "variations": [
+                    {
+                        "citation": "Ultimax Cement Mfg. Corp. v. CTS Cement Mfg. Corp., 587 F.3d 1339, 1355 (Fed.Cir. 2009)",
+                        "identifier": "[45]"
+                    }
+                ]
+            }
+        ],
+        "7162630753462366064": [
+            {
+                "case_name": "Universal Health Servs., Inc. v. Thompson",
+                "variations": [
+                    {
+                        "citation": "Universal Health Servs., Inc. v. Thompson, 363 F.3d 1013, 1019 (9th Cir.2004)",
+                        "identifier": "[46]"
+                    }
+                ]
+            },
+            {
+                "case_name": "Universal Health",
+                "variations": [
+                    {
+                        "citation": "Universal Health, 363 F.3d at 1019",
+                        "identifier": "[49]"
+                    }
+                ]
+            }
+        ],
+        "3095713882675765791": [
+            {
+                "case_name": "Diamond v. Chakrabarty",
+                "variations": [
+                    {
+                        "citation": "Diamond v. Chakrabarty, 447 U.S. 303, 309, 100 S.Ct. 2204, 65 L.Ed.2d 144 (1980)",
+                        "identifier": "[50]"
+                    }
+                ]
+            }
+        ],
+        "13362075908439349478": [
+            {
+                "case_name": "CyberSource Corp. v. Retail Decisions, Inc.",
+                "variations": [
+                    {
+                        "citation": "CyberSource Corp. v. Retail Decisions, Inc., 654 F.3d 1366, 1373 (Fed.Cir.2011)",
+                        "identifier": "[56]"
+                    }
+                ]
+            }
+        ],
+        "14331103368635133702": [
+            {
+                "case_name": "Gottschalk v. Benson",
+                "variations": [
+                    {
+                        "citation": "Gottschalk v. Benson, 409 U.S. 63, 67, 93 S.Ct. 253, 34 L.Ed.2d 273 (1972)",
+                        "identifier": "[57]"
+                    }
+                ]
+            }
+        ],
+        "3107974128011903263": [
+            {
+                "case_name": "Intellectual Ventures I LLC v. Capital One Bank (USA)",
+                "variations": [
+                    {
+                        "citation": "Intellectual Ventures I LLC v. Capital One Bank (USA), 792 F.3d 1363, 1370 (Fed.Cir.2015)",
+                        "identifier": "[60]"
+                    }
+                ]
+            }
+        ],
+        "8000824258029585764": [
+            {
+                "case_name": "Accenture Global Servs. GmbH v. Guidewire Software, Inc.",
+                "variations": [
+                    {
+                        "citation": "Accenture Global Servs. GmbH v. Guidewire Software, Inc., 728 F.3d 1336, 1344 (Fed.Cir. 2013)",
+                        "identifier": "[62]"
+                    }
+                ]
+            },
+            {
+                "case_name": "Accenture",
+                "variations": [
+                    {
+                        "citation": "Accenture, 728 F.3d at 1341",
+                        "identifier": "[70]"
+                    },
+                    {
+                        "citation": "Accenture, 728 F.3d at 1346",
+                        "identifier": "[72]"
+                    }
+                ]
+            }
+        ],
+        "15961815186343228931": [
+            {
+                "case_name": "DDR Holdings, LLC v. Hotels.com, L.P.",
+                "variations": [
+                    {
+                        "citation": "DDR Holdings, LLC v. Hotels.com, L.P., 773 F.3d 1245, 1256 (Fed.Cir.2014)",
+                        "identifier": "[63]"
+                    }
+                ]
+            },
+            {
+                "case_name": "DDR Holdings",
+                "variations": [
+                    {
+                        "citation": "DDR Holdings, 773 F.3d at 1257",
+                        "identifier": "[65]"
+                    }
+                ]
+            }
+        ],
+        "18086536145760645965": [
+            {
+                "case_name": "Bilski v. Kappos",
+                "variations": [
+                    {
+                        "citation": "Bilski v. Kappos, 561 U.S. 593, 601, 130 S.Ct. 3218, 177 L.Ed.2d 792 (2010)",
+                        "identifier": "[66]"
+                    }
+                ]
+            }
+        ],
+        "9272001251064530131": [
+            {
+                "case_name": "Anderson v. Liberty Lobby, Inc.",
+                "variations": [
+                    {
+                        "citation": "Anderson v. Liberty Lobby, Inc., 477 U.S. 242, 250, 106 S.Ct. 2505, 91 L.Ed.2d 202 (1986)",
+                        "identifier": "[68]"
+                    }
+                ]
+            },
+            {
+                "case_name": "Anderson",
+                "variations": [
+                    {
+                        "citation": "Anderson, 477 U.S. at 247-48, 106 S.Ct. 2505",
+                        "identifier": "[69]"
+                    }
+                ]
+            }
+        ],
+        "204952289152101012": [
+            {
+                "case_name": "Arrhythmia Research Tech., Inc. v. Corazonix Corp.",
+                "variations": [
+                    {
+                        "citation": "Arrhythmia Research Tech., Inc. v. Corazonix Corp., 958 F.2d 1053, 1055-56 (Fed. Cir.1992)",
+                        "identifier": "[71]"
+                    }
+                ]
+            }
+        ],
+        "9371239474066908546": [
+            {
+                "case_name": null,
+                "variations": [
+                    {
+                        "citation": "K-TEC, Inc. v. Vita-Mix Corp., 696 F.3d 1364, 1374-76 (Fed.Cir.2012)",
+                        "identifier": "[77]"
+                    }
+                ]
+            }
+        ],
+        "10885054240284163097": [
+            {
+                "case_name": "Minkin v. Gibbons, P.C.",
+                "variations": [
+                    {
+                        "citation": "Minkin v. Gibbons, P.C., 680 F.3d 1341, 1351-52 (Fed.Cir.2012)",
+                        "identifier": "[78]"
+                    }
+                ]
+            }
+        ]
+    },
+    "date": "2016-01-20",
+    "court": {
+        "full_name": "Court of Appeals for the Federal Circuit",
+        "short_name": "Federal Circuit",
+        "court_code": "cafc",
+        "jurisdiction": "F"
+    },
+    "judges": [
+        "Stark"
+    ],
+    "personal_opinions": {
+        "concur": null,
+        "dissent": null
+    },
+    "patents_in_suit": [
+        {
+            "patent_number": "US7366694",
+            "application_number": null,
+            "patent_found": true,
+            "claims": {
+                "1": {
+                    "claim_number": 1,
+                    "context": "A method of assisting a borrower in obtaining a loan, the method comprising: (a) receiving, over a network, personal information of a borrower, said personal information including financial information of the borrower, and including information regarding objectives of the borrower in seeking a loan, said personal information obtained, at least in part, via an online form completed by the borrower; (b) selecting, based on said information regarding objectives of the borrower, underwriting criteria to be used to generate a credit grading for the borrower; (c) programmatically generating the credit grading for the borrower using the selected underwriting criteria, wherein the selected underwriting criteria includes objective criteria used by one or more lenders capable of providing the loan; (d) outputting information regarding the credit grading, and information regarding a plurality of lenders capable of providing the loan, to the borrower; and (e) subsequently to steps (a)-(d), in response to receiving authorization from the borrower, sending the credit grading and at least some of the personal information of the borrower to a particular one of said lenders selected by the borrower; wherein steps (a)-(e) are performed by a third party evaluator that does not provide the loan, and is performed such that none of the received personal information of the borrower is released to any of the lenders without specific authorization from the borrower, whereby the method enables the borrower to assess its borrowing ability and to select a lender for providing the loan without exposing any personal information to any of the lenders, and wherein the method further comprises the third party evaluator receiving, from a lender, software that automatically applies the selected underwriting criteria to information of the borrower.",
+                    "dependent_on": null
+                },
+                "2": {
+                    "claim_number": 2,
+                    "context": "The method of claim 1, wherein the third party obtains said software under an obligation to maintain the selected underwriting criteria confidential.",
+                    "dependent_on": [
+                        1
+                    ]
+                },
+                "3": {
+                    "claim_number": 3,
+                    "context": "A method of assisting a borrower in obtaining a loan, the method comprising: (a) receiving, over a network, personal information of a borrower, said personal information including financial information of the borrower, and including information regarding objectives of the borrower in seeking a loan, said personal information obtained, at least in part, via an online form completed by the borrower; (b) selecting, based on said information regarding objectives of the borrower, underwriting criteria to be used to generate a credit grading for the borrower; (c) programmatically generating the credit grading for the borrower using the selected underwriting criteria, wherein the selected underwriting criteria includes objective criteria used by one or more lenders capable of providing the loan; (d) outputting information regarding the credit grading, and information regarding a plurality of lenders capable of providing the loan, to the borrower; and (e) subsequently to steps (a)-(d), in response to receiving authorization from the borrower, sending the credit grading and at least some of the personal information of the borrower to a particular one of said lenders selected by the borrower; wherein steps (a)-(e) are performed by a third party evaluator that does not provide the loan, and is performed such that none of the received personal information of the borrower is released to any of the lenders without specific authorization from the borrower, whereby the method enables the borrower to assess its borrowing ability and to select a lender for providing the loan without exposing any personal information to any of the lenders, and wherein the method further comprises the third party evaluator issuing a loan number to the borrower while the borrower remains anonymous to the lenders.",
+                    "dependent_on": null
+                },
+                "4": {
+                    "claim_number": 4,
+                    "context": "A method of assisting a borrower in obtaining a loan, the method comprising: (a) receiving, over a network, personal information of a borrower, said personal information including financial information of the borrower, and including information regarding objectives of the borrower in seeking a loan, said personal information obtained, at least in part, via an online form completed by the borrower; (b) selecting, based on said information regarding objectives of the borrower, underwriting criteria to be used to generate a credit grading for the borrower; (c) programmatically generating the credit grading for the borrower using the selected underwriting criteria, wherein the selected underwriting criteria includes objective criteria used by one or more lenders capable of providing the loan; (d) outputting information regarding the credit grading, and information regarding a plurality of lenders capable of providing the loan, to the borrower; and (e) subsequently to steps (a)-(d), in response to receiving authorization from the borrower, sending the credit grading and at least some of the personal information of the borrower to a particular one of said lenders selected by the borrower; wherein steps (a)-(e) are performed by a third party evaluator that does not provide the loan, and is performed such that none of the received personal information of the borrower is released to any of the lenders without specific authorization from the borrower, whereby the method enables the borrower to assess its borrowing ability and to select a lender for providing the loan without exposing any personal information to any of the lenders, wherein the method further comprises the third party evaluator providing a full loan approval to the borrower while the borrower remains anonymous to said lenders, said full loan approval provided in connection with a particular real estate property.",
+                    "dependent_on": null
+                },
+                "5": {
+                    "claim_number": 5,
+                    "context": "A method of assisting a borrower in obtaining a loan, the method comprising: (a) receiving, over a network, personal information of a borrower, said personal information including financial information of the borrower, and including information regarding objectives of the borrower in seeking a loan, said personal information obtained, at least in part, via an online form completed by the borrower; (b) selecting, based on said information regarding objectives of the borrower, underwriting criteria to be used to generate a credit grading for the borrower; (c) programmatically generating the credit grading for the borrower using the selected underwriting criteria, wherein the selected underwriting criteria includes objective criteria used by one or more lenders capable of providing the loan; (d) outputting information regarding the credit grading, and information regarding a plurality of lenders capable of providing the loan, to the borrower; and (e) subsequently to steps (a)-(d), in response to receiving authorization from the borrower, sending the credit grading and at least some of the personal information of the borrower to a particular one of said lenders selected by the borrower; wherein steps (a)-(e) are performed by a third party evaluator that does not provide the loan, and is performed such that none of the received personal information of the borrower is released to any of the lenders without specific authorization from the borrower, whereby the method enables the borrower to assess its borrowing ability and to select a lender for providing the loan without exposing any personal information to any of the lenders, wherein step (d) comprises outputting information to the borrower regarding specific loans offered by said lenders, and wherein the information about specific loans comprises an indication of an amount a lender is paying for money associated with a loan.",
+                    "dependent_on": null
+                },
+                "6": {
+                    "claim_number": 6,
+                    "context": "A method of assisting a borrower in obtaining a loan, the method comprising: (a) receiving, over a network, personal information of a borrower, said personal information including financial information of the borrower, and including information regarding objectives of the borrower in seeking a loan, said personal information obtained, at least in part, via an online form completed by the borrower; (b) selecting, based on said information regarding objectives of the borrower, underwriting criteria to be used to generate a credit grading for the borrower; (c) programmatically generating the credit grading for the borrower using the selected underwriting criteria, wherein the selected underwriting criteria includes objective criteria used by one or more lenders capable of providing the loan; (d) outputting information regarding the credit grading, and information regarding a plurality of lenders capable of providing the loan, to the borrower; and (e) subsequently to steps (a)-(d), in response to receiving authorization from the borrower, sending the credit grading and at least some of the personal information of the borrower to a particular one of said lenders selected by the borrower; wherein steps (a)-(e) are performed by a third party evaluator that does not provide the loan, and is performed such that none of the received personal information of the borrower is released to any of the lenders without specific authorization from the borrower, whereby the method enables the borrower to assess its borrowing ability and to select a lender for providing the loan without exposing any personal information to any of the lenders, wherein the method comprises the third party evaluator selecting and applying the underwriting criteria of a particular lender, as obtained confidentially from said particular lender.",
+                    "dependent_on": null
+                },
+                "7": {
+                    "claim_number": 7,
+                    "context": "The system of claim 6, wherein the information about the loan packages comprises loan term, loan rate, loan conditions and loan closing costs.",
+                    "dependent_on": [
+                        6
+                    ]
+                },
+                "8": {
+                    "claim_number": 8,
+                    "context": "The system of claim 1, wherein the borrower grading module calculates the credit grading, at least in-part, using at least one lender-specific loan evaluation system of a particular lender.",
+                    "dependent_on": [
+                        1
+                    ]
+                },
+                "9": {
+                    "claim_number": 9,
+                    "context": "The system of claim 1, wherein the borrower grading module calculates the credit grading based in part on a borrower credit rating obtained from a credit bureau.",
+                    "dependent_on": [
+                        1
+                    ]
+                },
+                "10": {
+                    "claim_number": 10,
+                    "context": "The system of claim 1, wherein the borrower grading module calculates the credit grading based on objective criteria used by a plurality of lenders.",
+                    "dependent_on": [
+                        1
+                    ]
+                },
+                "11": {
+                    "claim_number": 11,
+                    "context": "The system of claim 1, wherein the computer-implemented system outputs the credit grading to the borrower.",
+                    "dependent_on": [
+                        1
+                    ]
+                },
+                "12": {
+                    "claim_number": 12,
+                    "context": "The system of claim 1, wherein the second interface presents to the borrower closing cost information for a loan, said closing cost information compiled by a third party that does not provide the loan.",
+                    "dependent_on": [
+                        1
+                    ]
+                },
+                "13": {
+                    "claim_number": 13,
+                    "context": "The system of claim 1, wherein the second interface additionally provides functionality for the borrower to apply for a selected loan.",
+                    "dependent_on": [
+                        1
+                    ]
+                },
+                "14": {
+                    "claim_number": 14,
+                    "context": "The system of claim 1, wherein the borrower grading module generates the credit grading using a non-lender-specific credit rating algorithm that is accepted by each of said plurality of lenders.",
+                    "dependent_on": [
+                        1
+                    ]
+                },
+                "15": {
+                    "claim_number": 15,
+                    "context": "The system of claim 1, wherein some of the loan package data stored in the database and displayed via the second interface is provided by a third party that is not one of said lenders.",
+                    "dependent_on": [
+                        1
+                    ]
+                },
+                "16": {
+                    "claim_number": 16,
+                    "context": "The system of claim 1, wherein the computer-implemented system is capable of pre-approving the borrower for the selected loan package on behalf of the lender without exposing any information about the borrower to the lender.",
+                    "dependent_on": [
+                        1
+                    ]
+                },
+                "17": {
+                    "claim_number": 17,
+                    "context": "The system of claim 1, wherein the computer-implemented system is capable of fully approving the borrower for the selected loan package on behalf of the lender.",
+                    "dependent_on": [
+                        1
+                    ]
+                },
+                "18": {
+                    "claim_number": 18,
+                    "context": "The system of claim 1, wherein the computer-implemented system reveals to the borrower monetary amounts the lenders are paying for the funds associated with the loan packages, such that the borrower can take said amounts into consideration in selecting a loan package.",
+                    "dependent_on": [
+                        1
+                    ]
+                },
+                "19": {
+                    "claim_number": 19,
+                    "context": "A computer-implemented method, comprising: receiving, over a computer network, personal data entered by a borrower, said personal data comprising loan evaluation data; automatically generating or causing the generation of a credit grading for the borrower such that the credit grading is dependent upon the loan evaluation data entered by the borrower, said credit grading being distinct from a credit score obtained from a credit bureau, and being generated at least partly using underwriting criteria of one or more lenders; identifying a set of loan packages for which the borrower qualifies based on said credit grading, each loan package including home loan information provided by a lender, and including guaranteed closing cost information for closing services not provided by the lender, wherein the set of loan packages is identified without requiring the borrower to post a request to any lender; outputting information regarding the set of loan packages, including the guaranteed closing cost information for closing services not provided by the lender, to the borrower via a user interface that enables the borrower to at least compare total costs of the loan packages for which the borrower qualifies, said user interface additionally providing functionality for the user to select and apply for one of said loan packages; and in response to a request from the borrower in association with a selected loan package, communicating information of the borrower to a corresponding lender.",
+                    "dependent_on": null
+                },
+                "20": {
+                    "claim_number": 20,
+                    "context": "The method of claim 19, wherein the method further comprises outputting to the borrower an indication of an amount a lender is paying for funds associated with at least one of the loan packages.",
+                    "dependent_on": [
+                        19
+                    ]
+                },
+                "21": {
+                    "claim_number": 21,
+                    "context": "The method of claim 19, wherein the credit grading is generated using a non-lender-specific grading algorithm.",
+                    "dependent_on": [
+                        19
+                    ]
+                },
+                "22": {
+                    "claim_number": 22,
+                    "context": "The method of claim 19, wherein the method is performed by a computer system operated by a third party evaluator that is independent of said lenders, and the method comprises automatically applying the underwriting criteria, at least in part, by executing software confidentially provided to the third party evaluator by at least one of said lenders.",
+                    "dependent_on": [
+                        19
+                    ]
+                },
+                "23": {
+                    "claim_number": 23,
+                    "context": "The method of claim 19, further comprising pre-approving the borrower for the selected loan package on behalf of the lender without exposing any information of the borrower to the lender.",
+                    "dependent_on": [
+                        19
+                    ]
+                },
+                "24": {
+                    "claim_number": 24,
+                    "context": "The method of claim 19, further comprising approving the borrower for the selected loan package on behalf of the lender.",
+                    "dependent_on": [
+                        19
+                    ]
+                },
+                "25": {
+                    "claim_number": 25,
+                    "context": "The system of claim 1, wherein the computer-implemented system communicates the personal loan evaluation information to the lender in association with an anonymous identifier of the borrower.",
+                    "dependent_on": [
+                        1
+                    ]
+                },
+                "26": {
+                    "claim_number": 26,
+                    "context": "The system of claim 1, wherein the computer-implemented system is configured to communicate credit information of the borrower to said lender while concealing the identity of the borrower.",
+                    "dependent_on": [
+                        1
+                    ]
+                },
+                "27": {
+                    "claim_number": 27,
+                    "context": "The system of claim 1, wherein the computer-implemented system additionally enables the borrower to obtain a pre-approval from the lender for the selected loan package while remaining anonymous to the lender, said pre-approval including guaranteed loan terms for the selected loan package.",
+                    "dependent_on": [
+                        1
+                    ]
+                },
+                "28": {
+                    "claim_number": 28,
+                    "context": "The system of claim 27, wherein the selected loan package is a mortgage-based home loan, and the pre-approval additionally includes guaranteed closing costs for the selected loan package.",
+                    "dependent_on": [
+                        27
+                    ]
+                },
+                "29": {
+                    "claim_number": 29,
+                    "context": "The system of claim 1, wherein the computer-implemented system is further capable of interacting with said lender to enable the borrower to anonymously obtain approval for the selected loan package.",
+                    "dependent_on": [
+                        1
+                    ]
+                },
+                "30": {
+                    "claim_number": 30,
+                    "context": "The system of claim 1, wherein the computer-implemented system additionally provides functionality for the borrower to select one or more third party vendors to provide closing services associated with the selected loan package.",
+                    "dependent_on": [
+                        1
+                    ]
+                },
+                "31": {
+                    "claim_number": 31,
+                    "context": "A computerized method of reducing discriminatory lending, comprising: obtaining personal and financial information of a borrower seeking a home loan; generating a credit grading for the borrower, at least in part, via execution of software that automatically applies underwriting criteria of at least one lender to the financial information of the borrower, wherein the credit grading is generated without exposing any of said financial information of the borrower to any lender; using at least the credit grading to identify a plurality of home loans for which the borrower qualifies, including home loans offered by multiple different lenders, without exposing any information of the borrower to any lender; outputting information to the borrower regarding the plurality of home loans, said information including interest rates and total costs of said home loans, said total costs including costs of closing services not provided by the corresponding lenders; and approving the borrower for a selected home loan of said plurality of home loans while the borrower remains anonymous to the lender offering the selected home loan; wherein the method inhibits discriminatory lending by enabling the borrower to obtain approval for the selected home loan while remaining anonymous to the lender.",
+                    "dependent_on": null
+                },
+                "32": {
+                    "claim_number": 32,
+                    "context": "The method of claim 31, wherein the step of approving the borrower comprises guaranteeing a total cost of the loan, including closing costs.",
+                    "dependent_on": [
+                        31
+                    ]
+                },
+                "33": {
+                    "claim_number": 33,
+                    "context": "The method of claim 31, wherein the step of approving the borrower comprises exposing the financial information of the borrower to the lender while concealing the identity of the borrower.",
+                    "dependent_on": [
+                        31
+                    ]
+                },
+                "34": {
+                    "claim_number": 34,
+                    "context": "The method of claim 31, wherein the step of outputting information to the borrower comprises offering guaranteed closing costs to the borrower in connection with particular home loans.",
+                    "dependent_on": [
+                        31
+                    ]
+                },
+                "35": {
+                    "claim_number": 35,
+                    "context": "The method of claim 31, wherein the method is performed by a third party evaluator entity that is not one of said lenders.",
+                    "dependent_on": [
+                        31
+                    ]
+                },
+                "36": {
+                    "claim_number": 36,
+                    "context": "The method of claim 35, wherein the step of generating the credit grading is performed via execution of software confidentially provided to the third party evaluated by at least one of said lenders.",
+                    "dependent_on": [
+                        35
+                    ]
+                },
+                "37": {
+                    "claim_number": 37,
+                    "context": "The system of claim 1, wherein the computer system is a distributed system.",
+                    "dependent_on": [
+                        1
+                    ]
+                }
+            },
+            "extra": [],
+            "cited_claims": [
+                1,
+                2,
+                19
+            ]
+        },
+        {
+            "patent_number": "US7680728",
+            "application_number": null,
+            "patent_found": true,
+            "claims": {
+                "1": {
+                    "claim_number": 1,
+                    "context": "A method of assisting a borrower in obtaining a loan, the method comprising: (a) receiving, over a network, personal information of a borrower, said personal information including financial information of the borrower, and including information regarding objectives of the borrower in seeking a loan, said personal information obtained, at least in part, via an online form completed by the borrower; (b) selecting, based on said information regarding objectives of the borrower, underwriting criteria to be used to generate a credit grading for the borrower; (c) programmatically generating the credit grading for the borrower using the selected underwriting criteria, wherein the selected underwriting criteria includes objective criteria used by one or more lenders capable of providing the loan; (d) outputting information regarding the credit grading, and information regarding a plurality of lenders capable of providing the loan, to the borrower; and (e) subsequently to steps (a)-(d), in response to receiving authorization from the borrower, sending the credit grading and at least some of the personal information of the borrower to a particular one of said lenders selected by the borrower; wherein steps (a)-(e) are performed by a third party evaluator that does not provide the loan, and is performed such that none of the received personal information of the borrower is released to any of the lenders without specific authorization from the borrower, whereby the method enables the borrower to assess its borrowing ability and to select a lender for providing the loan without exposing any personal information to any of the lenders, and wherein the method further comprises the third party evaluator receiving, from a lender, software that automatically applies the selected underwriting criteria to information of the borrower.",
+                    "dependent_on": null
+                },
+                "2": {
+                    "claim_number": 2,
+                    "context": "The method of claim 1, wherein the third party obtains said software under an obligation to maintain the selected underwriting criteria confidential.",
+                    "dependent_on": [
+                        1
+                    ]
+                },
+                "3": {
+                    "claim_number": 3,
+                    "context": "A method of assisting a borrower in obtaining a loan, the method comprising: (a) receiving, over a network, personal information of a borrower, said personal information including financial information of the borrower, and including information regarding objectives of the borrower in seeking a loan, said personal information obtained, at least in part, via an online form completed by the borrower; (b) selecting, based on said information regarding objectives of the borrower, underwriting criteria to be used to generate a credit grading for the borrower; (c) programmatically generating the credit grading for the borrower using the selected underwriting criteria, wherein the selected underwriting criteria includes objective criteria used by one or more lenders capable of providing the loan; (d) outputting information regarding the credit grading, and information regarding a plurality of lenders capable of providing the loan, to the borrower; and (e) subsequently to steps (a)-(d), in response to receiving authorization from the borrower, sending the credit grading and at least some of the personal information of the borrower to a particular one of said lenders selected by the borrower; wherein steps (a)-(e) are performed by a third party evaluator that does not provide the loan, and is performed such that none of the received personal information of the borrower is released to any of the lenders without specific authorization from the borrower, whereby the method enables the borrower to assess its borrowing ability and to select a lender for providing the loan without exposing any personal information to any of the lenders, and wherein the method further comprises the third party evaluator issuing a loan number to the borrower while the borrower remains anonymous to the lenders.",
+                    "dependent_on": null
+                },
+                "4": {
+                    "claim_number": 4,
+                    "context": "A method of assisting a borrower in obtaining a loan, the method comprising: (a) receiving, over a network, personal information of a borrower, said personal information including financial information of the borrower, and including information regarding objectives of the borrower in seeking a loan, said personal information obtained, at least in part, via an online form completed by the borrower; (b) selecting, based on said information regarding objectives of the borrower, underwriting criteria to be used to generate a credit grading for the borrower; (c) programmatically generating the credit grading for the borrower using the selected underwriting criteria, wherein the selected underwriting criteria includes objective criteria used by one or more lenders capable of providing the loan; (d) outputting information regarding the credit grading, and information regarding a plurality of lenders capable of providing the loan, to the borrower; and (e) subsequently to steps (a)-(d), in response to receiving authorization from the borrower, sending the credit grading and at least some of the personal information of the borrower to a particular one of said lenders selected by the borrower; wherein steps (a)-(e) are performed by a third party evaluator that does not provide the loan, and is performed such that none of the received personal information of the borrower is released to any of the lenders without specific authorization from the borrower, whereby the method enables the borrower to assess its borrowing ability and to select a lender for providing the loan without exposing any personal information to any of the lenders, wherein the method further comprises the third party evaluator providing a full loan approval to the borrower while the borrower remains anonymous to said lenders, said full loan approval provided in connection with a particular real estate property.",
+                    "dependent_on": null
+                },
+                "5": {
+                    "claim_number": 5,
+                    "context": "A method of assisting a borrower in obtaining a loan, the method comprising: (a) receiving, over a network, personal information of a borrower, said personal information including financial information of the borrower, and including information regarding objectives of the borrower in seeking a loan, said personal information obtained, at least in part, via an online form completed by the borrower; (b) selecting, based on said information regarding objectives of the borrower, underwriting criteria to be used to generate a credit grading for the borrower; (c) programmatically generating the credit grading for the borrower using the selected underwriting criteria, wherein the selected underwriting criteria includes objective criteria used by one or more lenders capable of providing the loan; (d) outputting information regarding the credit grading, and information regarding a plurality of lenders capable of providing the loan, to the borrower; and (e) subsequently to steps (a)-(d), in response to receiving authorization from the borrower, sending the credit grading and at least some of the personal information of the borrower to a particular one of said lenders selected by the borrower; wherein steps (a)-(e) are performed by a third party evaluator that does not provide the loan, and is performed such that none of the received personal information of the borrower is released to any of the lenders without specific authorization from the borrower, whereby the method enables the borrower to assess its borrowing ability and to select a lender for providing the loan without exposing any personal information to any of the lenders, wherein step (d) comprises outputting information to the borrower regarding specific loans offered by said lenders, and wherein the information about specific loans comprises an indication of an amount a lender is paying for money associated with a loan.",
+                    "dependent_on": null
+                },
+                "6": {
+                    "claim_number": 6,
+                    "context": "A method of assisting a borrower in obtaining a loan, the method comprising: (a) receiving, over a network, personal information of a borrower, said personal information including financial information of the borrower, and including information regarding objectives of the borrower in seeking a loan, said personal information obtained, at least in part, via an online form completed by the borrower; (b) selecting, based on said information regarding objectives of the borrower, underwriting criteria to be used to generate a credit grading for the borrower; (c) programmatically generating the credit grading for the borrower using the selected underwriting criteria, wherein the selected underwriting criteria includes objective criteria used by one or more lenders capable of providing the loan; (d) outputting information regarding the credit grading, and information regarding a plurality of lenders capable of providing the loan, to the borrower; and (e) subsequently to steps (a)-(d), in response to receiving authorization from the borrower, sending the credit grading and at least some of the personal information of the borrower to a particular one of said lenders selected by the borrower; wherein steps (a)-(e) are performed by a third party evaluator that does not provide the loan, and is performed such that none of the received personal information of the borrower is released to any of the lenders without specific authorization from the borrower, whereby the method enables the borrower to assess its borrowing ability and to select a lender for providing the loan without exposing any personal information to any of the lenders, wherein the method comprises the third party evaluator selecting and applying the underwriting criteria of a particular lender, as obtained confidentially from said particular lender.",
+                    "dependent_on": null
+                },
+                "7": {
+                    "claim_number": 7,
+                    "context": "The system of claim 6, wherein the information about the loan packages comprises loan term, loan rate, loan conditions and loan closing costs.",
+                    "dependent_on": [
+                        6
+                    ]
+                },
+                "8": {
+                    "claim_number": 8,
+                    "context": "The system of claim 1, wherein the borrower grading module calculates the credit grading, at least in-part, using at least one lender-specific loan evaluation system of a particular lender.",
+                    "dependent_on": [
+                        1
+                    ]
+                },
+                "9": {
+                    "claim_number": 9,
+                    "context": "The system of claim 1, wherein the borrower grading module calculates the credit grading based in part on a borrower credit rating obtained from a credit bureau.",
+                    "dependent_on": [
+                        1
+                    ]
+                },
+                "10": {
+                    "claim_number": 10,
+                    "context": "The system of claim 1, wherein the borrower grading module calculates the credit grading based on objective criteria used by a plurality of lenders.",
+                    "dependent_on": [
+                        1
+                    ]
+                },
+                "11": {
+                    "claim_number": 11,
+                    "context": "The system of claim 1, wherein the computer-implemented system outputs the credit grading to the borrower.",
+                    "dependent_on": [
+                        1
+                    ]
+                },
+                "12": {
+                    "claim_number": 12,
+                    "context": "The system of claim 1, wherein the second interface presents to the borrower closing cost information for a loan, said closing cost information compiled by a third party that does not provide the loan.",
+                    "dependent_on": [
+                        1
+                    ]
+                },
+                "13": {
+                    "claim_number": 13,
+                    "context": "The system of claim 1, wherein the second interface additionally provides functionality for the borrower to apply for a selected loan.",
+                    "dependent_on": [
+                        1
+                    ]
+                },
+                "14": {
+                    "claim_number": 14,
+                    "context": "The system of claim 1, wherein the borrower grading module generates the credit grading using a non-lender-specific credit rating algorithm that is accepted by each of said plurality of lenders.",
+                    "dependent_on": [
+                        1
+                    ]
+                },
+                "15": {
+                    "claim_number": 15,
+                    "context": "The system of claim 1, wherein some of the loan package data stored in the database and displayed via the second interface is provided by a third party that is not one of said lenders.",
+                    "dependent_on": [
+                        1
+                    ]
+                },
+                "16": {
+                    "claim_number": 16,
+                    "context": "The system of claim 1, wherein the computer-implemented system is capable of pre-approving the borrower for the selected loan package on behalf of the lender without exposing any information about the borrower to the lender.",
+                    "dependent_on": [
+                        1
+                    ]
+                },
+                "17": {
+                    "claim_number": 17,
+                    "context": "The system of claim 1, wherein the computer-implemented system is capable of fully approving the borrower for the selected loan package on behalf of the lender.",
+                    "dependent_on": [
+                        1
+                    ]
+                },
+                "18": {
+                    "claim_number": 18,
+                    "context": "The system of claim 1, wherein the computer-implemented system reveals to the borrower monetary amounts the lenders are paying for the funds associated with the loan packages, such that the borrower can take said amounts into consideration in selecting a loan package.",
+                    "dependent_on": [
+                        1
+                    ]
+                },
+                "19": {
+                    "claim_number": 19,
+                    "context": "A computer-implemented method, comprising: receiving, over a computer network, personal data entered by a borrower, said personal data comprising loan evaluation data; automatically generating or causing the generation of a credit grading for the borrower such that the credit grading is dependent upon the loan evaluation data entered by the borrower, said credit grading being distinct from a credit score obtained from a credit bureau, and being generated at least partly using underwriting criteria of one or more lenders; identifying a set of loan packages for which the borrower qualifies based on said credit grading, each loan package including home loan information provided by a lender, and including guaranteed closing cost information for closing services not provided by the lender, wherein the set of loan packages is identified without requiring the borrower to post a request to any lender; outputting information regarding the set of loan packages, including the guaranteed closing cost information for closing services not provided by the lender, to the borrower via a user interface that enables the borrower to at least compare total costs of the loan packages for which the borrower qualifies, said user interface additionally providing functionality for the user to select and apply for one of said loan packages; and in response to a request from the borrower in association with a selected loan package, communicating information of the borrower to a corresponding lender.",
+                    "dependent_on": null
+                },
+                "20": {
+                    "claim_number": 20,
+                    "context": "The method of claim 19, wherein the method further comprises outputting to the borrower an indication of an amount a lender is paying for funds associated with at least one of the loan packages.",
+                    "dependent_on": [
+                        19
+                    ]
+                },
+                "21": {
+                    "claim_number": 21,
+                    "context": "The method of claim 19, wherein the credit grading is generated using a non-lender-specific grading algorithm.",
+                    "dependent_on": [
+                        19
+                    ]
+                },
+                "22": {
+                    "claim_number": 22,
+                    "context": "The method of claim 19, wherein the method is performed by a computer system operated by a third party evaluator that is independent of said lenders, and the method comprises automatically applying the underwriting criteria, at least in part, by executing software confidentially provided to the third party evaluator by at least one of said lenders.",
+                    "dependent_on": [
+                        19
+                    ]
+                },
+                "23": {
+                    "claim_number": 23,
+                    "context": "The method of claim 19, further comprising pre-approving the borrower for the selected loan package on behalf of the lender without exposing any information of the borrower to the lender.",
+                    "dependent_on": [
+                        19
+                    ]
+                },
+                "24": {
+                    "claim_number": 24,
+                    "context": "The method of claim 19, further comprising approving the borrower for the selected loan package on behalf of the lender.",
+                    "dependent_on": [
+                        19
+                    ]
+                },
+                "25": {
+                    "claim_number": 25,
+                    "context": "The system of claim 1, wherein the computer-implemented system communicates the personal loan evaluation information to the lender in association with an anonymous identifier of the borrower.",
+                    "dependent_on": [
+                        1
+                    ]
+                },
+                "26": {
+                    "claim_number": 26,
+                    "context": "The system of claim 1, wherein the computer-implemented system is configured to communicate credit information of the borrower to said lender while concealing the identity of the borrower.",
+                    "dependent_on": [
+                        1
+                    ]
+                },
+                "27": {
+                    "claim_number": 27,
+                    "context": "The system of claim 1, wherein the computer-implemented system additionally enables the borrower to obtain a pre-approval from the lender for the selected loan package while remaining anonymous to the lender, said pre-approval including guaranteed loan terms for the selected loan package.",
+                    "dependent_on": [
+                        1
+                    ]
+                },
+                "28": {
+                    "claim_number": 28,
+                    "context": "The system of claim 27, wherein the selected loan package is a mortgage-based home loan, and the pre-approval additionally includes guaranteed closing costs for the selected loan package.",
+                    "dependent_on": [
+                        27
+                    ]
+                },
+                "29": {
+                    "claim_number": 29,
+                    "context": "The system of claim 1, wherein the computer-implemented system is further capable of interacting with said lender to enable the borrower to anonymously obtain approval for the selected loan package.",
+                    "dependent_on": [
+                        1
+                    ]
+                },
+                "30": {
+                    "claim_number": 30,
+                    "context": "The system of claim 1, wherein the computer-implemented system additionally provides functionality for the borrower to select one or more third party vendors to provide closing services associated with the selected loan package.",
+                    "dependent_on": [
+                        1
+                    ]
+                },
+                "31": {
+                    "claim_number": 31,
+                    "context": "A computerized method of reducing discriminatory lending, comprising: obtaining personal and financial information of a borrower seeking a home loan; generating a credit grading for the borrower, at least in part, via execution of software that automatically applies underwriting criteria of at least one lender to the financial information of the borrower, wherein the credit grading is generated without exposing any of said financial information of the borrower to any lender; using at least the credit grading to identify a plurality of home loans for which the borrower qualifies, including home loans offered by multiple different lenders, without exposing any information of the borrower to any lender; outputting information to the borrower regarding the plurality of home loans, said information including interest rates and total costs of said home loans, said total costs including costs of closing services not provided by the corresponding lenders; and approving the borrower for a selected home loan of said plurality of home loans while the borrower remains anonymous to the lender offering the selected home loan; wherein the method inhibits discriminatory lending by enabling the borrower to obtain approval for the selected home loan while remaining anonymous to the lender.",
+                    "dependent_on": null
+                },
+                "32": {
+                    "claim_number": 32,
+                    "context": "The method of claim 31, wherein the step of approving the borrower comprises guaranteeing a total cost of the loan, including closing costs.",
+                    "dependent_on": [
+                        31
+                    ]
+                },
+                "33": {
+                    "claim_number": 33,
+                    "context": "The method of claim 31, wherein the step of approving the borrower comprises exposing the financial information of the borrower to the lender while concealing the identity of the borrower.",
+                    "dependent_on": [
+                        31
+                    ]
+                },
+                "34": {
+                    "claim_number": 34,
+                    "context": "The method of claim 31, wherein the step of outputting information to the borrower comprises offering guaranteed closing costs to the borrower in connection with particular home loans.",
+                    "dependent_on": [
+                        31
+                    ]
+                },
+                "35": {
+                    "claim_number": 35,
+                    "context": "The method of claim 31, wherein the method is performed by a third party evaluator entity that is not one of said lenders.",
+                    "dependent_on": [
+                        31
+                    ]
+                },
+                "36": {
+                    "claim_number": 36,
+                    "context": "The method of claim 35, wherein the step of generating the credit grading is performed via execution of software confidentially provided to the third party evaluated by at least one of said lenders.",
+                    "dependent_on": [
+                        35
+                    ]
+                },
+                "37": {
+                    "claim_number": 37,
+                    "context": "The system of claim 1, wherein the computer system is a distributed system.",
+                    "dependent_on": [
+                        1
+                    ]
+                }
+            },
+            "extra": [],
+            "cited_claims": [
+                6
+            ]
+        }
+    ],
+    "html": "<div id=\"gs_opinion\">\n<center><b>811 F.3d 1314 (2016)</b></center>\n<center><h3 id=\"gsl_case_name\">MORTGAGE GRADER, INC., Plaintiff-Appellant<br/>\r\nv.<br/>\r\nFIRST CHOICE LOAN SERVICES INC., NYLX, Inc., Defendants-Appellees.</h3></center>\n<center><a href=\"/scholar?scidkt=2599381264014585507&amp;as_sdt=2&amp;hl=en&amp;oe=ASCII\">No. 2015-1415.</a></center>\n<center><p><b>United States Court of Appeals, Federal Circuit.</b></p></center>\n<center>January 20, 2016.</center>\n<p><a class=\"gsl_pagenum\" href=\"#p1317\">1317</a><a class=\"gsl_pagenum2\" href=\"#p1317\" id=\"p1317\">*1317</a> Appeal from the United States District Court for the Central District of California in No. 8:13-cv-00043-AG-AN, Judge Andrew J. Guilford.</p>\n<p>Craig R. Kaufman, TechKnowledge Law Group LLP, Redwood City, CA, argued for plaintiff-appellant. Also represented by Michael Chaocha Ting.</p>\n<p>Rebecca Jean Stempien Coyle, Levy &amp; Grandinetti, Washington, DC, argued for defendants-appellees. Also represented by Paul Grandinetti.</p>\n<p>Before O'MALLEY and TARANTO, Circuit Judges, and STARK, Chief District Judge.<sup><a class=\"gsl_hash\" href=\"#[1]\" name=\"r[1]\">[*]</a></sup></p>\n<p>STARK, Chief District Judge.</p>\n<p>This case involves patent claims directed to systems and methods for assisting borrowers to obtain loans. Plaintiff-Appellant Mortgage Grader, Inc. (\"Mortgage Grader\") appeals two decisions of the district court. First, Mortgage Grader appeals the district court's denial of its motion to strike Defendants-Appellees First Choice Loan Services, Inc. and NYLX, <a class=\"gsl_pagenum\" href=\"#p1318\">1318</a><a class=\"gsl_pagenum2\" href=\"#p1318\" id=\"p1318\">*1318</a> Inc.'s (\"Appellees\") patent-ineligibility defense. Appellees raised patent ineligibility as a defense in their answer, then dropped it in their initial invalidity contentions, only to add it back in their final invalidity contentions. <i>See Mortgage Grader, Inc. v. Costco Wholesale Corp.,</i> 2014 WL 10763261, at *6 (C.D.Cal. Oct. 27, 2014) (\"<i>Mortgage Grader I</i>\"). Second, Mortgage Grader appeals the district court's grant of Appellees' motion for summary judgment that the asserted claims are patent-ineligible. <i>See </i><a href=\"/scholar_case?case=7727520732028221301&amp;hl=en&amp;oe=ASCII&amp;as_sdt=6,34\"><i>Mortgage Grader, Inc. v. Costco Wholesale Corp.,</i> 89 F.Supp.3d 1055, 1065 (C.D.Cal.2015)</a> (\"<i>Mortgage Grader II</i>\"). Mortgage Grader contends that the district court improperly resolved factual disputes against it and erred in its application of 35 U.S.C. \u00a7 101 (\"\u00a7 101\").</p>\n<p>For the reasons set forth below, we affirm.</p>\n<p><h2>BACKGROUND</h2></p>\n<p>The patents-in-suit, U.S. Patent Nos. 7,366,694 (\"'694 patent\") and 7,680,728 (\"'728 patent\"), relate to \"financial transactions including a method for a borrower to evaluate and/or obtain financing, e.g., a loan.\" '694 patent col. 1, ll. 19-21; '728 patent col. 1, ll. 17-19. The '694 patent is a continuation-in-part of the '728 patent.<sup><a class=\"gsl_hash\" href=\"#[2]\" name=\"r[2]\">[1]</a></sup> Mortgage Grader asserts claims 1, 2, and 19 of the '694 patent and claim 6 of the '728 patent.</p>\n<p>Claim 1 of the '694 patent is representative:</p>\n<blockquote>A computer-implemented system for enabling borrowers to anonymously shop for loan packages offered by a plurality of lenders, the system comprising:</blockquote>\n<blockquote>a database that stores loan package data specifying loan packages for home loans offered by the lenders, the loan package data specifying, for each of the loan packages, at least a loan type, an interest rate, and a required borrower credit grading; and</blockquote>\n<blockquote>a computer system that provides:</blockquote>\n<blockquote>a first interface that allows the lenders to securely upload at least some of the loan package data for their respective loan packages to the database over a computer network; and</blockquote>\n<blockquote>a second interface that prompts a borrower to enter personal loan evaluation information, and invokes, on a computer, a borrower grading module which uses at least the entered personal loan evaluation information to calculate a credit grading for the borrower, said credit grading being distinct from a credit score of the borrower, and being based on underwriting criteria used by at least some of said lenders;</blockquote>\n<blockquote>wherein the second interface provides functionality for the borrower to search the database to identify a set of loan packages for which the borrower qualifies based on the credit grading, and to compare the loan packages within the set, including loan type and interest rate, while remaining anonymous to each of the lenders and without having to post a request to any of the lenders, said second interface configured to display to the borrower an indication of a total cost of each loan package in the set, said total cost including costs of closing services not provided by corresponding lenders.</blockquote>\n<p>Claim 2 of the '694 patent depends from claim 1, adding only that \"the second interface comprises a set of web pages of a web site.\" Independent claim 19 recites a \"computer-implemented method\" comprising certain steps. Claim 6 of the '728 <a class=\"gsl_pagenum\" href=\"#p1319\">1319</a><a class=\"gsl_pagenum2\" href=\"#p1319\" id=\"p1319\">*1319</a> patent recites a \"method of assisting a borrower in obtaining a loan\" comprising certain steps.</p>\n<p>In January 2013, Mortgage Grader sued Costco Wholesale Corporation (\"Costco\") for infringement of the patents-in-suit.<sup><a class=\"gsl_hash\" href=\"#[3]\" name=\"r[3]\">[2]</a></sup> On May 23, 2013, Mortgage Grader amended its complaint to add Appellees as defendants. After the parties stipulated to extend the time for Appellees to respond to the amended complaint, Appellees filed their answer on October 14, 2013. In it, they asserted as affirmative defenses and counterclaims that both the '694 and '728 patents failed to claim patent-eligible subject matter.</p>\n<p>In the meantime, on August 30, 2013, Judge Andrew J. Guilford of the Central District of California, who presided over the proceedings below, ordered that his recently issued Standing Patent Rules (\"S.P.R.s\") would apply to this case. Judge Guilford developed his S.P.R.s \"based largely on information obtained from over 100 patent practitioners and professors, a review of all the other local patent rules, and a review of related literature.\" J.A. 64. The S.P.R.s are intended \"to reduce transaction costs and increase procedural predictability,\" while also being as \"outcome neutral and as concise as possible.\" <i>Id.</i></p>\n<p>Pertinent to this appeal is the S.P.R.s' requirement that a party opposing a claim of patent infringement must serve invalidity contentions. A party's initial invalidity contentions are due after the court conducts a scheduling conference \u2014 a conference which is held after the party asserting infringement produces documents and discloses its asserted claims and infringement contentions. Pursuant to S.P.R. 2.5, the initial invalidity contentions must include, <i>inter alia,</i> \"[a]ny grounds of invalidity based on 35 U.S.C. \u00a7 101 ... of any of the asserted claims.\" J.A. 67. Consistent with S.P.R. 2.5, on December 20, 2013, Appellees served invalidity contentions, which included the statement: \"Defendants do not present any grounds of invalidity based on 35 U.S.C. \u00a7 101 ... of any of the asserted claims at this time. The final claim construction may require such an assertion of invalidity.\" J.A. 332-33.</p>\n<p>The S.P.R.s impose further obligations that are triggered by the district court's issuance of an order construing claim terms. In particular, the party alleging infringement must serve final infringement contentions and expert reports regarding issues on which it bears the burden of proof. Thereafter, a party opposing a claim of patent infringement must serve its final invalidity contentions and expert reports regarding issues on which it bears the burden of proof. In particular, S.P.R. 4.2.2 requires service of:</p>\n<blockquote>A statement [by the party] that its S.P.R. 2.5 contentions are its Final Invalidity Contentions, or in the alternative, Final Invalidity Contentions that amend its S.P.R. 2.5 contentions. A party serving Final Invalidity Contentions that amend its prior contentions shall also provide a redline against its prior contentions and a statement of reasons for each amendment. <i>Amendments are subject to a good cause standard</i> but do not require prior Court approval where they are made due to a claim construction by the Court different from that proposed by the party seeking amendment, or recent discovery of material prior art that was not discovered, despite diligent efforts, before the service of the [initial] Invalidity Contentions.</blockquote>\n<p>J.A. 71 (emphasis added).</p>\n<p>Here, the district court issued its claim construction order on April 18, 2014, and <a class=\"gsl_pagenum\" href=\"#p1320\">1320</a><a class=\"gsl_pagenum2\" href=\"#p1320\" id=\"p1320\">*1320</a> then agreed to the parties' request to extend certain deadlines. Appellees timely served their final invalidity contentions on August 15, 2014. In their final contentions, Appellees stated:</p>\n<blockquote>The Defendants informed the Plaintiff's counsel of the intention to challenge the validity of the '694 and '728 patents under <a href=\"/scholar_case?case=7784134755284986738&amp;hl=en&amp;oe=ASCII&amp;as_sdt=6,34\"><i>Alice Corp. Pty., Ltd. v. CLS Bank International et al.</i> [___ U.S. ___], 134 S.Ct. 2347 [189 L.Ed.2d 296]</a> (2014). The use of the Elite Agents formal application, which was rejected in part under 35 U.S.C. \u00a7 101, and the newspaper Mortgage Rate Charts are expected to be the primary basis for this challenge.[<sup><a class=\"gsl_hash\" href=\"#[4]\" name=\"r[4]\">[3]</a></sup>] The good cause for this revision to this statement of Final Invalidity Contentions is caused by the Supreme Court's decision issuing after the Defendant[s'] Initial Invalidity Contentions.</blockquote>\n<p>J.A. 151.</p>\n<p>Mortgage Grader moved to strike Appellees' \u00a7 101 defense, arguing that Appellees had not shown good cause for injecting the defense back into the case after dropping it in their initial invalidity contentions. Appellees responded that the Supreme Court's decision in <i>Alice,</i> which was issued on June 19, 2014, constituted good cause for the amendment. The district court agreed with Appellees and denied Mortgage Grader's motion. <i>Mortgage Grader I,</i> 2014 WL 10763261, at *7.</p>\n<p>Thereafter, Appellees filed a motion for summary judgment that the asserted claims are patent-ineligible under \u00a7 101. Both sides filed expert reports in support of their \u00a7 101 positions. In analyzing the motion, the district court applied the two-part test for patent eligibility set forth in <a href=\"/scholar_case?case=16025237560214135711&amp;hl=en&amp;oe=ASCII&amp;as_sdt=6,34\"><i>Mayo Collaborative Services v. Prometheus Laboratories, Inc.,</i> ___ U.S. ___, 132 S.Ct. 1289, 1297, 182 L.Ed.2d 321 (2012),</a> as clarified by <i>Alice.</i> The court concluded that all of the asserted claims are directed to the abstract idea of \"anonymous loan shopping\" and that they include no \"inventive concept.\" <a href=\"/scholar_case?case=7727520732028221301&amp;hl=en&amp;oe=ASCII&amp;as_sdt=6,34\"><i>Mortgage Grader II,</i> 89 F.Supp.3d at 1063-65</a>. Accordingly, the court entered summary judgment for Appellees, as Mortgage Grader could not prove that Appellees infringed any valid patent claim.</p>\n<p>Mortgage Grader filed a timely appeal. We have jurisdiction under 28 U.S.C. \u00a7 1295(a)(1).</p>\n<p><h2>DISCUSSION</h2></p>\n<p>Mortgage Grader asks us to reverse the district court's grant of summary judgment for Appellees and remand this case for further proceedings. Specifically, Mortgage Grader contends that the district court should have granted its motion to strike, thereby precluding Appellees from proceeding with their \u00a7 101 defense. Mortgage Grader also insists that the district court erred in granting summary judgment by improperly resolving factual disputes and then misapplying the <i>Mayo/Alice</i> test for patent eligibility. We address each of these issues in turn.</p>\n<p><h2>I</h2></p>\n<p>Judge Guilford's Standing Patent Rules are similar to the Patent Local Rules adopted by the Northern District of California and many other districts. Like Patent Local Rules, the S.P.R.s \"are essentially a series of case management orders that fall within a district court's broad power to control its docket and enforce its order.\" <a href=\"/scholar_case?case=9974267406665800057&amp;hl=en&amp;oe=ASCII&amp;as_sdt=6,34\"><i>Keranos, LLC v. Silicon Storage Tech., Inc.,</i> 797 F.3d 1025, 1035 (Fed.Cir. </a><a class=\"gsl_pagenum\" href=\"#p1321\">1321</a><a class=\"gsl_pagenum2\" href=\"#p1321\" id=\"p1321\">*1321</a><a href=\"/scholar_case?case=9974267406665800057&amp;hl=en&amp;oe=ASCII&amp;as_sdt=6,34\"> 2015)</a>. District courts have inherent power to manage their own docket, <i>see, e.g., </i><a href=\"/scholar_case?case=17099742770462845011&amp;hl=en&amp;oe=ASCII&amp;as_sdt=6,34\"><i>Ryan v. Gonzales,</i> ___ U.S. ___, 133 S.Ct. 696, 708, 184 L.Ed.2d 528 (2013)</a>; <a href=\"/scholar_case?case=9583298043089919985&amp;hl=en&amp;oe=ASCII&amp;as_sdt=6,34\"><i>Ethicon, Inc. v. Quigg,</i> 849 F.2d 1422, 1426 (Fed. Cir.1988),</a> and are authorized to \"consider and take appropriate action\" to facilitate the \"just, speedy, and inexpensive disposition\" of all matters before them. Fed. R.Civ.P. 16; <i>see also</i> Fed.R.Civ.P. 1. Judge Guilford's creation and adoption of his S.P.R.s fall squarely within this broad authority.</p>\n<p>Since the S.P.R.s are \"unique to patent cases and have a close relationship to enforcement of substantive patent law, we proceed to review their validity and interpretation under Federal Circuit law.\" <a href=\"/scholar_case?case=17670641980113302580&amp;hl=en&amp;oe=ASCII&amp;as_sdt=6,34\"><i>O2 Micro Int'l Ltd. v. Monolithic Power Sys., Inc.,</i> 467 F.3d 1355, 1364-65 (Fed. Cir.2006)</a>. \"[T]his court defers to the district court when interpreting and enforcing local rules so as not to frustrate local attempts to manage patent cases according to prescribed guidelines.\" <a href=\"/scholar_case?case=10159016241767877518&amp;hl=en&amp;oe=ASCII&amp;as_sdt=6,34\"><i>Genentech, Inc. v. Amgen, Inc.,</i> 289 F.3d 761, 774 (Fed.Cir. 2002)</a>. In particular, a \"district court's application of its local rules is reviewed under the standard of abuse of discretion.\" <a href=\"/scholar_case?case=9974267406665800057&amp;hl=en&amp;oe=ASCII&amp;as_sdt=6,34\"><i>Keranos,</i> 797 F.3d at 1035</a>.</p>\n<blockquote>In reviewing a district court's exercise of discretion, this court determines whether (1) the decision was clearly unreasonable, arbitrary, or fanciful; (2) the decision was based on an erroneous conclusion of law; (3) the court's findings were clearly erroneous; or (4) the record contains no evidence upon which the court rationally could have based its decision.</blockquote>\n<p><a href=\"/scholar_case?case=10159016241767877518&amp;hl=en&amp;oe=ASCII&amp;as_sdt=6,34\"><i>Genentech,</i> 289 F.3d at 774</a> (internal quotation marks omitted).</p>\n<p>S.P.R. 4.2.2 requires \"good cause\" for amendments to invalidity contentions submitted as final invalidity contentions (other than amendments based on claim construction or recent discovery of material prior art). J.A. 71.<sup><a class=\"gsl_hash\" href=\"#[5]\" name=\"r[5]\">[4]</a></sup> In this context, a prerequisite to good cause is a showing of diligence. <i>See </i><a href=\"/scholar_case?case=17670641980113302580&amp;hl=en&amp;oe=ASCII&amp;as_sdt=6,34\"><i>O2 Micro,</i> 467 F.3d at 1366</a>. The party seeking to amend its contentions bears the burden of proving it acted with diligence. <i>See id.</i></p>\n<p>In applying S.P.R. 4.2.2, the district court found that generally a party cannot claim diligence when it includes a defense in its answer, fails to include the defense in initial invalidity contentions, and many months later adds the defense to its final contentions. <i>See Mortgage Grader I,</i> 2014 WL 10763261, at *6. While the court acknowledged that \"an argument can be made that <i>Alice</i> is only a modest advance,\" it concluded that \"<i>Alice</i> did provide significant additional clarity on the effect, or lack of effect, of requiring the use of a computer in the claims.\" <i>Id.</i> at *7. Ultimately, the court concluded that, \"[i]n short, <i>Alice</i> represents a big enough change to justify including a new \u00a7 101 argument in Defendants' Final Invalidity Contentions.\" <i>Id.</i></p>\n<p>Mortgage Grader argues that the district court abused its discretion by failing to strike Appellees' \u00a7 101 defense from their final invalidity contentions. Mortgage Grader's primary basis for this argument is its claim that the Supreme Court's decision in <i>Alice</i> neither created a new defense nor changed the law. On these grounds, Mortgage Grader claims the decision <a class=\"gsl_pagenum\" href=\"#p1322\">1322</a><a class=\"gsl_pagenum2\" href=\"#p1322\" id=\"p1322\">*1322</a> in <i>Alice</i> cannot be a basis for finding good cause to amend invalidity contentions. We find no abuse of discretion in the court's ruling.</p>\n<p>In <i>Alice,</i> the Supreme Court held that \"merely requiring generic computer implementation fails to transform [an] abstract idea into a patent-eligible invention.\" <a href=\"/scholar_case?case=7784134755284986738&amp;hl=en&amp;oe=ASCII&amp;as_sdt=6,34\">134 S.Ct. at 2352</a>. We recognized the significance of <i>Alice</i> in <a href=\"/scholar_case?case=15081369718276515741&amp;hl=en&amp;oe=ASCII&amp;as_sdt=6,34\"><i>buySAFE, Inc. v. Google, Inc.,</i> 765 F.3d 1350, 1354-55 (Fed.Cir. 2014),</a> in which we stated that <i>Alice</i> \"made clear that a claim directed to an abstract idea does not move into \u00a7 101 eligibility territory by merely requiring generic computer implementation\" (internal quotation marks omitted).</p>\n<p>The impact of <i>Alice</i> is also illustrated by our decision in <a href=\"/scholar_case?case=9815140750432136306&amp;hl=en&amp;oe=ASCII&amp;as_sdt=6,34\"><i>Ultramercial, Inc. v. Hulu, LLC,</i> 772 F.3d 709 (Fed.Cir.2014)</a> (\"<i>Ultramercial III</i>\"). Ultramercial had sued WildTangent for infringement of U.S. Patent No. 7,346,545, a patent directed to allowing consumers to view copyrighted media products on the Internet at no cost in exchange for viewing an advertisement. <i>See id.</i> at 712. When the case was first before us, in 2011, we reversed the district court's grant of WildTangent's Rule 12(b)(6) motion to dismiss, holding that \"as a practical application of the general concept of advertising as currency and an improvement to prior art technology, the claimed invention is not so manifestly abstract as to override the statutory language of \u00a7 101.\" <a href=\"/scholar_case?case=1016184849563688785&amp;hl=en&amp;oe=ASCII&amp;as_sdt=6,34\"><i>Ultramercial, LLC v. Hulu, LLC,</i> 657 F.3d 1323, 1330 (Fed.Cir. 2011)</a> (\"<i>Ultramercial I</i>\") (internal quotation marks omitted). The Supreme Court granted WildTangent's petition for certiorari, vacated our order, and remanded for further consideration in light of <i>Mayo. </i><a href=\"/scholar_case?case=9815140750432136306&amp;hl=en&amp;oe=ASCII&amp;as_sdt=6,34\"><i>Ultramercial III,</i> 772 F.3d at 713</a>. On remand, we again reversed the district court, holding yet again that the claims were patent-eligible. <a href=\"/scholar_case?case=9815140750432136306&amp;hl=en&amp;oe=ASCII&amp;as_sdt=6,34\"><i>Ultramercial v. Hulu,</i> 722 F.3d 1335, 1354 (Fed.Cir.2013) (\"<i>Ultramercial II</i>\")</a>. Once more, the Supreme Court granted WildTangent's petition for certiorari, vacated our order, and remanded, this time for further consideration in light of <i>Alice. Id.</i> On this further remand, with the \"added benefit of the Supreme Court's reasoning in <i>Alice,</i>\" we affirmed the district court and found the claims to be not patent-eligible. <i>Id.</i> Our conclusion was expressly based on <i>Alice's</i> holding that \"adding a computer to otherwise conventional steps does not make an invention patent-eligible.\" <i>Id.</i> at 713, 716-17.</p>\n<p><i>Ultramercial III</i> demonstrates that a \u00a7 101 defense previously lacking in merit may be meritorious after Alice. This scenario is most likely to occur with respect to patent claims that involve implementations of economic arrangements using generic computer technology, as the claims do here. For example, the asserted claims of the '694 patent require use of a \"computer system\" or \"computer network\" for facilitating anonymous loan shopping, and the asserted claim of the '728 patent requires \"programmatically generating\" and uses a \"network\" for shopping for loans. In this context, it was not an abuse of discretion to allow Appellees to inject a \u00a7 101 defense into the case after <i>Alice.</i></p>\n<p>Mortgage Grader's arguments to the contrary are unpersuasive. First, Mortgage Grader points to this Court's statement in a non-precedential opinion, <a class=\"gsl_co_link\" href=\"/scholar_case?about=11223513173496719628&amp;hl=en&amp;oe=ASCII&amp;as_sdt=6,34\"><i>Smartflash LLC v. Apple Inc.,</i> 621 Fed.Appx. 995, 1002 (Fed.Cir.2015),</a> that \"<i>Alice</i> did not create a new \u00a7 101 defense, but rather clarified \u00a7 101 jurisprudence.\" As we have just explained, even an \"old\" \u00a7 101 defense may enjoy renewed vigor in light of <i>Alice.</i> More importantly, our statement in <i>Smartflash</i> was in an entirely different context: review of denial of a motion to stay pending Covered Business Method review, where the alleged infringer waited until four months after <i>Alice</i> was decided <a class=\"gsl_pagenum\" href=\"#p1323\">1323</a><a class=\"gsl_pagenum2\" href=\"#p1323\" id=\"p1323\">*1323</a> (by which time a jury trial had been completed) and argued that \"the stage of litigation facing the court is irrelevant to its right to a stay.\" <i>Id.</i> We found no abuse of discretion in the trial court's decision to deny a stay in such circumstances. Here, we conclude similarly that the court did not abuse its discretion in finding that Appellees acted diligently by adding the \u00a7 101 defense just two months after <i>Alice</i> came down, satisfying the \"good cause\" standard imposed by S.P.R. 4.2.2. The standard of review employed in both <i>Smartflash</i> and here cannot be removed from the results reached in each case \u2014 in neither instance did the district court abuse the broad discretion afforded it.</p>\n<p>Next, Mortgage Grader argues we should reverse the district court for failing to consider whether Mortgage Grader would be prejudiced by adding Appellees' \u00a7 101 defense back into the case. Mortgage Grader concedes that it failed to present arguments related to prejudice to the district court; thus, its contention here is waived. <i>See </i><a href=\"/scholar_case?case=8676289545795279718&amp;hl=en&amp;oe=ASCII&amp;as_sdt=6,34\"><i>Triton Tech of Tex., LLC v. Nintendo of Am., Inc.,</i> 753 F.3d 1375, 1379-80 (Fed.Cir.2014)</a>. In any event, S.P.R. 4.2.2 does not reference prejudice \u2014 unlike S.P.R. 4.3, relating to amendment or supplementation of expert reports, which \"are presumptively prejudicial,\" J.A. 71, and unlike several Patent Local Rules in the Northern District of California, <i>see, e.g., </i><a class=\"gsl_co_link\" href=\"/scholar_case?about=5989665546938472060&amp;hl=en&amp;oe=ASCII&amp;as_sdt=6,34\"><i>Apple, Inc. v. Samsung Elecs. Co.,</i> 2014 WL 1322028, at *2 (N.D.Cal. Mar. 28, 2014)</a> (discussing Patent Local Rule 3-6 related to amending contentions).<sup><a class=\"gsl_hash\" href=\"#[6]\" name=\"r[6]\">[5]</a></sup> The district court did not abuse its discretion by failing to consider prejudice when it applied a rule that does not require consideration of prejudice. Additionally, Mortgage Grader has done nothing to persuade us that it was unfairly prejudiced by Appellees' amendment, as it has identified nothing (e.g., discovery, claim construction) it would have done differently if it had been given more time to respond to the \u00a7 101 defense. At the time Appellees amended their final invalidity contentions, \"(1) expert depositions had not yet occurred, (2) Mortgage Grader had its full length of time to prepare rebuttal expert reports, and (3) there was still approximately a month and a half until the close of discovery.\" J.A. 894. Mortgage Grader had adequate time to develop its response to the \u00a7 101 defense.</p>\n<p>Thus, the district court did not abuse its discretion. We affirm the denial of Mortgage Grader's motion to strike.</p>\n<p><h2>II</h2></p>\n<p>Having concluded that it was proper for the district court to allow Appellees to proceed with their \u00a7 101 defense, we must next determine whether the district court properly granted summary judgment that the patents-in-suit are not patent-eligible. We review a grant of summary judgment under the law of the regional circuit. <a href=\"/scholar_case?case=17579289358787666465&amp;hl=en&amp;oe=ASCII&amp;as_sdt=6,34\"><i>Landmark Screens, LLC v. Morgan, Lewis, &amp; Bockius, LLP,</i> 676 F.3d 1354, 1361 (Fed.Cir.2012)</a>. \"The Ninth Circuit reviews the district court's grant of summary judgment de novo.\" <a href=\"/scholar_case?case=2429554177212316805&amp;hl=en&amp;oe=ASCII&amp;as_sdt=6,34\"><i>Ultimax Cement Mfg. Corp. v. CTS Cement Mfg. Corp.,</i> 587 F.3d 1339, 1355 (Fed.Cir. 2009)</a> (citing <a href=\"/scholar_case?case=7162630753462366064&amp;hl=en&amp;oe=ASCII&amp;as_sdt=6,34\"><i>Universal Health Servs., Inc. v. Thompson,</i> 363 F.3d 1013, 1019 (9th Cir.2004)</a>). \"We must determine, viewing the evidence in the light most favorable to the nonmoving party, whether there are any genuine issues of material fact and <a class=\"gsl_pagenum\" href=\"#p1324\">1324</a><a class=\"gsl_pagenum2\" href=\"#p1324\" id=\"p1324\">*1324</a> whether the district court correctly applied the relevant substantive law.\" <a href=\"/scholar_case?case=7162630753462366064&amp;hl=en&amp;oe=ASCII&amp;as_sdt=6,34\"><i>Universal Health,</i> 363 F.3d at 1019</a>.</p>\n<p><h2>A</h2></p>\n<p>Under \u00a7 101, \"[w]hoever invents or discovers any new and useful process, machine, manufacture, or composition of matter, or any new and useful improvement thereof, may obtain a patent therefor, subject to the conditions and requirements of this title.\" There are three exceptions to \u00a7 101's broad patent-eligibility principles: \"laws of nature, physical phenomena, and abstract ideas.\" <a href=\"/scholar_case?case=3095713882675765791&amp;hl=en&amp;oe=ASCII&amp;as_sdt=6,34\"><i>Diamond v. Chakrabarty,</i> 447 U.S. 303, 309, 100 S.Ct. 2204, 65 L.Ed.2d 144 (1980)</a>. In <i>Mayo,</i> the Supreme Court set out a two-step \"framework for distinguishing patents that claim laws of nature, natural phenomena, and abstract ideas from those that claim patent-eligible applications of those concepts.\" <a href=\"/scholar_case?case=7784134755284986738&amp;hl=en&amp;oe=ASCII&amp;as_sdt=6,34\"><i>Alice,</i> 134 S.Ct. at 2355</a>. First, courts must determine if the claims at issue are directed to a patent-ineligible concept. <i>See id.</i> If not, the inquiry ends, as the claims are patent-eligible. But if so, the next step is to look for an \"`inventive concept' \u2014 i.e., an element or combination of elements that is sufficient to ensure that the patent in practice amounts to significantly more than a patent upon the [ineligible concept] itself.\" <i>Id.</i> (internal quotation marks omitted).</p>\n<p>The district court carefully and correctly applied this two-step framework to the patents-in-suit.<sup><a class=\"gsl_hash\" href=\"#[7]\" name=\"r[7]\">[6]</a></sup> Regarding step 1, we agree with the district court that the asserted claims are directed to the abstract idea of \"anonymous loan shopping.\" <a href=\"/scholar_case?case=7727520732028221301&amp;hl=en&amp;oe=ASCII&amp;as_sdt=6,34\"><i>Mortgage Grader II,</i> 89 F.Supp.3d at 1063</a>. The claim limitations, analyzed individually and \"as a whole,\" <a href=\"/scholar_case?case=7784134755284986738&amp;hl=en&amp;oe=ASCII&amp;as_sdt=6,34\"><i>Alice,</i> 134 S.Ct. at 2359,</a> recite nothing more than the collection of information to generate a \"credit grading\" and to facilitate anonymous loan shopping. As the district court explained, the claims specify that \"the borrower is anonymous to the lender until the borrower has been informed of the cost of the loan based on the borrower's credit grading, and the borrower then chooses to expose its identity to a lender.\" <a href=\"/scholar_case?case=7727520732028221301&amp;hl=en&amp;oe=ASCII&amp;as_sdt=6,34\"><i>Mortgage Grader II,</i> 89 F.Supp.3d at 1063</a>. The series of steps covered by the asserted claims \u2014 borrower applies for a loan, a third party calculates the borrower's credit grading, lenders provide loan pricing information to the third party based on the borrower's credit grading, and only thereafter (at the election of the borrower) the borrower discloses its identity to a lender \u2014 could all be performed by humans without a computer. <i>Cf. </i><a href=\"/scholar_case?case=13362075908439349478&amp;hl=en&amp;oe=ASCII&amp;as_sdt=6,34\"><i>CyberSource Corp. v. Retail Decisions, Inc.,</i> 654 F.3d 1366, 1373 (Fed.Cir.2011)</a> (\"[C]omputational methods which can be performed entirely in the human mind are the types of methods that embody the `basic tools of scientific and technological work' that are free to all men and reserved exclusively to none.\") (quoting <a href=\"/scholar_case?case=14331103368635133702&amp;hl=en&amp;oe=ASCII&amp;as_sdt=6,34\"><i>Gottschalk v. Benson,</i> 409 U.S. 63, 67, 93 S.Ct. 253, 34 L.Ed.2d 273 (1972)</a>).</p>\n<p>Because the claims are directed to an abstract idea, the claims must include an \"inventive concept\" in order to be patent-eligible. No such inventive concept is present here. Instead, the claims \"add\" only generic computer components such as an \"interface,\" \"network,\" and \"database.\" These generic computer components do not satisfy the inventive concept <a class=\"gsl_pagenum\" href=\"#p1325\">1325</a><a class=\"gsl_pagenum2\" href=\"#p1325\" id=\"p1325\">*1325</a> requirement. <i>See </i><a href=\"/scholar_case?case=3107974128011903263&amp;hl=en&amp;oe=ASCII&amp;as_sdt=6,34\"><i>Intellectual Ventures I LLC v. Capital One Bank (USA),</i> 792 F.3d 1363, 1370 (Fed.Cir.2015)</a> (\"[T]he interactive interface limitation is a generic computer element.\"); <i>buySAFE,</i> <a href=\"/scholar_case?case=15081369718276515741&amp;hl=en&amp;oe=ASCII&amp;as_sdt=6,34\">765 F.3d at 1355</a> (sending information over network is \"not even arguably inventive\"); <a href=\"/scholar_case?case=8000824258029585764&amp;hl=en&amp;oe=ASCII&amp;as_sdt=6,34\"><i>Accenture Global Servs. GmbH v. Guidewire Software, Inc.,</i> 728 F.3d 1336, 1344 (Fed.Cir. 2013)</a> (database components did not make claims patent-eligible). \"[A]fter <i>Alice,</i> there can remain no doubt: recitation of generic computer limitations does not make an otherwise ineligible claim patent-eligible. The bare fact that a computer exists in the physical rather than purely conceptual realm is beside the point.\" <a href=\"/scholar_case?case=15961815186343228931&amp;hl=en&amp;oe=ASCII&amp;as_sdt=6,34\"><i>DDR Holdings, LLC v. Hotels.com, L.P.,</i> 773 F.3d 1245, 1256 (Fed.Cir.2014)</a> (internal citations and quotation marks omitted).</p>\n<p>Nothing in the asserted claims \"purport[s] to improve the functioning of the computer itself\" or \"effect an improvement in any other technology or technical field.\" <a href=\"/scholar_case?case=7784134755284986738&amp;hl=en&amp;oe=ASCII&amp;as_sdt=6,34\"><i>Alice,</i> 134 S.Ct. at 2359</a>. Nor do the claims solve a problem unique to the Internet. <i>See </i><a href=\"/scholar_case?case=15961815186343228931&amp;hl=en&amp;oe=ASCII&amp;as_sdt=6,34\"><i>DDR Holdings,</i> 773 F.3d at 1257</a>. In addition, the claims are not adequately tied to \"a particular machine or apparatus.\" <a href=\"/scholar_case?case=18086536145760645965&amp;hl=en&amp;oe=ASCII&amp;as_sdt=6,34\"><i>Bilski v. Kappos,</i> 561 U.S. 593, 601, 130 S.Ct. 3218, 177 L.Ed.2d 792 (2010)</a>. Because the asserted claims are directed to an abstract idea and nothing in the claims adds an inventive concept, the claims are not patent-eligible under \u00a7 101.</p>\n<p><h2>B</h2></p>\n<p>Mortgage Grader contends that the district court improperly resolved material factual disputes in connection with granting Appellees' summary judgment motion. We do not agree.</p>\n<p>\"Summary judgment is appropriate only if there is no genuine issue of material fact and the movant is entitled to judgment as a matter of law.\" <a href=\"/scholar_case?case=17670641980113302580&amp;hl=en&amp;oe=ASCII&amp;as_sdt=6,34\"><i>O2 Micro,</i> 467 F.3d at 1369</a> (citing Fed.R.Civ.P. 56(c); <a href=\"/scholar_case?case=9272001251064530131&amp;hl=en&amp;oe=ASCII&amp;as_sdt=6,34\"><i>Anderson v. Liberty Lobby, Inc.,</i> 477 U.S. 242, 250, 106 S.Ct. 2505, 91 L.Ed.2d 202 (1986)</a>). However, the \"mere existence of some alleged factual dispute between the parties will not defeat an otherwise properly supported motion for summary judgment.\" <a href=\"/scholar_case?case=9272001251064530131&amp;hl=en&amp;oe=ASCII&amp;as_sdt=6,34\"><i>Anderson,</i> 477 U.S. at 247-48, 106 S.Ct. 2505</a>. Instead, \"summary judgment will not lie if the dispute about a material fact is `genuine,' that is, if the evidence is such that a reasonable jury could return a verdict for the nonmoving party.\" <i>Id.</i> at 248, 106 S.Ct. 2505.</p>\n<p>The \u00a7 101 inquiry \"<i>may</i> contain underlying factual issues.\" <a href=\"/scholar_case?case=8000824258029585764&amp;hl=en&amp;oe=ASCII&amp;as_sdt=6,34\"><i>Accenture,</i> 728 F.3d at 1341</a> (emphasis added); <i>see also </i><a href=\"/scholar_case?case=204952289152101012&amp;hl=en&amp;oe=ASCII&amp;as_sdt=6,34\"><i>Arrhythmia Research Tech., Inc. v. Corazonix Corp.,</i> 958 F.2d 1053, 1055-56 (Fed. Cir.1992)</a> (\"Whether a claim is directed to statutory subject matter is a question of law. Although determination of this question may require findings of underlying facts specific to the particular subject matter and its mode of claiming, in this case there were no disputed facts material to the issue.\"). But it is also possible, as numerous cases have recognized, that a \u00a7 101 analysis may sometimes be undertaken without resolving fact issues. <i>See, e.g., </i><a href=\"/scholar_case?case=8000824258029585764&amp;hl=en&amp;oe=ASCII&amp;as_sdt=6,34\"><i>Accenture,</i> 728 F.3d at 1346</a>. In such circumstances, the \u00a7 101 inquiry may appropriately be resolved on a motion for summary judgment.</p>\n<p>It is true that Appellees and Mortgage Grader submitted expert declarations, and the district court acknowledged these materials were in the record. <i>See </i><a href=\"/scholar_case?case=7727520732028221301&amp;hl=en&amp;oe=ASCII&amp;as_sdt=6,34\"><i>Mortgage Grader II,</i> 89 F.Supp.3d at 1063</a>. But the court did not rely on them in its \u00a7 101 analysis. Instead, in making its patent-eligibility determination, the district court looked only to the claims and specifications of the patents-in-suit. <i>See id.</i> at 1061-65. The mere existence in the record of dueling expert testimony does not necessarily raise a genuine issue of material fact. <i>See, e.g., </i><a href=\"/scholar_case?case=9371239474066908546&amp;hl=en&amp;oe=ASCII&amp;as_sdt=6,34\"><i>K-TEC, Inc. v.</i> </a><a class=\"gsl_pagenum\" href=\"#p1326\">1326</a><a class=\"gsl_pagenum2\" href=\"#p1326\" id=\"p1326\">*1326</a><a href=\"/scholar_case?case=9371239474066908546&amp;hl=en&amp;oe=ASCII&amp;as_sdt=6,34\"> <i>Vita-Mix Corp.,</i> 696 F.3d 1364, 1374-76 (Fed.Cir.2012)</a> (affirming grant of summary judgment that design patent was not analogous art, despite contrary opinion in expert report); <a href=\"/scholar_case?case=10885054240284163097&amp;hl=en&amp;oe=ASCII&amp;as_sdt=6,34\"><i>Minkin v. Gibbons, P.C.,</i> 680 F.3d 1341, 1351-52 (Fed.Cir.2012)</a> (indicating that summary judgment of invalidity may be available notwithstanding expert report supporting validity).</p>\n<p>Appellees' experts simply provided non-material historical information about how people obtained mortgages in the period before the Internet. This added little if anything to the '694 patent's specification, which observed that \"[t]here are newspaper or Internet referral sites which publish interest rates for one or more lenders.\" `694 patent col. 1, ll. 38-39. Indeed, as Mortgage Grader's expert stated, neither of Appellees' experts \"reference[d] the asserted claims, but instead merely explain[ed] the existence of mortgage rate tables published in newspapers during the 1980s and 1990s.\" J.A. 1470.</p>\n<p>Mortgage Grader's expert, Jeffrey Lebowitz, opined that the patents-in-suit solved the problem of information asymmetry between borrowers and lenders, which had previously permitted lenders to \"steer\" borrowers to predatory loans. But that assertion about problem solving does not by its terms identify claimed process steps. In any event, the claims do not actually contain a \"conflict-free requirement.\" <i>See </i><a href=\"/scholar_case?case=7727520732028221301&amp;hl=en&amp;oe=ASCII&amp;as_sdt=6,34\"><i>Mortgage Grader II,</i> 89 F.Supp.3d at 1063</a>. Instead, the claims expressly encompass so-called \"independent\" third-parties who, in addition to determining a borrower's credit grading, may be \"full time employee[s] of an entity providing the desired financial services\" and may \"receive[] a percentage commission from an affiliated company based on the loans funded through the program.\" '694 patent col. 10, l.51 \u2014 col. 11, l.5; '728 patent col. 9, ll.41-61. Plainly, conflicts-of-interest and predatory lending are still possible when practicing the claims. Mr. Lebowitz's other opinion is that the patents-in-suit require use of a computer. But given the intrinsic evidence, and <i>Alice's</i> clarification that use of a generic computer to implement a \"fundamental economic practice\" cannot provide an inventive concept sufficient to save claims from patent ineligibility, <a href=\"/scholar_case?case=7784134755284986738&amp;hl=en&amp;oe=ASCII&amp;as_sdt=6,34\">134 S.Ct. at 2356-57,</a> this opinion does not create a genuine dispute of material fact.</p>\n<p>In sum, no reasonable factfinder could find based on the expert reports that the asserted claims are directed to patent-eligible subject matter.</p>\n<p><h2>CONCLUSION</h2></p>\n<p>For the foregoing reasons, the district court did not abuse its discretion in denying Mortgage Grader's motion to strike Appellees' \u00a7 101 defense. Nor did the district court err in granting summary judgment to Appellees on that defense. Instead, the district court correctly determined that the asserted claims are directed to patent-ineligible subject matter.</p>\n<p>AFFIRMED.</p>\n<p>No costs.</p>\n<small><p><a class=\"gsl_hash\" href=\"#r[1]\" name=\"[1]\">[*]</a>  The Honorable Leonard P. Stark, Chief District Judge, United States District Court for the District of Delaware, sitting by designation.</p>\n<p><a class=\"gsl_hash\" href=\"#r[2]\" name=\"[2]\">[1]</a>  The '694 patent's specification contains the entirety of the '728 patent's specification and adds to it further embodiments disclosed in Figures 3 and 4 and described in accompanying text.</p>\n<p><a class=\"gsl_hash\" href=\"#r[3]\" name=\"[3]\">[2]</a>  The parties stipulated to the dismissal of Costco in January 2015.</p>\n<p><a class=\"gsl_hash\" href=\"#r[4]\" name=\"[4]\">[3]</a>  The prior art references cited in this sentence were disclosed elsewhere in Defendants' final invalidity contentions.</p>\n<p><a class=\"gsl_hash\" href=\"#r[5]\" name=\"[5]\">[4]</a>  As the S.P.R.s expressly contemplate amendment of initial invalidity contentions upon a showing of good cause, Mortgage Grader's argument that Appellees \"waived\" their \u00a7 101 defense by not including it in their initial invalidity contentions is meritless. (<i>See</i> Appellant's Br. 20.) Moreover, as we have stated, \"refusing to allow any amendment to contentions based on new information developed in discovery could be contrary to the spirit of the Federal Rules.\" <a href=\"/scholar_case?case=17670641980113302580&amp;hl=en&amp;oe=ASCII&amp;as_sdt=6,34\"><i>O2 Micro,</i> 467 F.3d at 1366</a>.</p>\n<p><a class=\"gsl_hash\" href=\"#r[6]\" name=\"[6]\">[5]</a>  Mortgage Grader cites <i>O2 Micro</i> as support for a requirement to consider prejudice to the patentee before permitting amendment of invalidity contentions. However, <i>O2 Micro</i> \u2014 which involved the Northern District of California's Patent Local Rules, not the S.P.R.s \u2014 expressly stated that it was not considering \"the question of prejudice,\" as the amending party there had failed to act with diligence. <a href=\"/scholar_case?case=17670641980113302580&amp;hl=en&amp;oe=ASCII&amp;as_sdt=6,34\">467 F.3d at 1368</a>.</p>\n<p><a class=\"gsl_hash\" href=\"#r[7]\" name=\"[7]\">[6]</a>  Although there was neither an agreement by the parties nor a finding by the district court that any one of the asserted claims is representative for purposes of the \u00a7 101 analysis, there is also no contention that the claims differ in any manner that is material to the patent-eligibility inquiry. We have no need to address the four asserted claims individually. <i>See generally </i><a href=\"/scholar_case?case=7784134755284986738&amp;hl=en&amp;oe=ASCII&amp;as_sdt=6,34\"><i>Alice,</i> 134 S.Ct. at 2359-60</a> (finding 208 claims to be patent-ineligible based on analysis of one representative claim).</p>\n</small>\n</div>",
+    "training_text": " This case involves patent claims directed to systems and methods for assisting borrowers to obtain loans. Plaintiff-Appellant Mortgage Grader, Inc. (\"Mortgage Grader\") appeals two decisions of the district court. First, Mortgage Grader appeals the district court's denial of its motion to strike Defendants-Appellees First Choice Loan Services, Inc. and NYLX, +page[1318]+ Inc.'s (\"Appellees\") patent-ineligibility defense. Appellees raised patent ineligibility as a defense in their answer, then dropped it in their initial invalidity contentions, only to add it back in their final invalidity contentions. See Mortgage Grader, Inc. v. Costco Wholesale Corp., 2014 WL 10763261, at *6 (C.D.Cal. Oct. 27, 2014) (\"Mortgage Grader I\"). Second, Mortgage Grader appeals the district court's grant of Appellees' motion for summary judgment that the asserted claims are patent-ineligible. See ####7727520732028221301[7] (\" ####7727520732028221301 \"). Mortgage Grader contends that the district court improperly resolved factual disputes against it and erred in its application of 35 U.S.C. \u00a7 101 (\"\u00a7 101\"). $$$$ For the reasons set forth below, we affirm. $$$$ The patents-in-suit, U.S. Patent Nos. 7,366,694 (\"'694 patent\") and 7,680,728 (\"'728 patent\"), relate to \"financial transactions including a method for a borrower to evaluate and/or obtain financing, e.g., a loan.\" '694 patent col. 1, ll. 19-21; '728 patent col. 1, ll. 17-19. The '694 patent is a continuation-in-part of the '728 patent. @@@@[2] Mortgage Grader asserts claims 1, 2, and 19 of the '694 patent and claim 6 of the '728 patent. $$$$ Claim 1 of the '694 patent is representative: $qq$ A computer-implemented system for enabling borrowers to anonymously shop for loan packages offered by a plurality of lenders, the system comprising: $/qq$ $qq$ a database that stores loan package data specifying loan packages for home loans offered by the lenders, the loan package data specifying, for each of the loan packages, at least a loan type, an interest rate, and a required borrower credit grading; and $/qq$ $qq$ a computer system that provides: $/qq$ $qq$ a first interface that allows the lenders to securely upload at least some of the loan package data for their respective loan packages to the database over a computer network; and $/qq$ $qq$ a second interface that prompts a borrower to enter personal loan evaluation information, and invokes, on a computer, a borrower grading module which uses at least the entered personal loan evaluation information to calculate a credit grading for the borrower, said credit grading being distinct from a credit score of the borrower, and being based on underwriting criteria used by at least some of said lenders; $/qq$ $qq$ wherein the second interface provides functionality for the borrower to search the database to identify a set of loan packages for which the borrower qualifies based on the credit grading, and to compare the loan packages within the set, including loan type and interest rate, while remaining anonymous to each of the lenders and without having to post a request to any of the lenders, said second interface configured to display to the borrower an indication of a total cost of each loan package in the set, said total cost including costs of closing services not provided by corresponding lenders. $/qq$ Claim 2 of the '694 patent depends from claim 1, adding only that \"the second interface comprises a set of web pages of a web site.\" Independent claim 19 recites a \"computer-implemented method\" comprising certain steps. Claim 6 of the '728 +page[1319]+ patent recites a \"method of assisting a borrower in obtaining a loan\" comprising certain steps. $$$$ In January 2013, Mortgage Grader sued Costco Wholesale Corporation (\"Costco\") for infringement of the patents-in-suit. @@@@[3] On May 23, 2013, Mortgage Grader amended its complaint to add Appellees as defendants. After the parties stipulated to extend the time for Appellees to respond to the amended complaint, Appellees filed their answer on October 14, 2013. In it, they asserted as affirmative defenses and counterclaims that both the '694 and '728 patents failed to claim patent-eligible subject matter. $$$$ In the meantime, on August 30, 2013, Judge Andrew J. Guilford of the Central District of California, who presided over the proceedings below, ordered that his recently issued Standing Patent Rules (\"S.P.R.s\") would apply to this case. Judge Guilford developed his S.P.R.s \"based largely on information obtained from over 100 patent practitioners and professors, a review of all the other local patent rules, and a review of related literature.\" J.A. 64. The S.P.R.s are intended \"to reduce transaction costs and increase procedural predictability,\" while also being as \"outcome neutral and as concise as possible.\" Id. $$$$ Pertinent to this appeal is the S.P.R.s' requirement that a party opposing a claim of patent infringement must serve invalidity contentions. A party's initial invalidity contentions are due after the court conducts a scheduling conference \u2014 a conference which is held after the party asserting infringement produces documents and discloses its asserted claims and infringement contentions. Pursuant to S.P.R. 2.5, the initial invalidity contentions must include, inter alia, \"[a]ny grounds of invalidity based on 35 U.S.C. \u00a7 101 ... of any of the asserted claims.\" J.A. 67. Consistent with S.P.R. 2.5, on December 20, 2013, Appellees served invalidity contentions, which included the statement: \"Defendants do not present any grounds of invalidity based on 35 U.S.C. \u00a7 101 ... of any of the asserted claims at this time. The final claim construction may require such an assertion of invalidity.\" J.A. 332-33. $$$$ The S.P.R.s impose further obligations that are triggered by the district court's issuance of an order construing claim terms. In particular, the party alleging infringement must serve final infringement contentions and expert reports regarding issues on which it bears the burden of proof. Thereafter, a party opposing a claim of patent infringement must serve its final invalidity contentions and expert reports regarding issues on which it bears the burden of proof. In particular, S.P.R. 4.2.2 requires service of: $qq$ A statement [by the party] that its S.P.R. 2.5 contentions are its Final Invalidity Contentions, or in the alternative, Final Invalidity Contentions that amend its S.P.R. 2.5 contentions. A party serving Final Invalidity Contentions that amend its prior contentions shall also provide a redline against its prior contentions and a statement of reasons for each amendment. Amendments are subject to a good cause standard but do not require prior Court approval where they are made due to a claim construction by the Court different from that proposed by the party seeking amendment, or recent discovery of material prior art that was not discovered, despite diligent efforts, before the service of the [initial] Invalidity Contentions. $/qq$ J.A. 71 (emphasis added). $$$$ Here, the district court issued its claim construction order on April 18, 2014, and +page[1320]+ then agreed to the parties' request to extend certain deadlines. Appellees timely served their final invalidity contentions on August 15, 2014. In their final contentions, Appellees stated: $qq$ The Defendants informed the Plaintiff's counsel of the intention to challenge the validity of the '694 and '728 patents under ####7784134755284986738[14] (2014). The use of the Elite Agents formal application, which was rejected in part under 35 U.S.C. \u00a7 101, and the newspaper Mortgage Rate Charts are expected to be the primary basis for this challenge.[ @@@@[4] ] The good cause for this revision to this statement of Final Invalidity Contentions is caused by the Supreme Court's decision issuing after the Defendant[s'] Initial Invalidity Contentions. $/qq$ J.A. 151. $$$$ Mortgage Grader moved to strike Appellees' \u00a7 101 defense, arguing that Appellees had not shown good cause for injecting the defense back into the case after dropping it in their initial invalidity contentions. Appellees responded that the Supreme Court's decision in ####7784134755284986738 , which was issued on June 19, 2014, constituted good cause for the amendment. The district court agreed with Appellees and denied Mortgage Grader's motion. Mortgage Grader I, 2014 WL 10763261, at *7. $$$$ Thereafter, Appellees filed a motion for summary judgment that the asserted claims are patent-ineligible under \u00a7 101. Both sides filed expert reports in support of their \u00a7 101 positions. In analyzing the motion, the district court applied the two-part test for patent eligibility set forth in ####16025237560214135711[16] as clarified by ####7784134755284986738 . The court concluded that all of the asserted claims are directed to the abstract idea of \"anonymous loan shopping\" and that they include no \"inventive concept.\" ####7727520732028221301[17] . Accordingly, the court entered summary judgment for Appellees, as Mortgage Grader could not prove that Appellees infringed any valid patent claim. $$$$ Mortgage Grader filed a timely appeal. We have jurisdiction under 28 U.S.C. \u00a7 1295(a)(1). $$$$ Mortgage Grader asks us to reverse the district court's grant of summary judgment for Appellees and remand this case for further proceedings. Specifically, Mortgage Grader contends that the district court should have granted its motion to strike, thereby precluding Appellees from proceeding with their \u00a7 101 defense. Mortgage Grader also insists that the district court erred in granting summary judgment by improperly resolving factual disputes and then misapplying the Mayo/Alice test for patent eligibility. We address each of these issues in turn. $$$$ Judge Guilford's Standing Patent Rules are similar to the Patent Local Rules adopted by the Northern District of California and many other districts. Like Patent Local Rules, the S.P.R.s \"are essentially a series of case management orders that fall within a district court's broad power to control its docket and enforce its order.\" +page[1321]+ ####9974267406665800057[21] . District courts have inherent power to manage their own docket, see, e.g., ####17099742770462845011[22] ; ####9583298043089919985[23] and are authorized to \"consider and take appropriate action\" to facilitate the \"just, speedy, and inexpensive disposition\" of all matters before them. Fed. R.Civ.P. 16; see also Fed.R.Civ.P. 1. Judge Guilford's creation and adoption of his S.P.R.s fall squarely within this broad authority. $$$$ Since the S.P.R.s are \"unique to patent cases and have a close relationship to enforcement of substantive patent law, we proceed to review their validity and interpretation under Federal Circuit law.\" ####17670641980113302580[24] . \"[T]his court defers to the district court when interpreting and enforcing local rules so as not to frustrate local attempts to manage patent cases according to prescribed guidelines.\" ####10159016241767877518[25] . In particular, a \"district court's application of its local rules is reviewed under the standard of abuse of discretion.\" ####9974267406665800057[26] . $$$$ $qq$ In reviewing a district court's exercise of discretion, this court determines whether (1) the decision was clearly unreasonable, arbitrary, or fanciful; (2) the decision was based on an erroneous conclusion of law; (3) the court's findings were clearly erroneous; or (4) the record contains no evidence upon which the court rationally could have based its decision. $/qq$ ####10159016241767877518[27] (internal quotation marks omitted). $$$$ S.P.R. 4.2.2 requires \"good cause\" for amendments to invalidity contentions submitted as final invalidity contentions (other than amendments based on claim construction or recent discovery of material prior art). J.A. 71. @@@@[5] In this context, a prerequisite to good cause is a showing of diligence. See ####17670641980113302580[29] . The party seeking to amend its contentions bears the burden of proving it acted with diligence. See id. $$$$ In applying S.P.R. 4.2.2, the district court found that generally a party cannot claim diligence when it includes a defense in its answer, fails to include the defense in initial invalidity contentions, and many months later adds the defense to its final contentions. See Mortgage Grader I, 2014 WL 10763261, at *6. While the court acknowledged that \"an argument can be made that ####7784134755284986738 is only a modest advance,\" it concluded that \" ####7784134755284986738 did provide significant additional clarity on the effect, or lack of effect, of requiring the use of a computer in the claims.\" Id. at *7. Ultimately, the court concluded that, \"[i]n short, ####7784134755284986738 represents a big enough change to justify including a new \u00a7 101 argument in Defendants' Final Invalidity Contentions.\" Id. $$$$ Mortgage Grader argues that the district court abused its discretion by failing to strike Appellees' \u00a7 101 defense from their final invalidity contentions. Mortgage Grader's primary basis for this argument is its claim that the Supreme Court's decision in ####7784134755284986738 neither created a new defense nor changed the law. On these grounds, Mortgage Grader claims the decision +page[1322]+ in ####7784134755284986738 cannot be a basis for finding good cause to amend invalidity contentions. We find no abuse of discretion in the court's ruling. $$$$ In ####7784134755284986738 , the Supreme Court held that \"merely requiring generic computer implementation fails to transform [an] abstract idea into a patent-eligible invention.\" ####7784134755284986738[32] . We recognized the significance of ####7784134755284986738 in ####15081369718276515741[33] in which we stated that ####7784134755284986738 \"made clear that a claim directed to an abstract idea does not move into \u00a7 101 eligibility territory by merely requiring generic computer implementation\" (internal quotation marks omitted). $$$$ The impact of ####7784134755284986738 is also illustrated by our decision in ####9815140750432136306[34] (\" ####9815140750432136306 \"). Ultramercial had sued WildTangent for infringement of U.S. Patent No. 7,346,545, a patent directed to allowing consumers to view copyrighted media products on the Internet at no cost in exchange for viewing an advertisement. See id. at 712. When the case was first before us, in 2011, we reversed the district court's grant of WildTangent's Rule 12(b)(6) motion to dismiss, holding that \"as a practical application of the general concept of advertising as currency and an improvement to prior art technology, the claimed invention is not so manifestly abstract as to override the statutory language of \u00a7 101.\" ####1016184849563688785[35] (\"Ultramercial I\") (internal quotation marks omitted). The Supreme Court granted WildTangent's petition for certiorari, vacated our order, and remanded for further consideration in light of ####16025237560214135711 . ####9815140750432136306[36] . On remand, we again reversed the district court, holding yet again that the claims were patent-eligible. ####9815140750432136306[37] . Once more, the Supreme Court granted WildTangent's petition for certiorari, vacated our order, and remanded, this time for further consideration in light of Alice. Id. On this further remand, with the \"added benefit of the Supreme Court's reasoning in ####7784134755284986738 ,\" we affirmed the district court and found the claims to be not patent-eligible. Id. Our conclusion was expressly based on ####7784134755284986738 holding that \"adding a computer to otherwise conventional steps does not make an invention patent-eligible.\" Id. at 713, 716-17. $$$$ ####9815140750432136306 demonstrates that a \u00a7 101 defense previously lacking in merit may be meritorious after Alice. This scenario is most likely to occur with respect to patent claims that involve implementations of economic arrangements using generic computer technology, as the claims do here. For example, the asserted claims of the '694 patent require use of a \"computer system\" or \"computer network\" for facilitating anonymous loan shopping, and the asserted claim of the '728 patent requires \"programmatically generating\" and uses a \"network\" for shopping for loans. In this context, it was not an abuse of discretion to allow Appellees to inject a \u00a7 101 defense into the case after ####7784134755284986738 . $$$$ Mortgage Grader's arguments to the contrary are unpersuasive. First, Mortgage Grader points to this Court's statement in a non-precedential opinion, ####11223513173496719628[38] that \" ####7784134755284986738 did not create a new \u00a7 101 defense, but rather clarified \u00a7 101 jurisprudence.\" As we have just explained, even an \"old\" \u00a7 101 defense may enjoy renewed vigor in light of ####7784134755284986738 . More importantly, our statement in ####11223513173496719628 was in an entirely different context: review of denial of a motion to stay pending Covered Business Method review, where the alleged infringer waited until four months after ####7784134755284986738 was decided +page[1323]+ (by which time a jury trial had been completed) and argued that \"the stage of litigation facing the court is irrelevant to its right to a stay.\" Id. We found no abuse of discretion in the trial court's decision to deny a stay in such circumstances. Here, we conclude similarly that the court did not abuse its discretion in finding that Appellees acted diligently by adding the \u00a7 101 defense just two months after ####7784134755284986738 came down, satisfying the \"good cause\" standard imposed by S.P.R. 4.2.2. The standard of review employed in both ####11223513173496719628 and here cannot be removed from the results reached in each case \u2014 in neither instance did the district court abuse the broad discretion afforded it. $$$$ Next, Mortgage Grader argues we should reverse the district court for failing to consider whether Mortgage Grader would be prejudiced by adding Appellees' \u00a7 101 defense back into the case. Mortgage Grader concedes that it failed to present arguments related to prejudice to the district court; thus, its contention here is waived. See ####8676289545795279718[41] . In any event, S.P.R. 4.2.2 does not reference prejudice \u2014 unlike S.P.R. 4.3, relating to amendment or supplementation of expert reports, which \"are presumptively prejudicial,\" J.A. 71, and unlike several Patent Local Rules in the Northern District of California, see, e.g., ####5989665546938472060[42] (discussing Patent Local Rule 3-6 related to amending contentions). @@@@[6] The district court did not abuse its discretion by failing to consider prejudice when it applied a rule that does not require consideration of prejudice. Additionally, Mortgage Grader has done nothing to persuade us that it was unfairly prejudiced by Appellees' amendment, as it has identified nothing (e.g., discovery, claim construction) it would have done differently if it had been given more time to respond to the \u00a7 101 defense. At the time Appellees amended their final invalidity contentions, \"(1) expert depositions had not yet occurred, (2) Mortgage Grader had its full length of time to prepare rebuttal expert reports, and (3) there was still approximately a month and a half until the close of discovery.\" J.A. 894. Mortgage Grader had adequate time to develop its response to the \u00a7 101 defense. $$$$ Thus, the district court did not abuse its discretion. We affirm the denial of Mortgage Grader's motion to strike. $$$$ Having concluded that it was proper for the district court to allow Appellees to proceed with their \u00a7 101 defense, we must next determine whether the district court properly granted summary judgment that the patents-in-suit are not patent-eligible. We review a grant of summary judgment under the law of the regional circuit. ####17579289358787666465[44] . \"The Ninth Circuit reviews the district court's grant of summary judgment de novo.\" ####2429554177212316805[45] (citing ####7162630753462366064[46] ). \"We must determine, viewing the evidence in the light most favorable to the nonmoving party, whether there are any genuine issues of material fact and +page[1324]+ whether the district court correctly applied the relevant substantive law.\" ####7162630753462366064[49] . $$$$ Under \u00a7 101, \"[w]hoever invents or discovers any new and useful process, machine, manufacture, or composition of matter, or any new and useful improvement thereof, may obtain a patent therefor, subject to the conditions and requirements of this title.\" There are three exceptions to \u00a7 101's broad patent-eligibility principles: \"laws of nature, physical phenomena, and abstract ideas.\" ####3095713882675765791[50] . In ####16025237560214135711 , the Supreme Court set out a two-step \"framework for distinguishing patents that claim laws of nature, natural phenomena, and abstract ideas from those that claim patent-eligible applications of those concepts.\" ####7784134755284986738[51] . First, courts must determine if the claims at issue are directed to a patent-ineligible concept. See id. If not, the inquiry ends, as the claims are patent-eligible. But if so, the next step is to look for an \"`inventive concept' \u2014 i.e., an element or combination of elements that is sufficient to ensure that the patent in practice amounts to significantly more than a patent upon the [ineligible concept] itself.\" Id. (internal quotation marks omitted). $$$$ The district court carefully and correctly applied this two-step framework to the patents-in-suit. @@@@[7] Regarding step 1, we agree with the district court that the asserted claims are directed to the abstract idea of \"anonymous loan shopping.\" ####7727520732028221301[53] . The claim limitations, analyzed individually and \"as a whole,\" ####7784134755284986738[54] recite nothing more than the collection of information to generate a \"credit grading\" and to facilitate anonymous loan shopping. As the district court explained, the claims specify that \"the borrower is anonymous to the lender until the borrower has been informed of the cost of the loan based on the borrower's credit grading, and the borrower then chooses to expose its identity to a lender.\" ####7727520732028221301[53] . The series of steps covered by the asserted claims \u2014 borrower applies for a loan, a third party calculates the borrower's credit grading, lenders provide loan pricing information to the third party based on the borrower's credit grading, and only thereafter (at the election of the borrower) the borrower discloses its identity to a lender \u2014 could all be performed by humans without a computer. Cf. ####13362075908439349478[56] (\"[C]omputational methods which can be performed entirely in the human mind are the types of methods that embody the `basic tools of scientific and technological work' that are free to all men and reserved exclusively to none.\") (quoting ####14331103368635133702[57] ). $$$$ Because the claims are directed to an abstract idea, the claims must include an \"inventive concept\" in order to be patent-eligible. No such inventive concept is present here. Instead, the claims \"add\" only generic computer components such as an \"interface,\" \"network,\" and \"database.\" These generic computer components do not satisfy the inventive concept +page[1325]+ requirement. See ####3107974128011903263[60] (\"[T]he interactive interface limitation is a generic computer element.\"); ####15081369718276515741 , ####15081369718276515741[61] (sending information over network is \"not even arguably inventive\"); ####8000824258029585764[62] (database components did not make claims patent-eligible). \"[A]fter ####7784134755284986738 , there can remain no doubt: recitation of generic computer limitations does not make an otherwise ineligible claim patent-eligible. The bare fact that a computer exists in the physical rather than purely conceptual realm is beside the point.\" ####15961815186343228931[63] (internal citations and quotation marks omitted). $$$$ Nothing in the asserted claims \"purport[s] to improve the functioning of the computer itself\" or \"effect an improvement in any other technology or technical field.\" ####7784134755284986738[54] . Nor do the claims solve a problem unique to the Internet. See ####15961815186343228931[65] . In addition, the claims are not adequately tied to \"a particular machine or apparatus.\" ####18086536145760645965[66] . Because the asserted claims are directed to an abstract idea and nothing in the claims adds an inventive concept, the claims are not patent-eligible under \u00a7 101. $$$$ Mortgage Grader contends that the district court improperly resolved material factual disputes in connection with granting Appellees' summary judgment motion. We do not agree. $$$$ \"Summary judgment is appropriate only if there is no genuine issue of material fact and the movant is entitled to judgment as a matter of law.\" ####17670641980113302580[67] (citing Fed.R.Civ.P. 56(c); ####9272001251064530131[68] ). However, the \"mere existence of some alleged factual dispute between the parties will not defeat an otherwise properly supported motion for summary judgment.\" ####9272001251064530131[69] . Instead, \"summary judgment will not lie if the dispute about a material fact is `genuine,' that is, if the evidence is such that a reasonable jury could return a verdict for the nonmoving party.\" Id. at 248, 106 S.Ct. 2505. $$$$ The \u00a7 101 inquiry \"may contain underlying factual issues.\" ####8000824258029585764[70] (emphasis added); see also ####204952289152101012[71] (\"Whether a claim is directed to statutory subject matter is a question of law. Although determination of this question may require findings of underlying facts specific to the particular subject matter and its mode of claiming, in this case there were no disputed facts material to the issue.\"). But it is also possible, as numerous cases have recognized, that a \u00a7 101 analysis may sometimes be undertaken without resolving fact issues. See, e.g., ####8000824258029585764[72] . In such circumstances, the \u00a7 101 inquiry may appropriately be resolved on a motion for summary judgment. $$$$ It is true that Appellees and Mortgage Grader submitted expert declarations, and the district court acknowledged these materials were in the record. See ####7727520732028221301[53] . But the court did not rely on them in its \u00a7 101 analysis. Instead, in making its patent-eligibility determination, the district court looked only to the claims and specifications of the patents-in-suit. See id. at 1061-65. The mere existence in the record of dueling expert testimony does not necessarily raise a genuine issue of material fact. See, e.g., +page[1326]+ ####9371239474066908546[77] (affirming grant of summary judgment that design patent was not analogous art, despite contrary opinion in expert report); ####10885054240284163097[78] (indicating that summary judgment of invalidity may be available notwithstanding expert report supporting validity). $$$$ Appellees' experts simply provided non-material historical information about how people obtained mortgages in the period before the Internet. This added little if anything to the '694 patent's specification, which observed that \"[t]here are newspaper or Internet referral sites which publish interest rates for one or more lenders.\" `694 patent col. 1, ll. 38-39. Indeed, as Mortgage Grader's expert stated, neither of Appellees' experts \"reference[d] the asserted claims, but instead merely explain[ed] the existence of mortgage rate tables published in newspapers during the 1980s and 1990s.\" J.A. 1470. $$$$ Mortgage Grader's expert, Jeffrey Lebowitz, opined that the patents-in-suit solved the problem of information asymmetry between borrowers and lenders, which had previously permitted lenders to \"steer\" borrowers to predatory loans. But that assertion about problem solving does not by its terms identify claimed process steps. In any event, the claims do not actually contain a \"conflict-free requirement.\" See ####7727520732028221301[53] . Instead, the claims expressly encompass so-called \"independent\" third-parties who, in addition to determining a borrower's credit grading, may be \"full time employee[s] of an entity providing the desired financial services\" and may \"receive[] a percentage commission from an affiliated company based on the loans funded through the program.\" '694 patent col. 10, l.51 \u2014 col. 11, l.5; '728 patent col. 9, ll.41-61. Plainly, conflicts-of-interest and predatory lending are still possible when practicing the claims. Mr. Lebowitz's other opinion is that the patents-in-suit require use of a computer. But given the intrinsic evidence, and ####7784134755284986738 clarification that use of a generic computer to implement a \"fundamental economic practice\" cannot provide an inventive concept sufficient to save claims from patent ineligibility, ####7784134755284986738[80] this opinion does not create a genuine dispute of material fact. $$$$ In sum, no reasonable factfinder could find based on the expert reports that the asserted claims are directed to patent-eligible subject matter. $$$$ For the foregoing reasons, the district court did not abuse its discretion in denying Mortgage Grader's motion to strike Appellees' \u00a7 101 defense. Nor did the district court err in granting summary judgment to Appellees on that defense. Instead, the district court correctly determined that the asserted claims are directed to patent-ineligible subject matter. $$$$ AFFIRMED. $$$$ No costs. $$$$ ",
+    "footnotes": [
+        {
+            "identifier": "[1]",
+            "context": "The Honorable Leonard P. Stark, Chief District Judge, United States District Court for the District of Delaware, sitting by designation."
+        },
+        {
+            "identifier": "[2]",
+            "context": "The '694 patent's specification contains the entirety of the '728 patent's specification and adds to it further embodiments disclosed in Figures 3 and 4 and described in accompanying text."
+        },
+        {
+            "identifier": "[3]",
+            "context": "The parties stipulated to the dismissal of Costco in January 2015."
+        },
+        {
+            "identifier": "[4]",
+            "context": "The prior art references cited in this sentence were disclosed elsewhere in Defendants' final invalidity contentions."
+        },
+        {
+            "identifier": "[5]",
+            "context": "As the S.P.R.s expressly contemplate amendment of initial invalidity contentions upon a showing of good cause, Mortgage Grader's argument that Appellees \"waived\" their \u00a7 101 defense by not including it in their initial invalidity contentions is meritless. (See Appellant's Br. 20.) Moreover, as we have stated, \"refusing to allow any amendment to contentions based on new information developed in discovery could be contrary to the spirit of the Federal Rules.\"  ####17670641980113302580[29] ."
+        },
+        {
+            "identifier": "[6]",
+            "context": "Mortgage Grader cites  ####17670641980113302580  as support for a requirement to consider prejudice to the patentee before permitting amendment of invalidity contentions. However,  ####17670641980113302580  \u2014 which involved the Northern District of California's Patent Local Rules, not the S.P.R.s \u2014 expressly stated that it was not considering \"the question of prejudice,\" as the amending party there had failed to act with diligence.  ####17670641980113302580[88] ."
+        },
+        {
+            "identifier": "[7]",
+            "context": "Although there was neither an agreement by the parties nor a finding by the district court that any one of the asserted claims is representative for purposes of the \u00a7 101 analysis, there is also no contention that the claims differ in any manner that is material to the patent-eligibility inquiry. We have no need to address the four asserted claims individually. See generally  ####7784134755284986738[90]  (finding 208 claims to be patent-ineligible based on analysis of one representative claim)."
+        }
+    ]
+}
