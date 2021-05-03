@@ -8,6 +8,8 @@ from datetime import datetime
 from os import cpu_count, environ
 from pathlib import Path
 from time import sleep
+from ast import literal_eval
+import csv
 
 import requests
 from dateutil import parser
@@ -106,6 +108,39 @@ def load_json(path, allow_exception=False):
                 data = json.load(f)
 
     return data
+
+
+def load_csv(path, start_row=1, end_row=None, ignore_column=[]):
+    """
+    Load csv file at `path` and keep the type of the element in each cell intact.
+
+    Args
+    ----
+    :param start_row: ---> int: the first row to read. Default: ignore the field names.
+    :param end_row: ---> int: the last row to read. Defaults to `None` (= last row in the csv file).
+    """
+    if not isinstance(path, Path):
+        path = Path(path)
+
+    with open(path.__str__(), "r", newline="") as file:
+        rows = [
+            list(
+                map(
+                    lambda r: literal_eval(r)
+                    # If type(r) is either list or tuple, or dict, then preserve the type by applying
+                    # ast.literal_eval().
+                    if regex(r, [(r"^[\[\({].*[\]\)}]$", "")], sub=False) else r,
+                    # Ignore the columns in `ignore_column`.
+                    [i for i in x if x.index(i) not in ignore_column],
+                )
+            )
+            for x in csv.reader(file)
+        ][start_row:]
+
+    if not end_row:
+        end_row = len(rows)
+
+    return rows[:end_row]
 
 
 def regex(item, patterns=None, sub=True, flags=None, start=0, end=None):
