@@ -8,3 +8,4 @@ lxml==4.6.3
 selenium==3.141.0
 python-anticaptcha==0.7.1
 python-dateutil==2.8.1
+black
