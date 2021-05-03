@@ -127,3 +127,22 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# vscode stuff
+.vscode/
+
+# package data
+data/
+!/data/jurisdictions.json
+!/data/reporters.json
+!/data/months.json
+
+# google patents api
+google_key/
+google_patent.py
+
+# miscellaneous 
+tor.py
+extra.py
+alice.py
+geckodriver.log
