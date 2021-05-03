@@ -232,9 +232,9 @@ class GooglePatents:
             if validate_url(number_or_url):
                 url = number_or_url
                 if fn := regex(url, [(r"(?<=patent/).*?(?=/|$)", "")], sub=False):
-                    patent_number = fn[0]
+                    patent_number = fn[0].upper()
         except:
-            patent_number = number_or_url
+            patent_number = number_or_url.upper()
 
         json_path = (
             self.data_dir
