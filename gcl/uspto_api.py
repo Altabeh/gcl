@@ -122,7 +122,7 @@ class USPTOscrape(PTABRegex, GeneralRegex):
 
         Args
         ----
-        :param file_name: ---> str: name of the metadata file to save.
+        * :param file_name: ---> str: name of the metadata file to save.
         """
         json_subdir = f"json_{self.suffix}"
         for value in metadata.values():
@@ -140,7 +140,7 @@ class USPTOscrape(PTABRegex, GeneralRegex):
 
         Args
         ----
-        :param pause: ---> bool: allows a 1-second pause before making a new call
+        * :param pause: ---> bool: allows a 1-second pause before making a new call
         to download a document to avoid getting blocked by the server.
         """
         doc_subdir = f"doc_{self.suffix}"
@@ -168,9 +168,10 @@ class USPTOscrape(PTABRegex, GeneralRegex):
 
         Args
         ----
-        :param special_keys: ---> list: a special list of keys to be aggrigated and serialized.
-        :param map_key: ---> str: a key from the metadata files to create a dictionary of the form {key: metadata}.
-        :param drop_keys: ---> list: a list of key(s) to drop from metadata files.
+        * :param special_keys: ---> list: a special list of keys to be aggrigated and serialized.
+        * :param map_key: ---> str: a key from the metadata files to create a
+        dictionary of the form {key: metadata}.
+        * :param drop_keys: ---> list: a list of key(s) to drop from metadata files.
         """
         json_subdir = f"json_{self.suffix}"
         json_dir = self.data_dir / "uspto" / "meta" / json_subdir
@@ -235,11 +236,11 @@ class USPTOscrape(PTABRegex, GeneralRegex):
 
         Args
         ----
-        :param doc_codes: ---> list: contains specific document codes to be downloaded.
-        :param close_to_date: ---> str: allows to restrict the downloading of files to those
-        with official dates closest to this date.
-        :param mime_types: ---> list: contains specific file mime types to be downloaded.
-        :param skip_download: ---> bool: if true, skips downloading data files whose metadata are stored in
+        * :param doc_codes: ---> list: contains specific document codes to be downloaded.
+        * :param close_to_date: ---> str: allows to restrict the downloading of files to those
+        * with official dates closest to this date.
+        * :param mime_types: ---> list: contains specific file mime types to be downloaded.
+        * :param skip_download: ---> bool: if true, skips downloading data files whose metadata are stored in
         the transactions.
         """
 

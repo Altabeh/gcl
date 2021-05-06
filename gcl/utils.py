@@ -116,8 +116,8 @@ def load_csv(path, start_row=1, end_row=None, ignore_column=[]):
 
     Args
     ----
-    :param start_row: ---> int: the first row to read. Default: ignore the field names.
-    :param end_row: ---> int: the last row to read. Defaults to `None` (= last row in the csv file).
+    * :param start_row: ---> int: the first row to read. Default: ignore the field names.
+    * :param end_row: ---> int: the last row to read. Defaults to `None` (= last row in the csv file).
     """
     if not isinstance(path, Path):
         path = Path(path)
@@ -149,12 +149,12 @@ def regex(item, patterns=None, sub=True, flags=None, start=0, end=None):
 
     Args
     ----
-    :param item: ---> list or str: list of strings/string to apply regex to.
-    :param patterns: ---> list of tuples: regex patterns.
-    :param sub: ---> bool: switch between re.sub/re.search.
-    :param flags: ---> same as `re` flags. Defaults to `None` or `0`.
-    :param start: ---> int: start index of the input list from which applying regex begins.
-    :param end: ---> int: end index of the input list up to which applying regex continues.
+    * :param item: ---> list or str: list of strings/string to apply regex to.
+    * :param patterns: ---> list of tuples: regex patterns.
+    * :param sub: ---> bool: switch between re.sub/re.search.
+    * :param flags: ---> same as `re` flags. Defaults to `None` or `0`.
+    * :param start: ---> int: start index of the input list from which applying regex begins.
+    * :param end: ---> int: end index of the input list up to which applying regex continues.
     """
     if not patterns:
         raise Exception("Please enter a valid pattern e.g. [(r'\n', '')]")
@@ -413,7 +413,7 @@ def _recaptcha_get_token(url, site_key, invisible=False):
 
     Args
     ----
-    :param invisible: ---> bool: If True, calls the invisible recaptcha api.
+    * :param invisible: ---> bool: If True, calls the invisible recaptcha api.
     """
     task = NoCaptchaTaskProxylessTask(
         website_url=url, website_key=site_key, is_invisible=invisible
@@ -465,8 +465,8 @@ def async_get(url, xpath):
 
     Args
     ----
-    :param xpath: ---> str: wait for the element with xpath `xpath` to appear in DOM
-                            to get the page content.
+    * :param xpath: ---> str: wait for the element with xpath `xpath` to appear in DOM
+    to get the page content.
     """
     SELENIUM_DRIVER.get(url)
     try:

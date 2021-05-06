@@ -142,9 +142,9 @@ class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
 
         Args
         ----
-        :param suffix: ---> str: overwrites instance attribute `suffix`.
-        :param return_list: ---> bool: if False, return a dictionary instead with keys being
-                                 `citation`, `court` and `date`.
+        * :param suffix: ---> str: overwrites instance attribute `suffix`.
+        * :param return_list: ---> bool: if False, return a dictionary instead with keys being
+        `citation`, `court` and `date`.
         """
         data = {"citation": None, "court": None, "date": None}
 
@@ -212,7 +212,7 @@ class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
 
         Args
         ----
-        :param data: ---> str or pathlib: path to a gcl json file or a valid case ID.
+        * :param data: ---> str or pathlib: path to a gcl json file or a valid case ID.
         """
         case_repo, case_id = {}, ""
         if isinstance(data, str):
@@ -269,10 +269,10 @@ class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
 
         Args
         ----
-        :param path_or_url: ---> str: a path to an html file or a valid url of a gcl page.
-        :param skip_patent: ---> bool: if true, skips downloading and scraping patent information.
-        :param random_sleep: ---> bool: if True, sleep for randomly selected seconds before making
-                                        a new request.
+        * :param path_or_url: ---> str: a path to an html file or a valid url of a gcl page.
+        * :param skip_patent: ---> bool: if true, skips downloading and scraping patent information.
+        * :param random_sleep: ---> bool: if True, sleep for randomly selected seconds before making
+        a new request.
         """
         html_text = ""
         if not Path(path_or_url).is_file():
@@ -326,9 +326,9 @@ class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
 
         Args
         ----
-        :param html: ---> BeautifulSoup object corresponding to html of the opinion page.
-        :param court_code: ---> str: the court code to have further control on the parsed judge data.
-        :param just_locate: ---> bool: just locate the tag containing judge names and return.
+        * :param html: ---> BeautifulSoup object corresponding to html of the opinion page.
+        * :param court_code: ---> str: the court code to have further control on the parsed judge data.
+        * :param just_locate: ---> bool: just locate the tag containing judge names and return.
         """
 
         if not html:
@@ -413,9 +413,8 @@ class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
 
         Args
         ----
-        :param data: ---> str, BeautifulSoup obj: A url, path to the Google
-                          case law page or its case ID or its BeautifulSoup object.
-                          Defaults to `self.html`.
+        * :param data: ---> str, BeautifulSoup obj: A url, path to the Google
+        case law page or its case ID or its BeautifulSoup object. Defaults to `self.html`.
         """
         html, html_text = "", ""
 
@@ -565,7 +564,7 @@ class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
 
         Args
         ----
-        :param short_month: ---> bool: if true, returns the date like `%b. %d, %Y`.
+        * :param short_month: ---> bool: if true, returns the date like `%b. %d, %Y`.
         """
         __ = False
         if not html:
@@ -604,8 +603,8 @@ class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
 
         Args
         ----
-        :param blue_citation: ---> bool: if True, returns the long bluebook version of the citation.
-                                         Returns None if nothing is found.
+        * :param blue_citation: ---> bool: if True, returns the long bluebook version of the citation.
+        Returns None if nothing is found.
         """
         json_folder = self.data_dir / "json"
         cites = json_folder / f"citations_{self.suffix}.json"
@@ -743,11 +742,11 @@ class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
 
         Args
         ----
-        :param remove_redundant: ---> bool: if True, will remove the serialized data and
-                                            patent information of the redundant (unpublished) cases.
-        :param external_list: ---> list: an arbitrary list of case IDs whose serialized data are found
-                                         in `json_suffix`, which too need to be removed.
-        :param remove_patent: ---> bool: if True, remove patent data.
+        * :param remove_redundant: ---> bool: if True, will remove the serialized data
+        and patent information of the redundant (unpublished) cases.
+        * :param external_list: ---> list: an arbitrary list of case IDs whose serialized
+        data are found in `json_suffix`, which too need to be removed.
+        * :param remove_patent: ---> bool: if True, remove patent data.
         """
         directory = self.data_dir / "json" / f"json_{self.suffix}"
         json_files = list((directory).glob("*.json"))
@@ -821,8 +820,8 @@ class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
 
         Args
         ----
-        :param need_proxy: ---> bool: if True, start switching proxy IP after each request
-                                      to reduce risk of getting blocked.
+        * :param need_proxy: ---> bool: if True, start switching proxy IP after each request
+        to reduce risk of getting blocked.
         """
         url = url_or_id
         if regex(url_or_id, self.just_number_patterns, sub=False):
@@ -967,7 +966,7 @@ class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
 
         Args
         ----
-        :param only_casenumber: ---> bool: if True, return only the case numbers.
+        * :param only_casenumber: ---> bool: if True, return only the case numbers.
         """
 
         if not html:

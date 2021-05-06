@@ -202,14 +202,13 @@ class GooglePatents:
 
         Args
         ----
-        :param skip_patent: ---> bool: if true, skips downloading patent and rather looks for
-                                       a local patent file under `patents` folder.
-        :param include_description: ---> bool: if true, the description will be included in the serialized data.
-        :param save_unless_empty: ---> list: contains a list of parameters that if have no value in the patent,
-                                       will abort saving. Possible values: "claims", "description", "abstract",
-                                       "tilte".
-        :param return_data: ---> list: contains the parameters whose data will be returned upon serialization.
-        :param kwargs: ---> dict: contains arbitrary key, value pairs to be added to the serialized data.
+        * :param skip_patent: ---> bool: if true, skips downloading patent and rather looks for
+        a local patent file under `patents` folder.
+        * :param include_description: ---> bool: if true, the description will be included in the serialized data.
+        * :param save_unless_empty: ---> list: contains a list of parameters that if have no value in the patent,
+        will abort saving. Possible values: "claims", "description", "abstract", "tilte".
+        * :param return_data: ---> list: contains the parameters whose data will be returned upon serialization.
+        * :param kwargs: ---> dict: contains arbitrary key, value pairs to be added to the serialized data.
         """
         # List of parameters that would abort saving if scraping them fails to return nonempty values.
         abort = []
