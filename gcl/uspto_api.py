@@ -12,6 +12,7 @@ import re
 from copy import deepcopy
 from datetime import datetime
 from functools import reduce
+from logging import getLogger
 from operator import concat
 from os import path
 from pathlib import Path
@@ -28,6 +29,8 @@ from gcl.regexes import GeneralRegex, PTABRegex
 from gcl.settings import root_dir
 from gcl.utils import (closest_value, create_dir, deaccent, load_json, regex,
                        rm_repeated, timestamp)
+
+logger = getLogger(__name__)
 
 
 class USPTOscrape(PTABRegex, GeneralRegex):
@@ -80,7 +83,7 @@ class USPTOscrape(PTABRegex, GeneralRegex):
                 self.__query_params__["recordStartNumber"] + record_per_call
                 < metadata["recordTotalQuantity"]
             ):
-                print(
+                logger.info(
                     f'Records left: {metadata["recordTotalQuantity"] - self.__query_params__["recordStartNumber"]}'
                 )
                 self.__query_params__["recordStartNumber"] += record_per_call
@@ -111,7 +114,7 @@ class USPTOscrape(PTABRegex, GeneralRegex):
                 raise Exception(f"Server returned {e}.")
 
             while start + rows < metadata["numFound"]:
-                print(f'Records left: {metadata["numFound"] - start}')
+                logger.info(f'Records left: {metadata["numFound"] - start}')
                 start += rows
                 self.bulk_search_download_call(start=start, rows=rows, **kwargs)
                 break
@@ -157,9 +160,9 @@ class USPTOscrape(PTABRegex, GeneralRegex):
 
             with open(doc_path.__str__(), "wb") as f:
                 f.write(r.content)
-            print(f'{metadata["documentName"]} saved successfully')
+            logger.info(f'{metadata["documentName"]} saved successfully')
 
-        print(f'{metadata["documentName"]} already saved')
+        logger.info(f'{metadata["documentName"]} already saved')
 
     def aggrigator(self, special_keys=None, map_key=None, drop_keys=None):
         """
@@ -180,7 +183,7 @@ class USPTOscrape(PTABRegex, GeneralRegex):
         ]
         metadata_files.sort(key=path.getmtime)
 
-        print(
+        logger.info(
             f"Starting metadata aggrigation of json files under directory {json_dir.__str__()} ..."
         )
 
@@ -270,7 +273,7 @@ class USPTOscrape(PTABRegex, GeneralRegex):
                 try:
                     transactions = r.json()
                     if retry := r.headers.get("Retry-After", None):
-                        print(f"Accessing {meta_url} is blocked for {retry} seconds")
+                        plogger.info(f"Accessing {meta_url} is blocked for {retry} seconds")
                         sleep(int(retry))
                     else:
                         if r.status_code == 401:
@@ -373,7 +376,7 @@ class USPTOscrape(PTABRegex, GeneralRegex):
                         "documentInformationBag": [bag],
                     }
                     if skip_download:
-                        print(
+                        logger.info(
                             f"The document with the ID `{bag['documentIdentifier']}` has not been downloaded. Please set `skip_download=False` and try again."
                         )
                     else:
@@ -381,7 +384,7 @@ class USPTOscrape(PTABRegex, GeneralRegex):
                         while True:
                             r = requests.post(post_url, json=json_data, headers=headers)
                             if retry := r.headers.get("Retry-After", None):
-                                print(
+                                logger.info(
                                     f"Accessing {post_url} is blocked for {retry} seconds"
                                 )
                                 sleep(int(retry))
@@ -401,7 +404,7 @@ class USPTOscrape(PTABRegex, GeneralRegex):
                         file_path = transactions_folder / filename
                         with open(file_path.__str__(), "wb") as f:
                             f.write(r.content)
-                            print(f"{filename} was downloaded and saved successfully")
+                            logger.info(f"{filename} was downloaded and saved successfully")
 
                         if file_path.suffix.lower() in [".zip"]:
                             with ZipFile(file_path.__str__(), "r") as zipf:
@@ -567,7 +570,7 @@ class USPTOscrape(PTABRegex, GeneralRegex):
             try:
                 metadata = r.json()
                 if retry := r.headers.get("Retry-After", None):
-                    print(f"Accessing {url} is blocked for {retry} seconds")
+                    logger.info(f"Accessing {url} is blocked for {retry} seconds")
                     sleep(int(retry))
                 else:
                     break

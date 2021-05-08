@@ -10,7 +10,7 @@ from pathlib import Path
 from time import sleep
 from ast import literal_eval
 import csv
-
+from logging import getLogger
 import requests
 from dateutil import parser
 from pathos.multiprocessing import ProcessPool as pool
@@ -25,6 +25,7 @@ from stem import Signal
 from stem.control import Controller
 from tqdm import tqdm
 
+logger = getLogger(__name__)
 
 SELENIUM_OPTIONS = webdriver.ChromeOptions()
 SELENIUM_OPTIONS.add_argument("headless")
@@ -494,7 +495,7 @@ def get(url, json=False):
             res_content = response.json()
 
     if status == 404:
-        print(f'URL "{url}" not found')
+        logger.info(f'URL "{url}" not found')
 
     if status not in [200, 404]:
         raise Exception(f"Server response: {status}")

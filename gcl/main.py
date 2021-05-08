@@ -11,12 +11,12 @@ in machine-learning applications.
 """
 
 from __future__ import absolute_import
-
 import json
 import re
 from csv import QUOTE_ALL, writer
 from datetime import datetime
 from functools import reduce
+from logging import getLogger
 from operator import concat
 from pathlib import Path
 from random import randint
@@ -38,8 +38,9 @@ from gcl.utils import (closest_value, create_dir, deaccent, hyphen_to_numbers,
                        recaptcha_process, regex, rm_repeated, rm_tree,
                        shorten_date, sort_int, switch_ip, validate_url)
 
-__all__ = ["GCLParse"]
+logger = getLogger(__name__)
 
+__all__ = ["GCLParse"]
 
 class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
     """
@@ -161,7 +162,7 @@ class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
         url = f"{self.__gs_base_url__}scholar_case?case={case_id}"
 
         if not path_to_file.is_file():
-            print(f"Now downloading the case {case_id}...")
+            logger.info(f"Now downloading the case {case_id}...")
             data = self.gcl_parse(url, return_data=True, random_sleep=True)
 
         else:
@@ -774,7 +775,7 @@ class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
         ]
         ids.extend(ids)
         repeated_ids = set([ids[i] for i in set(reduce(concat, indices, [])) if ids[i]])
-        print(f"There are {len(repeated_ids)} repeated cases in {str(directory)}")
+        logger.info(f"There are {len(repeated_ids)} repeated cases in {str(directory)}")
 
         def _remove_data(case_id, label):
             """Remove all data related to the case ID `case_id` from the `data` folder."""
@@ -790,10 +791,10 @@ class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
                 if patent_folder.is_dir():
                     rm_tree(patent_folder)
 
-            print(f"Case data with ID {case_id} ({label}) was removed successfully")
+            logger.info(f"Case data with ID {case_id} ({label}) was removed successfully")
 
         if remove_redundant:
-            print("Starting to remove redundant (unpublished) cases...")
+            logger.info("Starting to remove redundant (unpublished) cases...")
             list(
                 _remove_data(case_id, "redundant")
                 for case_id in tqdm(repeated_ids, total=len(repeated_ids))
@@ -803,10 +804,10 @@ class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
             redundant_cases = {
                 x: self.gcl_citation_summary(x, False)[x] for x in repeated_ids
             }
-            print(f"Redundant cases: {redundant_cases}")
+            logger.info(f"Redundant cases: {redundant_cases}")
 
         if external_list:
-            print("Starting to remove cases with IDs stored in external list...")
+            logger.info("Starting to remove cases with IDs stored in external list...")
             list(
                 _remove_data(case_id, "external")
                 for case_id in tqdm(external_list, total=len(external_list))
@@ -859,7 +860,7 @@ class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
                 res_content = response.text
 
         if status == 404:
-            print(f'URL "{url}" not found')
+            logger.info(f'URL "{url}" not found')
 
         if status not in [200, 404]:
             raise Exception(f"Server response: {status}")
@@ -875,7 +876,7 @@ class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
         # Return empty set if case law page was not found (`404` error).
         # Store the case ID with a `404` error.
         if not self.opinion:
-            print(f'Serialization failed for "{path_or_url}"')
+            logger.info(f'Serialization failed for "{path_or_url}"')
             path_404 = self.data_dir / "json" / f"404_{self.suffix}.json"
             not_downloaded = load_json(path_404)
             with open(path_404.__str__(), "w") as f:

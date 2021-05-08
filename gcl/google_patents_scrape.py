@@ -9,10 +9,12 @@ import json
 import re
 
 from bs4 import BeautifulSoup as BS
-
+from logging import getLogger
 from gcl import __version__
 from gcl.settings import root_dir
 from gcl.utils import create_dir, deaccent, get, regex, validate_url
+
+logger = getLogger(__name__)
 
 
 class GooglePatents:
@@ -270,7 +272,7 @@ class GooglePatents:
                     if not abort:
                         create_dir(json_path.parent)
                         with open(json_path.__str__(), "w") as f:
-                            print(
+                            logger.info(
                                 f"Saving patent data for Patent No. {patent_number}..."
                             )
                             json.dump(self.data, f, indent=4)
@@ -283,15 +285,15 @@ class GooglePatents:
                 if a == "title":
                     if patent_number:
                         if skip_patent:
-                            print(
+                            logger.info(
                                 f"Patent No. {patent_number} has not been downloaded yet. Please set `skip_patent=False`"
                             )
                         else:
-                            print(
+                            logger.info(
                                 f"Invalid patent number detected; saving Patent No. {patent_number} was stopped"
                             )
                 else:
-                    print(
+                    logger.info(
                         f"The patent {a} came back empty; saving Patent No. {patent_number} was stopped"
                     )
 
