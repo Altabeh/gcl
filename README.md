@@ -26,7 +26,7 @@ to install the package. Make sure that once `selenium` is installed, you have th
 
 To run gcl's test unit, just run the following command:
 
-`python3 test.py`
+`python -m unittest discover`
 
 ### Try
 
@@ -37,7 +37,7 @@ https://scholar.google.com/scholar_case?case=9862061449582190482
 and use the following snippet to get things started:
 
 ```
-from gcl.gcl import GCLParse
+from gcl.main import GCLParse
 
 GCL = GCLParse(data_dir="/users/.../gcl_test", suffix="test_v1")
 
