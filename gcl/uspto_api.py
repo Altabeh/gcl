@@ -17,6 +17,7 @@ from operator import concat
 from os import path
 from pathlib import Path
 from time import sleep
+from typing import Union
 from zipfile import ZipFile
 
 import requests
@@ -90,7 +91,9 @@ class USPTOscrape(PTABRegex, GeneralRegex):
                 self.ptab_call()
                 break
 
-    def bulk_search_download_call(self, start=0, rows=100, **kwargs):
+    def bulk_search_download_call(
+        self, start: int = 0, rows: int = 100, **kwargs
+    ) -> None:
         """
         Call bulk search and download API.
         """
@@ -118,8 +121,15 @@ class USPTOscrape(PTABRegex, GeneralRegex):
                 start += rows
                 self.bulk_search_download_call(start=start, rows=rows, **kwargs)
                 break
+        return
 
-    def save_metadata(self, metadata, suffix="", filename="response", dir_name="meta"):
+    def save_metadata(
+        self,
+        metadata: dict,
+        suffix: str = "",
+        filename: str = "response",
+        dir_name: str = "meta",
+    ) -> None:
         """
         Save metadata files downloaded using any method that calls a USPTO API.
 
@@ -135,8 +145,9 @@ class USPTOscrape(PTABRegex, GeneralRegex):
             )
             with open(json_path.__str__(), "w") as f:
                 json.dump(value, f, indent=4)
+        return
 
-    def ptab_document_download_api(self, metadata, pause=False):
+    def ptab_document_download_api(self, metadata: dict, pause: bool = False) -> None:
         """
         Download PTAB documents whose metadata are stored in a `metadata` file
         by calling PTAB Documents REST API.
@@ -163,8 +174,11 @@ class USPTOscrape(PTABRegex, GeneralRegex):
             logger.info(f'{metadata["documentName"]} saved successfully')
 
         logger.info(f'{metadata["documentName"]} already saved')
+        return
 
-    def aggrigator(self, special_keys=None, map_key=None, drop_keys=None):
+    def aggrigator(
+        self, special_keys: list = None, map_key: str = None, drop_keys: list = None
+    ) -> list:
         """
         Generate a serialized version of the uspto metadata files.
         Use `map_key` to map all metadata to a single key for faster querying.
@@ -229,20 +243,20 @@ class USPTOscrape(PTABRegex, GeneralRegex):
     def grab_ifw(
         self,
         appl_number: str,
-        doc_codes=None,
-        mime_types=None,
-        close_to_date=None,
-        skip_download=False,
-    ):
+        doc_codes: list = None,
+        mime_types: list = None,
+        close_to_date: str = None,
+        skip_download: bool = False,
+    ) -> list:
         """
         Download image file wrapper for a given application number `appl_number`.
 
         Args
         ----
         * :param doc_codes: ---> list: contains specific document codes to be downloaded.
+        * :param mime_types: ---> list: contains specific file mime types to be downloaded.
         * :param close_to_date: ---> str: allows to restrict the downloading of files to those
         * with official dates closest to this date.
-        * :param mime_types: ---> list: contains specific file mime types to be downloaded.
         * :param skip_download: ---> bool: if true, skips downloading data files whose metadata are stored in
         the transactions.
         """
@@ -273,7 +287,9 @@ class USPTOscrape(PTABRegex, GeneralRegex):
                 try:
                     transactions = r.json()
                     if retry := r.headers.get("Retry-After", None):
-                        plogger.info(f"Accessing {meta_url} is blocked for {retry} seconds")
+                        logger.info(
+                            f"Accessing {meta_url} is blocked for {retry} seconds"
+                        )
                         sleep(int(retry))
                     else:
                         if r.status_code == 401:
@@ -404,7 +420,9 @@ class USPTOscrape(PTABRegex, GeneralRegex):
                         file_path = transactions_folder / filename
                         with open(file_path.__str__(), "wb") as f:
                             f.write(r.content)
-                            logger.info(f"{filename} was downloaded and saved successfully")
+                            logger.info(
+                                f"{filename} was downloaded and saved successfully"
+                            )
 
                         if file_path.suffix.lower() in [".zip"]:
                             with ZipFile(file_path.__str__(), "r") as zipf:
@@ -428,7 +446,7 @@ class USPTOscrape(PTABRegex, GeneralRegex):
 
             return rm_repeated(paths)
 
-    def parse_clm(self, xml_file):
+    def parse_clm(self, xml_file: Union[Path, str]) -> dict:
         """
         Parse the xml file for the claims, i.e. items having the code "CLM"
         in the transaction history between applicant and the USPTO office .
@@ -538,7 +556,7 @@ class USPTOscrape(PTABRegex, GeneralRegex):
 
         return claims_data
 
-    def peds_call(self, **kwargs):
+    def peds_call(self, **kwargs) -> dict:
         """
         Call the PEDS API.
         """

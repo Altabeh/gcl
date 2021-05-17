@@ -7,9 +7,10 @@ patent data such as title, abstract, claims, and description.
 
 import json
 import re
+from logging import getLogger
 
 from bs4 import BeautifulSoup as BS
-from logging import getLogger
+
 from gcl import __version__
 from gcl.settings import root_dir
 from gcl.utils import create_dir, deaccent, get, regex, validate_url
@@ -41,7 +42,7 @@ class GooglePatents:
         self.suffix = kwargs.get("suffix", f"v{__version__}")
 
     @property
-    def data(self):
+    def data(self) -> dict:
         if self._data is None:
             self._data = {
                 "patent_number": None,
@@ -152,7 +153,7 @@ class GooglePatents:
                     self.data["claims"][num]["dependent_on"] = cited_claims
         return
 
-    def _scrape_description(self):
+    def _scrape_description(self) -> None:
         description_lines = self.patent.find_all(
             lambda tag: tag.name == "div"
             and tag.has_attr("class")
@@ -168,7 +169,7 @@ class GooglePatents:
             )
         return
 
-    def _scrape_abstract(self):
+    def _scrape_abstract(self) -> None:
         abstract_tags = self.patent.find_all("div", class_="abstract")
         abstract = " ".join(
             [regex(ab.get_text(), self.__relevant_patterns__) for ab in abstract_tags]
@@ -177,7 +178,7 @@ class GooglePatents:
             self.data["abstract"] = abstract
         return
 
-    def _scrape_title(self):
+    def _scrape_title(self) -> None:
         self.data["title"] = regex(
             self.patent.find("h1", attrs={"itemprop": "pageTitle"}).get_text(),
             [*self.__relevant_patterns__, (r" - Google Patents|^.*? - ", "")],
@@ -187,14 +188,14 @@ class GooglePatents:
     def patent_data(
         self,
         number_or_url: str,
-        skip_patent=False,
-        include_description=False,
-        save_unless_empty=[
+        skip_patent: bool = False,
+        include_description: bool = False,
+        save_unless_empty: list = [
             "title",
         ],
-        return_data=[],
+        return_data: list = [],
         **kwargs,
-    ):
+    ) -> tuple or None:
         """
         Download and scrape data for a patent with Patent (Application) No. or valid url `number_or_url`.
 
@@ -253,7 +254,7 @@ class GooglePatents:
 
         else:
             if not skip_patent:
-                url = f"{self.__gp_base_url__}patent/{patent_number}"
+                url = f"{self.__gp_base_url__}patent/{patent_number}/en"
                 status, html = get(url)
                 if status == 200:
                     found = True
