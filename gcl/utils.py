@@ -218,7 +218,7 @@ def create_dir(path):
 
 
 def concurrent_run(
-    func, items, threading=False, max_workers=None, return_results=True
+    func, items, threading=True, max_workers=None, return_results=True
 ):
     """
     Wrap a function `func` in a multiprocessing(threading) block good for
