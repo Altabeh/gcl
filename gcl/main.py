@@ -22,7 +22,7 @@ from operator import concat
 from pathlib import Path
 from random import randint
 from time import sleep
-from typing import Union, Iterable
+from typing import Iterable, Union
 
 import requests
 from bs4 import BeautifulSoup as BS
@@ -32,11 +32,11 @@ from tqdm import tqdm
 
 from gcl import __version__
 from gcl.google_patents_scrape import GooglePatents
-from gcl.regexes import GCLRegex, GeneralRegex
+from gcl.regexes import GCLRegex
 from gcl.settings import root_dir
 from gcl.uspto_api import USPTOscrape
-from gcl.utils import (closest_value, create_dir, deaccent, hyphen_to_numbers,
-                       load_json, multi_run, nullify, proxy_browser,
+from gcl.utils import (closest_value, concurrent_run, create_dir, deaccent,
+                       hyphen_to_numbers, load_json, nullify, proxy_browser,
                        recaptcha_process, regex, rm_repeated, rm_tree,
                        shorten_date, sort_int, switch_ip, validate_url)
 
@@ -45,7 +45,7 @@ logger = getLogger(__name__)
 __all__ = ["GCLParse"]
 
 
-class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
+class GCLParse(GCLRegex, USPTOscrape, GooglePatents):
     """
     Parser for Google case law pages.
     """
@@ -82,9 +82,6 @@ class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
             reverse=True,
         )
         self.suffix = kwargs.get("suffix", f"v{__version__}")
-        # USPTO scraper of transactions history between examiner and appellant including ptab decisions.
-        # This is needed if the appellant is not satisfied with the decision and seeks to appeal to the federal court.
-        self.uspto = USPTOscrape(suffix=self.suffix, data_dir=self.data_dir)
 
     @property
     def case(self) -> dict:
@@ -133,12 +130,14 @@ class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
                 ):
                     citations += [(name[0], nm[0][i], i) for i in (0, 1)]
 
-            # Sort citations bsaed on priority (plaintiffs > defendants > plaintiffs v. defendants)
+            # Sort citations based on priority (plaintiffs > defendants > plaintiffs v. defendants)
             self._prioritize_citations = sorted(citations, key=lambda x: x[2])
 
         return self._prioritize_citations
 
-    def gcl_citation_summary(self, case_id:str, suffix:str=None, return_list:bool=True) -> Union[list, dict]:
+    def gcl_citation_summary(
+        self, case_id: str, prefix: str = None, return_list: bool = True
+    ) -> Union[list, dict]:
         """
         Given a `case_id` for a gcl page, create a summary of the case in terms
         of its bluebook citation, court and date. If case is not found in the local
@@ -146,27 +145,27 @@ class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
 
         Args
         ----
-        * :param suffix: ---> str: overwrites instance attribute `suffix`.
-        * :param return_list: ---> bool: if False, return a dictionary instead with keys being
-        `citation`, `court` and `date`.
+        * :param prefix: ---> str: adds a string before `suffix` to further make
+        folder name of the created case summaries granular. If None, the cases will be
+        downloaded/parsed/serialized and saved to the folder `./gcl/data/json/json_suffix`.
+        * :param return_list: ---> bool: if False, return a dictionary instead
+        with keys being `citation`, `court` and `date`.
         """
         data = {"citation": None, "court": None, "date": None}
 
-        self.__suffix__ = self.suffix if not self.__suffix__ else None
+        subdir = f"json_{self.suffix}"
+        if prefix:
+            subdir = f"json_{prefix}_{self.suffix}"
 
-        if suffix:
-            self.suffix = suffix
-
-        path_to_file = (
-            create_dir(self.data_dir / "json" / f"json_{self.suffix}")
-            / f"{case_id}.json"
-        )
+        path_to_file = create_dir(self.data_dir / "json" / subdir) / f"{case_id}.json"
 
         url = f"{self.__gs_base_url__}scholar_case?case={case_id}"
 
         if not path_to_file.is_file():
             logger.info(f"Now downloading the case {case_id}...")
-            data = self.gcl_parse(url, return_data=True, random_sleep=True)
+            data = self.gcl_parse(
+                url, subdir=subdir, return_data=True, random_sleep=True
+            )
 
         else:
             data = load_json(path_to_file)
@@ -187,12 +186,9 @@ class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
                     else:
                         case_summary[case_id][key] = val
 
-        self.suffix = self.__suffix__
-        self.__suffix__ = None
-
         return case_summary
 
-    def gcl_long_blue_cite(self, citation:str)->Union[str, None]:
+    def gcl_long_blue_cite(self, citation: str) -> Union[str, None]:
         """
         Return longest bluebook version of a citation by removing pages and extra details.
         Return None if the citation does not match any of `long_bluebook_patterns`.
@@ -221,17 +217,20 @@ class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
         case_repo, case_id = {}, ""
         if isinstance(data, str):
             if regex(data, self.just_number_patterns, sub=False):
-                top_folder = self.data_dir / f"json_{self.suffix}"
+                top_folder = self.data_dir / "json"
                 for folder in top_folder.glob("**"):
-                    json_path = top_folder / folder / f"{data}.json"
-                    if json_path.is_file():
-                        case_repo = load_json(json_path)
-                        break
+                    if folder.endswith(self.suffix):
+                        json_path = top_folder / folder / f"{data}.json"
+                        if json_path.is_file():
+                            case_repo = load_json(json_path)
+                            break
 
                 if not case_repo:
                     case_id = data
                     url = f"{self.__gs_base_url__}scholar_case?case={case_id}"
-                    case_repo = self.gcl_parse(url, return_data=True)
+                    case_repo = self.gcl_parse(
+                        url, subdir=f"json_cites_{self.suffix}", return_data=True
+                    )
 
         if isinstance(data, Path):
             case_repo = load_json(data)
@@ -246,7 +245,7 @@ class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
         cites[case_id] = [case_repo["citation"]]
         return cites
 
-    def _fix_abbreviations(self, citation:str) -> str:
+    def _fix_abbreviations(self, citation: str) -> str:
         """
         Fix court and date abbreviations in a `citation` due to gcl processing
         issues or non-bluebook adaptations.
@@ -262,10 +261,12 @@ class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
     def gcl_parse(
         self,
         path_or_url: Union[str, Path],
-        skip_patent: bool=False,
-        return_data:bool=False,
-        need_proxy:bool=False,
-        random_sleep:bool=False,
+        subdir: str = None,
+        skip_patent: bool = False,
+        skip_application: bool = False,
+        return_data: bool = False,
+        need_proxy: bool = False,
+        random_sleep: bool = False,
     ) -> None or dict:
         """
         Parses a Google case law page (gcl) under an `html_path` or at a `url`
@@ -274,7 +275,9 @@ class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
         Args
         ----
         * :param path_or_url: ---> str: a path to an html file or a valid url of a gcl page.
-        * :param skip_patent: ---> bool: if true, skips downloading and scraping patent information.
+        * :param subdir: ---> str: name of the subdirectory under which the parsed case law will be saved.
+        * :param skip_patent: ---> bool: if True, skips downloading and scraping patent information.
+        * :param skip_application: ---> bool: if True, skips downloading patent data from transaction history of the patent application, if any.
         * :param random_sleep: ---> bool: if True, sleep for randomly selected seconds before making
         a new request.
         """
@@ -303,16 +306,17 @@ class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
         self.gcl_get_date()
         self._citation_details()
         self.gcl_get_judge()
-        self._patents_in_suit(skip_patent)
+        self._patents_in_suit(skip_patent, skip_application)
         self._serialize_footnotes()
         self._replace_generic_tags()
         self._training_text()
         self._personal_opinion()
 
+        subdir = subdir or f"json_{self.suffix}"
+
         with open(
             str(
-                create_dir(self.data_dir / "json" / f"json_{self.suffix}")
-                / f"{self.case['id']}.json"
+                create_dir(self.data_dir / "json" / subdir) / f"{self.case['id']}.json"
             ),
             "w",
         ) as f:
@@ -455,7 +459,7 @@ class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
             if court_name in ["Dist. Court"]:
                 court_name = "D.D.C."
             else:
-                fn = self.jurisdictions["federal_courts"].get(court_name, None)
+                fn = getattr(self, "jurisdictions")["federal_courts"].get(court_name, None)
                 if fn is not None:
                     court_name = fn
                 else:
@@ -465,7 +469,7 @@ class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
                         citation.replace(cdata[0], "").split(",")[-1],
                         self.space_patterns,
                     )
-                    state_abbr = self.jurisdictions["states_territories"][court_name]
+                    state_abbr = getattr(self, "jurisdictions")["states_territories"][court_name]
                     if "Dist." in possible_court_type and state_abbr:
                         court_name = (
                             f"D. {state_abbr}"
@@ -505,7 +509,7 @@ class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
             )[0]
 
             delimiter, court_type = cdata[1:3]
-            court_type = self.jurisdictions["federal_courts"][court_type]
+            court_type = getattr(self, "jurisdictions")["federal_courts"][court_type]
             court_type_spaced = f"{court_type} " if court_type else ""
             # Encountering a dash after publication in Google cases means that the case has been published.
             # So no case number is needed according to bluebook if a dash is encountered.
@@ -541,7 +545,7 @@ class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
                         state = c
                 elif i == 3:
                     d = c.split(",")[0]
-                    court_name = self.jurisdictions["state_courts"][d]
+                    court_name = getattr(self, "jurisdictions")["state_courts"][d]
                     # New York Supreme Court is cited as 'N.Y. Sup. Ct.'
                     if state == "N.Y." and d == "Supreme Court":
                         court_name = "Sup. Ct."
@@ -601,10 +605,10 @@ class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
     def gcl_bundle_cites(self, blue_citation: bool = False) -> None:
         """
         Bundle citations collected using the method `_collect_cites`
-        from each case found in the subdirectory `/gcl/data/json/json_suffix`
+        from each case found in the subdirectory `./gcl/data/json/json_suffix`
         and save them to `./gcl/data/json/citations_suffix.json`. Use a file
-        at `/gcl/data/json/manual_cites_suffix.json` with a data structure
-        compatible with `/gcl/data/json/citations_suffix.json` to consider
+        at `./gcl/data/json/manual_cites_suffix.json` with a data structure
+        compatible with `./gcl/data/json/citations_suffix.json` to consider
         overwriting imperfect citations.
 
         Args
@@ -624,13 +628,10 @@ class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
 
         r = {}
 
-        collected_cites = list(
-            multi_run(
-                self._collect_cites,
-                list(paths),
-                threading=True,
-                yield_results=True,
-            )
+        collected_cites = concurrent_run(
+            self._collect_cites,
+            list(paths),
+            return_results=True,
         )
 
         for c in tqdm(collected_cites, total=len(collected_cites)):
@@ -682,9 +683,7 @@ class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
                 else:
                     if not match:
                         if not cases_404.get(k, None):
-                            summary = self.gcl_citation_summary(
-                                k, f"cites_{self.suffix}", False
-                            )
+                            summary = self.gcl_citation_summary(k, "cites", False)
                             if fn := summary[k]:
                                 _apply(fn["citation"], k)
                         else:
@@ -693,7 +692,7 @@ class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
                 if not r[k]["case_name"] or r[k]["case_name"] not in r[k]["citation"]:
                     r[k]["needs_review"] = True
 
-        list(multi_run(_longest_cite, r.keys(), threading=True, pathos=True))
+        concurrent_run(_longest_cite, r.keys())
 
         with open(cites.__str__(), "w") as f:
             json.dump(r, f, indent=4)
@@ -702,16 +701,14 @@ class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
 
     def gcl_make_list(self, filename: str) -> None:
         """
-        Create a csv file that contains existing case summaries in
-        `json_suffix` and save it under `/gcl/data/csv/{filename}.csv.`
+        Create a csv file `{filename}.csv` that contains existing case summaries in
+        `./gcl/data/json/json_suffix` and save it to `./gcl/data/csv`
         """
         case_files = (self.data_dir / "json" / f"json_{self.suffix}").glob("*.json")
-        case_summaries = list(
-            multi_run(
-                self.gcl_citation_summary,
-                [f.stem for f in case_files],
-                yield_results=True,
-            )
+        case_summaries = concurrent_run(
+            self.gcl_citation_summary,
+            [f.stem for f in case_files],
+            return_results=True,
         )
         case_summaries.sort(
             key=lambda x: datetime.strptime(x[1], "%Y-%m-%d"), reverse=True
@@ -751,7 +748,7 @@ class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
         * :param remove_redundant: ---> bool: if True, will remove the serialized data
         and patent information of the redundant (unpublished) cases.
         * :param external_list: ---> list: an arbitrary list of case IDs whose serialized
-        data are found in `json_suffix`, which too need to be removed.
+        data are found in `./gcl/data/json/json_suffix`, which too need to be removed.
         * :param remove_patent: ---> bool: if True, remove patent data.
         """
         directory = self.data_dir / "json" / f"json_{self.suffix}"
@@ -874,7 +871,7 @@ class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
 
         return status, res_content
 
-    def _opinion(self, path_or_url:str) -> Union[dict, None]:
+    def _opinion(self, path_or_url: str) -> Union[dict, None]:
         """
         Get the opinion text from `path_or_url` to a gcl document.
         """
@@ -894,7 +891,7 @@ class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
                 json.dump(not_downloaded, f, indent=4)
             return {}
 
-        self.opinion.find(id="gs_dont_print").replaceWith("")
+        self.opinion.find(id="gs_dont_print").replace_with("")
         self.case["html"] = self.opinion.__str__()
         self.links = self.opinion.find_all("a")
         return
@@ -919,12 +916,12 @@ class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
         if footnote_identifiers:
             for tag in footnote_identifiers:
                 if tag.parent.attrs and tag.parent.attrs["id"] == "gsl_case_name":
-                    tag.replaceWith("")
+                    tag.replace_with("")
                     self.opinion.find_all("small")[-1].find(
                         lambda tag: tag.name == "p" and tag.find("a", class_="gsl_hash")
-                    ).replaceWith("")
+                    ).replace_with("")
                 else:
-                    tag.replaceWith(
+                    tag.replace_with(
                         f" {self.__footnote_label__}{tag.find('a').attrs['name'].replace('r', '')} "
                     )
         return
@@ -934,11 +931,12 @@ class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
         Extract full case name from the opinion.
         """
         gsl_case_name = self.opinion.find(id="gsl_case_name")
-        self.case["full_case_name"] = regex(
-            gsl_case_name.get_text(),
-            [*self.strip_patterns, *self.comma_space_patterns],
-        )
-        gsl_case_name.replaceWith("")
+        if gsl_case_name:
+            self.case["full_case_name"] = regex(
+                gsl_case_name.get_text(),
+                [*self.strip_patterns, *self.comma_space_patterns],
+            )
+            gsl_case_name.replace_with("")
         return
 
     def _pages(self) -> None:
@@ -964,10 +962,12 @@ class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
         """
         for center in self.opinion.select("center > b"):
             self.case["short_citation"].append(center.get_text())
-            center.replaceWith("")
+            center.replace_with("")
         return
 
-    def _casenumber(self, html:BS=None, only_casenumber:bool=False) -> Iterable[tuple]:
+    def _casenumber(
+        self, html: BS = None, only_casenumber: bool = False
+    ) -> Iterable[tuple]:
         """
         Extract the case IDs and docket numbers of any case related
         to `html` of the opinion document.
@@ -1141,7 +1141,7 @@ class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
                         if adjacent and adjacent.name == "i":
                             adjacent.name = "em"
 
-                    l.replaceWith(f" {self.__citation_label__}{id_}{c} ")
+                    l.replace_with(f" {self.__citation_label__}{id_}{c} ")
 
         self.case["cites_to"] = cites
         return
@@ -1152,7 +1152,7 @@ class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
         court information, and case number(s).
         """
         self.case["citation"], court_info = self.gcl_citor()
-        self.case["court"] = self.jurisdictions["court_details"][court_info]
+        self.case["court"] = getattr(self, "jurisdictions")["court_details"][court_info]
 
         # Insert the case number if the case is still unpublished
         self.case["citation"] = self.case["citation"].replace(
@@ -1202,7 +1202,7 @@ class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
                     for end in [".", ",", "'s"]:
                         if i_tag.endswith(end):
                             end_character = end
-                    i.replaceWith(
+                    i.replace_with(
                         f" {self.__citation_label__}{case_name[0]} {end_character}"
                     )
         return
@@ -1219,7 +1219,7 @@ class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
             for tag in footnotes:
                 parent_tag = tag.parent
                 footnote_tags.append(tag.parent)
-                tag.parent.replaceWith("")
+                tag.parent.replace_with("")
                 footnotes_data[tag.attrs["name"]] = regex(
                     parent_tag.get_text(), self.space_patterns
                 )
@@ -1232,7 +1232,8 @@ class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
 
         # Append the footnote tags back to the opinion.
         for tag in footnote_tags:
-            self.opinion.small.append(tag)
+            if self.opinion.small:
+                self.opinion.small.append(tag)
 
         # Bring the footnote context in the text for keeping continuity.
         for key, val in footnotes_data.items():
@@ -1369,7 +1370,7 @@ class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
 
         return claim_numbers
 
-    def _tokenize_citation(self, citation:str) -> dict:
+    def _tokenize_citation(self, citation: str) -> dict:
         """
         Tokenize court data, reporter data, docket numbers, publication date,
         and case name from a valid `citation`.
@@ -1382,7 +1383,7 @@ class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
             if date:
                 date = date[0]
                 [month, day, year] = [nullify(x) for x in date[1:]]
-                month = self.months[month] if month else None
+                month = getattr(self, "months")[month] if month else None
                 approx_location = fn[0].replace(date[0], year)
 
         if approx_location:
@@ -1391,12 +1392,12 @@ class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
 
             for c in self.court_codes:
                 if c in approx_location:
-                    court = self.jurisdictions["court_details"][c]
+                    court = getattr(self, "jurisdictions")["court_details"][c]
                     break
 
         total_matches = []
         # Remove reporters without a known volume or number such as ___ U.S. ___
-        for key in self.reporters:
+        for key in getattr(self, "reporters"):
             if key in citation:
                 citation = regex(
                     citation,
@@ -1414,7 +1415,7 @@ class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
             citation, [(r"[\-—–_ ]{2,}[, ]+", " ")]
         )
 
-        for key in self.reporters:
+        for key in getattr(self, "reporters"):
             if key in citation:
                 matches = regex(
                     citation,
@@ -1432,7 +1433,7 @@ class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
         keys = ["volume", "reporter_abbreviation", "first_page", "pages", "footnotes"]
         for m in total_matches:
             match = [
-                self.reporters[s] if i == 1 else s
+                getattr(self, "reporters")[s] if i == 1 else s
                 for i, s in enumerate(
                     list(map(lambda i: regex(i, self.comma_space_patterns), m[1:]))
                 )
@@ -1450,7 +1451,7 @@ class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
                 court = None
 
             if details["reporter_abbreviation"] in ["S. Ct.", "U.S."]:
-                court = self.jurisdictions["court_details"]["Supreme Court"]
+                court = getattr(self, "jurisdictions")["court_details"]["Supreme Court"]
 
             details["edition"] = EDITIONS.get(details["reporter_abbreviation"], None)
             reporter = {}
@@ -1527,7 +1528,7 @@ class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
         citation_dic["court"] = court
         return citation_dic
 
-    def _get_patent_numbers(self, opinion:str) -> None:
+    def _get_patent_numbers(self, opinion: str) -> None:
         """
         Get the patent numbers cited in the court case. If there is any application number
         cited, grab the patent number, if any, and return the pair. If there is no application
@@ -1582,7 +1583,7 @@ class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
         self.patent_numbers = reduce(concat, patent_numbers, [])
         return
 
-    def _patents_in_suit(self, skip_patent:bool) -> None:
+    def _patents_in_suit(self, skip_patent: bool, skip_application : bool) -> None:
         """
         Collect and store all relevant patents in suit including the text of all claims
         with the claims cited in the text of a gcl file identified.
@@ -1598,6 +1599,7 @@ class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
                     if patent_number:
                         patent_found, claims = self.patent_data(
                             patent_number,
+                            "en",
                             skip_patent,
                             True,
                             ["title", "claims"],
@@ -1606,9 +1608,10 @@ class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
                         )
                     extra = []
                     mixed_claim_numbers = set(claims.keys()) if claims else set()
-                    if uc := self._updated_claims(appl_number, skip_patent):
-                        extra = uc
-                        mixed_claim_numbers |= set(uc[0]["updated_claims"].keys())
+                    if not skip_application:
+                        if uc := self._updated_claims(appl_number, skip_patent):
+                            extra = uc
+                            mixed_claim_numbers |= set(uc[0]["updated_claims"].keys())
 
                     # Only append a patent if it has nonempty claimset.
                     if mixed_claim_numbers:
@@ -1632,7 +1635,7 @@ class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
         self.case["patents_in_suit"] = patents
         return
 
-    def _updated_claims(self, appl_number:str, skip_download:bool) -> list:
+    def _updated_claims(self, appl_number: str, skip_download: bool) -> list:
         """
         Download the data file containing amended claims, if any, from the transaction history for
         the application with the application number `appl_number`. Set `skip_download` to False
@@ -1640,7 +1643,7 @@ class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
         """
         updated_claims = []
         if appl_number:
-            xml = self.uspto.grab_ifw(
+            xml = self.grab_ifw(
                 appl_number,
                 ["CLM"],
                 ["XML"],
@@ -1648,10 +1651,10 @@ class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
                 skip_download,
             )
             if xml:
-                updated_claims += [self.uspto.parse_clm(xml[0])]
+                updated_claims += [self.parse_clm(xml[0])]
         return updated_claims
 
-    def _is_cited(self, number:str) -> bool:
+    def _is_cited(self, number: str) -> bool:
         """
         Check if a patent or application `number` is cited repeatedly in the case
         to be considered as a legit patent under discussion.
@@ -1661,7 +1664,7 @@ class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
 
         return False
 
-    def _patent_from_application(self, number:str) -> Iterable[tuple]:
+    def _patent_from_application(self, number: str) -> Iterable[tuple]:
         """
         Grab the patent number (str) given an application `number` (str) from
         https://patentcenter.uspto.gov/ and return the pair. If no patent number
@@ -1680,7 +1683,7 @@ class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
         standard_number = regex(number, self.standard_patent_patterns)
 
         if "/" in number:
-            metadata = self.uspto.peds_call(searchText=f"applId:({standard_number})")
+            metadata = self.peds_call(searchText=f"applId:({standard_number})")
             response = metadata["queryResults"]["searchResponse"]["response"]
             if response["numFound"] > 0:
                 docs = response["docs"][0]
@@ -1722,7 +1725,7 @@ class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
             footnotes = small_tag[-1].find_all("a", class_="gsl_hash")
             for tag in footnotes:
                 parent_tag = tag.parent
-                tag.replaceWith("")
+                tag.replace_with("")
                 self.case["footnotes"].append(
                     {
                         "identifier": f"{tag.attrs['name']}",
@@ -1740,34 +1743,34 @@ class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
         court_code = self.case["court"].get("court_code", None)
 
         for el in self.opinion.find_all("center"):
-            el.replaceWith("")
+            el.replace_with("")
 
         for h in self.opinion.find_all("h2"):
             if court_code in ["us"]:
                 if "Syllabus" not in h.get_text():
-                    h.replaceWith("")
+                    h.replace_with("")
             else:
-                h.replaceWith("")
+                h.replace_with("")
 
         for p in self.opinion.find_all("a", class_="gsl_pagenum"):
-            p.replaceWith(f" +page[{p.get_text()}]+ ")
+            p.replace_with(f" +page[{p.get_text()}]+ ")
 
         for a in self.opinion.find_all("a", class_="gsl_pagenum2"):
-            a.replaceWith("")
+            a.replace_with("")
 
         self._replace_i_tags(self.opinion)
 
         for bq in self.opinion.find_all("blockquote"):
             text = bq.get_text()
             if text:
-                bq.replaceWith(
+                bq.replace_with(
                     f" {self.__blockquote_label_s__} {text} {self.__blockquote_label_e__} "
                 )
 
         for pre in self.opinion.find_all("pre"):
             text = pre.get_text()
             if text:
-                pre.replaceWith(
+                pre.replace_with(
                     f" {self.__pre_label_s__} {text} {self.__pre_label_e__} "
                 )
 
@@ -1782,7 +1785,7 @@ class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
                     if p == judge_tag and judge_tag not in p.find_all("p"):
                         end_replace = True
                     if judge_tag not in p.find_all("p"):
-                        p.replaceWith("")
+                        p.replace_with("")
                 else:
                     break
 
@@ -1793,29 +1796,25 @@ class GCLParse(GCLRegex, GeneralRegex, GooglePatents):
                     if h.name == "h2":
                         if "Syllabus" in h.get_text():
                             end_replace = True
-                        h.replaceWith("")
+                        h.replace_with("")
                     else:
                         if judge_tag:
                             if h == judge_tag and judge_tag not in h.find_all("p"):
                                 end_replace = True
                             if judge_tag not in h.find_all("p"):
-                                h.replaceWith("")
+                                h.replace_with("")
                 else:
                     break
 
         for p in self.opinion.find_all("p"):
             text = p.get_text()
-            if not text:
-                p.replaceWith("")
-            else:
-                if regex(text, self.end_sentence_patterns, sub=False):
-                    p.replaceWith(f"{text} {self.__paragraph_label__} ")
-                else:
-                    p.replaceWith(text)
+            if regex(text, self.end_sentence_patterns, sub=False):
+                if not p.find("p"):
+                    p.replace_with(f"{text} {self.__paragraph_label__} ")
 
         small = self.opinion.find_all("small")
         if small:
-            small[-1].replaceWith("")
+            small[-1].replace_with("")
 
         return
 
