@@ -2,10 +2,8 @@ import json
 import re
 import unicodedata
 import urllib
-from concurrent.futures import ProcessPoolExecutor as future_pool
-from concurrent.futures import ThreadPoolExecutor as thread_future_pool
 from datetime import datetime
-from os import cpu_count, environ
+from os import environ
 from pathlib import Path
 from time import sleep
 from ast import literal_eval
@@ -13,8 +11,7 @@ import csv
 from logging import getLogger
 import requests
 from dateutil import parser
-from pathos.multiprocessing import ProcessPool as pool
-from pathos.threading import ThreadPool as thread_pool
+from concurrent.futures import (ProcessPoolExecutor, ThreadPoolExecutor)
 from python_anticaptcha import AnticaptchaClient, NoCaptchaTaskProxylessTask
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -111,9 +108,9 @@ def load_json(path, allow_exception=False):
     return data
 
 
-def load_csv(path, start_row=1, end_row=None, ignore_column=[]):
+def read_csv(path, start_row=1, end_row=None, ignore_column=[]):
     """
-    Load csv file at `path` and keep the type of the element in each cell intact.
+    Read csv file at `path` and keep the type of the element in each cell intact.
 
     Args
     ----
@@ -220,38 +217,31 @@ def create_dir(path):
     return path
 
 
-def multi_run(
-    func, files, threading=False, yield_results=False, cpus=cpu_count(), pathos=False
+def concurrent_run(
+    func, items, threading=False, max_workers=None, return_results=True
 ):
     """
-    Wrap a function `func` in a multiprocessing(threading) block good for simultaneous I/O/CPU-bound
-    operations involving multiple number of `files`. Set `yield_results` to True if the function intends
-    to yield results back to the caller. Use `pathos` to implement dill backend that is useful
-    for parallelizing nested and lambda functions.
+    Wrap a function `func` in a multiprocessing(threading) block good for
+    simultaneous I/O/CPU-bound operations involving multiple number of `items`.
+
+    Args
+    ---
+    * :param threading: --> set to True if the process is I/O-bound.
+    * :param max_workers: --> int: keeps track of how many logical cores/threads must be
+    dedicated to the computation of the func.
+    * :param return_results: --> bool: returns results of the exceutor if True.
     """
+    executor = (
+        ThreadPoolExecutor(max_workers)
+        if threading
+        else ProcessPoolExecutor(max_workers)
+    )
+    results = list(tqdm(executor.map(func, items), total=len(items)))
+    executor.shutdown()
 
-    if pathos:
-        if threading:
-            p = thread_pool(cpus)
-        else:
-            p = pool(cpus)
-        for _ in tqdm(p.imap(func, files), total=len(files)):
-            pass
-
-        p.close()
-        p.join()
-
-    else:
-        if threading:
-            p = thread_future_pool(cpus)
-        else:
-            p = future_pool(cpus)
-
-        for _ in tqdm(p.map(func, files), total=len(files)):
-            if not yield_results:
-                pass
-            else:
-                yield _
+    if return_results:
+        return results
+    return
 
 
 def nullify(input_):
