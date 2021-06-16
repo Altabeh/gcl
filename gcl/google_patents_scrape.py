@@ -7,7 +7,9 @@ patent data such as title, abstract, claims, and description.
 
 import json
 import re
+from functools import wraps
 from logging import getLogger
+from threading import Thread, local
 
 from bs4 import BeautifulSoup as BS
 
@@ -18,7 +20,7 @@ from gcl.utils import create_dir, deaccent, get, regex, validate_url
 logger = getLogger(__name__)
 
 
-class GooglePatents:
+class GooglePatents(Thread):
 
     __gp_base_url__ = "https://patents.google.com/"
     __relevant_patterns__ = [
@@ -35,29 +37,40 @@ class GooglePatents:
         )
     ]
     __description_patterns__ = [(r"description\W+(?:line|paragraph)", "")]
-    _data = None
+
+    tl = local()
 
     def __init__(self, **kwargs):
         self.data_dir = create_dir(kwargs.get("data_dir", root_dir / "gcl" / "data"))
         self.suffix = kwargs.get("suffix", f"v{__version__}")
 
-    @property
-    def data(self) -> dict:
-        if self._data is None:
-            self._data = {
-                "patent_number": None,
-                "url": None,
-                "title": None,
-                "abstract": None,
-                "claims": {},
-                "description": {},
-            }
+    def _data(self):
+        self.tl.pat_data = {
+            "patent_number": None,
+            "url": None,
+            "title": None,
+            "abstract": None,
+            "claims": {},
+            "description": {},
+        }
+        return
 
-        return self._data
+    def _clear_thread(func):
+        """
+        Decorator for clearing all the locally assigned attributes of an instance of threading.local().
+        """
+
+        @wraps(func)
+        def wrapper(self, *args, **kwargs):
+            result = func(self, *args, **kwargs)
+            self.tl.__dict__.clear()
+            return result
+
+        return wrapper
 
     def _scrape_claims(self):
         list_index = False
-        claim_container = self.patent.select_one(".claims")
+        claim_container = self.tl.patent.select_one(".claims")
 
         if claim_container:
             if claim_container.name in ["ol", "ul"]:
@@ -111,7 +124,8 @@ class GooglePatents:
                     "context": context,
                     "dependent_on": None,
                 }
-                self.data["claims"][num] = attach_data
+
+                self.tl.pat_data["claims"][num] = attach_data
                 if num > 1:
                     if fn := regex(
                         context,
@@ -150,11 +164,11 @@ class GooglePatents:
                             elif gn[3] and not gn[4]:
                                 cited_claims = [num - 1]
 
-                    self.data["claims"][num]["dependent_on"] = cited_claims
+                    self.tl.pat_data["claims"][num]["dependent_on"] = cited_claims
         return
 
     def _scrape_description(self) -> None:
-        description_lines = self.patent.find_all(
+        description_lines = self.tl.patent.find_all(
             lambda tag: tag.name == "div"
             and tag.has_attr("class")
             and regex(
@@ -164,36 +178,36 @@ class GooglePatents:
             )[0]
         )
         for i, pl in enumerate(description_lines):
-            self.data["description"][i + 1] = regex(
+            self.tl.pat_data["description"][i + 1] = regex(
                 pl.get_text(), self.__relevant_patterns__
             )
         return
 
     def _scrape_abstract(self) -> None:
-        abstract_tags = self.patent.find_all("div", class_="abstract")
+        abstract_tags = self.tl.patent.find_all("div", class_="abstract")
         abstract = " ".join(
             [regex(ab.get_text(), self.__relevant_patterns__) for ab in abstract_tags]
         )
         if abstract:
-            self.data["abstract"] = abstract
+            self.tl.pat_data["abstract"] = abstract
         return
 
     def _scrape_title(self) -> None:
-        self.data["title"] = regex(
-            self.patent.find("h1", attrs={"itemprop": "pageTitle"}).get_text(),
+        self.tl.pat_data["title"] = regex(
+            self.tl.patent.find("h1", attrs={"itemprop": "pageTitle"}).get_text(),
             [*self.__relevant_patterns__, (r" - Google Patents|^.*? - ", "")],
         )
         return
 
+    @_clear_thread
     def patent_data(
         self,
         number_or_url: str,
+        language: str = "en",
         skip_patent: bool = False,
         include_description: bool = False,
-        save_unless_empty: list = [
-            "title",
-        ],
-        return_data: list = [],
+        save_unless_empty: list = None,
+        return_data: list = None,
         **kwargs,
     ) -> tuple or None:
         """
@@ -205,6 +219,7 @@ class GooglePatents:
 
         Args
         ----
+        * :param language: ---> str: determines the language of the patent to be downloaded.
         * :param skip_patent: ---> bool: if true, skips downloading patent and rather looks for
         a local patent file under `patents` folder.
         * :param include_description: ---> bool: if true, the description will be included in the serialized data.
@@ -213,6 +228,18 @@ class GooglePatents:
         * :param return_data: ---> list: contains the parameters whose data will be returned upon serialization.
         * :param kwargs: ---> dict: contains arbitrary key, value pairs to be added to the serialized data.
         """
+
+        # Create thread-specific data attribute to store data.
+        self._data()
+
+        if not save_unless_empty:
+            save_unless_empty = [
+                "title",
+            ]
+
+        if not return_data:
+            return_data = []
+
         # List of parameters that would abort saving if scraping them fails to return nonempty values.
         abort = []
 
@@ -228,7 +255,7 @@ class GooglePatents:
             elif k == "filename":
                 filename = v
             else:
-                self.data[k] = v
+                self.tl.pat_data[k] = v
 
         try:
             if validate_url(number_or_url):
@@ -249,16 +276,17 @@ class GooglePatents:
         if json_path.is_file():
             if return_data:
                 with open(json_path.__str__(), "r") as f:
-                    self._data = json.load(f)
+                    self.tl.pat_data = json.load(f)
             found = True
 
         else:
             if not skip_patent:
-                url = f"{self.__gp_base_url__}patent/{patent_number}/en"
+                url = f"{self.__gp_base_url__}patent/{patent_number}/{language}"
                 status, html = get(url)
+
                 if status == 200:
                     found = True
-                    self.patent = BS(deaccent(html), "html.parser")
+                    self.tl.patent = BS(deaccent(html), "html.parser")
                     self._scrape_claims()
 
                     if include_description:
@@ -266,17 +294,19 @@ class GooglePatents:
 
                     self._scrape_abstract()
                     self._scrape_title()
-                    self.data["url"] = url
-                    self.data["patent_number"] = patent_number
+                    self.tl.pat_data["url"] = url
+                    self.tl.pat_data["patent_number"] = patent_number
 
-                    abort = [par for par in save_unless_empty if not self.data[par]]
+                    abort = [
+                        par for par in save_unless_empty if not self.tl.pat_data[par]
+                    ]
                     if not abort:
                         create_dir(json_path.parent)
                         with open(json_path.__str__(), "w") as f:
                             logger.info(
                                 f"Saving patent data for Patent No. {patent_number}..."
                             )
-                            json.dump(self.data, f, indent=4)
+                            json.dump(self.tl.pat_data, f, indent=4)
 
         if return_data:
             if not found:
@@ -300,7 +330,6 @@ class GooglePatents:
 
                 return found, None
 
-            return found, *(self.data[d] for d in return_data)
+            return found, *(self.tl.pat_data[d] for d in return_data)
 
-        self._data = None
         return
