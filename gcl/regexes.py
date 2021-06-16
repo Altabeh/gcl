@@ -54,7 +54,7 @@ class GCLRegex:
     ]
     judge_clean_patterns_2 = [
         (
-            r"^(?:the )?hon\. |^(?:the )?honorable |^before:? |^present:? |^m[rs]s?\.? |, (?:u\.?\s\.?)?d?\.?j\.\.?$|, j\.s\.c\.$",
+            r"^(?:the )?hon\. |^(?:the )?honorable |^(?:\d+\*\d+)?(?: +)?before:? |^present:? |^m[rs]s?\.? |,? ?(?:u\.?\s\.?)?d?\.?j\.\.?$|, j\.s\.c\.$",
             "",
         )
     ]
@@ -117,7 +117,7 @@ class GCLRegex:
     boundary_patterns = [(r"^(?:[Tt]he |[.,;:\"\'\[\(\- ])+|[;:\"\'\)\]\- ]+$|'s$", "")]
     end_sentence_patterns = [
         (
-            r"(?:AFFIRMED|ORDERED|REMANDED|DENIED|REVERSED|GRANTED|[pP][aA][rR][tT]|@@@@\[[\d\*]+\]|[.!?])[\"\'”’]?$",
+            r"(?:AFFIRMED|ORDERED|REMANDED|DENIED|REVERSED|GRANTED|[pP][aA][rR][tT]|@@@@\[[\d\*]+\]|[.!?])(?:[\"\'”’]+)?$",
             "",
         )
     ]
@@ -141,7 +141,7 @@ class PTABRegex:
     claim_num_patterns = re.compile(r"(?:us)?(?:pat:)?claim-?number")
     claim_text_patterns = re.compile(r"(?:us)?(?:pat:)?claim-?text")
     claim_ref_patterns = re.compile(r"(?:us)?(?:pat:)?claim-?reference")
-    date_patterns = re.compile(r"(?:us)?(?:com|pat)?:?(?:official|mailroom)?date")
+    official_mailroom_date_patterns = re.compile(r"(?:us)?(?:com|pat)?:?(?:official|mailroom)?date")
     claimset_tag_patterns = re.compile(r"(?:pat:)?claimse?t?")
     dependent_claim_patterns = [
         (
