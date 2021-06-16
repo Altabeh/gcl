@@ -455,7 +455,7 @@ class USPTOscrape(PTABRegex, GeneralRegex):
             xml_file = Path(xml_file)
 
         clm = BS(deaccent(xml_file.read_text()), "lxml")
-        date = clm.find(self.date_patterns).get_text()
+        date = clm.find(self.official_mailroom_date_patterns).get_text()
 
         if cs := clm.find(self.claimset_tag_patterns):
             clm = cs
