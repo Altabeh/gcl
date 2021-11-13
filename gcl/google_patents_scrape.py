@@ -103,13 +103,22 @@ class GooglePatents(Thread):
                             "claim" in tag.attrs.get("class", []),
                         ):
                             if gn := fn.attrs.get("num"):
-                                num = int(
-                                    regex(
-                                        gn,
-                                        [(r"[\[()\]]", ""), (r"^[a-z0\-]", "")],
-                                        flags=re.I,
+
+                                # In case a range of claims appear to be cancelled, this block picks up
+                                # the last number and assigns it to `num`.
+                                if gn_range := regex(
+                                    gn, [(r"\d+[-\s]+(\d+)", "")], flags=re.I, sub=False
+                                ):
+                                    num = int(gn_range[0])
+
+                                else:
+                                    num = int(
+                                        regex(
+                                            gn,
+                                            [(r"[\[()\]]", ""), (r"^[a-z0\-]", "")],
+                                            flags=re.I,
+                                        )
                                     )
-                                )
                             else:
                                 num = i + 1
                         else:
