@@ -459,7 +459,9 @@ class GCLParse(GCLRegex, USPTOscrape, GooglePatents):
             if court_name in ["Dist. Court"]:
                 court_name = "D.D.C."
             else:
-                fn = getattr(self, "jurisdictions")["federal_courts"].get(court_name, None)
+                fn = getattr(self, "jurisdictions")["federal_courts"].get(
+                    court_name, None
+                )
                 if fn is not None:
                     court_name = fn
                 else:
@@ -469,7 +471,9 @@ class GCLParse(GCLRegex, USPTOscrape, GooglePatents):
                         citation.replace(cdata[0], "").split(",")[-1],
                         self.space_patterns,
                     )
-                    state_abbr = getattr(self, "jurisdictions")["states_territories"][court_name]
+                    state_abbr = getattr(self, "jurisdictions")["states_territories"][
+                        court_name
+                    ]
                     if "Dist." in possible_court_type and state_abbr:
                         court_name = (
                             f"D. {state_abbr}"
@@ -628,10 +632,11 @@ class GCLParse(GCLRegex, USPTOscrape, GooglePatents):
 
         r = {}
 
-        collected_cites = concurrent_run(
-            self._collect_cites,
-            list(paths),
-            return_results=True,
+        collected_cites = list(
+            concurrent_run(
+                self._collect_cites,
+                list(paths),
+            )
         )
 
         for c in tqdm(collected_cites, total=len(collected_cites)):
@@ -692,7 +697,7 @@ class GCLParse(GCLRegex, USPTOscrape, GooglePatents):
                 if not r[k]["case_name"] or r[k]["case_name"] not in r[k]["citation"]:
                     r[k]["needs_review"] = True
 
-        concurrent_run(_longest_cite, r.keys())
+        list(concurrent_run(_longest_cite, r.keys()))
 
         with open(cites.__str__(), "w") as f:
             json.dump(r, f, indent=4)
@@ -705,10 +710,12 @@ class GCLParse(GCLRegex, USPTOscrape, GooglePatents):
         `./gcl/data/json/json_suffix` and save it to `./gcl/data/csv`
         """
         case_files = (self.data_dir / "json" / f"json_{self.suffix}").glob("*.json")
-        case_summaries = concurrent_run(
-            self.gcl_citation_summary,
-            [f.stem for f in case_files],
-            return_results=True,
+        case_summaries = list(
+            concurrent_run(
+                self.gcl_citation_summary,
+                [f.stem for f in case_files],
+                return_results=True,
+            )
         )
         case_summaries.sort(
             key=lambda x: datetime.strptime(x[1], "%Y-%m-%d"), reverse=True
@@ -1583,7 +1590,7 @@ class GCLParse(GCLRegex, USPTOscrape, GooglePatents):
         self.patent_numbers = reduce(concat, patent_numbers, [])
         return
 
-    def _patents_in_suit(self, skip_patent: bool, skip_application : bool) -> None:
+    def _patents_in_suit(self, skip_patent: bool, skip_application: bool) -> None:
         """
         Collect and store all relevant patents in suit including the text of all claims
         with the claims cited in the text of a gcl file identified.

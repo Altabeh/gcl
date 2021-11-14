@@ -17,6 +17,7 @@ class TestGCLParse(unittest.TestCase):
         self.assertEqual.__self__.maxDiff = None
         GCL = GCLParse(suffix=f"test_v{__version__}")
         for id_ in self.__case_id_list__:
+            print(f"Started testing test_case_{id_}...")
             original_data = load_json(
                 root_dir / "tests" / "test_files" / f"test_case_{id_}.json"
             )
