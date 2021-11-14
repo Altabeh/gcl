@@ -1,32 +1,45 @@
+import asyncio
+import csv
 import json
 import re
 import unicodedata
 import urllib
+from ast import literal_eval
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
-from os import environ
+from logging import getLogger
+from multiprocessing import Pool
+from os import cpu_count, environ
 from pathlib import Path
 from time import sleep
-from ast import literal_eval
-import csv
-from logging import getLogger
+from typing import Any, Iterator, List
+
+import aiohttp
 import requests
 from dateutil import parser
-from concurrent.futures import (ProcessPoolExecutor, ThreadPoolExecutor)
 from python_anticaptcha import AnticaptchaClient, NoCaptchaTaskProxylessTask
 from selenium import webdriver
+from selenium.webdriver import FirefoxOptions
 from selenium.webdriver.common.by import By
-from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 from stem import Signal
 from stem.control import Controller
 from tqdm import tqdm
 
+from gcl.settings import root_dir
+
 logger = getLogger(__name__)
 
-SELENIUM_OPTIONS = webdriver.ChromeOptions()
-SELENIUM_OPTIONS.add_argument("headless")
-SELENIUM_DRIVER = webdriver.Chrome(options=SELENIUM_OPTIONS)
+firefox_options = FirefoxOptions()
+firefox_options.add_argument("--headless")
+firefox_options.add_argument("--no-sandbox")
+firefox_options.add_argument("--disable-dev-shm-usage")
+executable_path = str(root_dir / "gcl" / "executables" / "geckodriver")
+
+SELENIUM_DRIVER = webdriver.Firefox(
+    executable_path=executable_path, firefox_options=firefox_options
+)
 
 
 DOMAIN_FORMAT = re.compile(
@@ -218,30 +231,105 @@ def create_dir(path):
 
 
 def concurrent_run(
-    func, items, threading=True, max_workers=None, return_results=True
+    func: Any,
+    gen_or_iter: Any,
+    threading: bool = True,
+    keep_order: bool = True,
+    max_workers: int = None,
+    disable_progress_bar: bool = False,
 ):
     """
     Wrap a function `func` in a multiprocessing(threading) block good for
-    simultaneous I/O/CPU-bound operations involving multiple number of `items`.
+    simultaneous I/O/CPU-bound operations.
 
-    Args
-    ---
-    * :param threading: --> set to True if the process is I/O-bound.
-    * :param max_workers: --> int: keeps track of how many logical cores/threads must be
-    dedicated to the computation of the func.
-    * :param return_results: --> bool: returns results of the exceutor if True.
+    :param func: function to apply
+    :param gen_or_iter: generator/iterator or iterable to iterate over.
+    :param threading: set to True if the process is I/O-bound.
+    :param keep_order: bool: if True, it sorts the results in the order of submitted tasks.
+    :param max_workers: int: keeps track of how many logical cores/threads must be dedicated to the computation of the func.
+    :param disable_progress_bar: if True, progress bar is not shown.
     """
     executor = (
-        ThreadPoolExecutor(max_workers)
+        ThreadPoolExecutor(max_workers or 2 * cpu_count())
         if threading
-        else ProcessPoolExecutor(max_workers)
+        else Pool(max_workers or cpu_count())
     )
-    results = list(tqdm(executor.map(func, items), total=len(items)))
-    executor.shutdown()
+    with tqdm(
+        total=len(gen_or_iter) if not isinstance(gen_or_iter, Iterator) else None,
+        disable=disable_progress_bar,
+    ) as pbar:
 
-    if return_results:
-        return results
-    return
+        if threading:
+            if keep_order:
+                results_or_tasks = executor.map(func, gen_or_iter)
+                for result in results_or_tasks:
+                    pbar.update(1)
+                    yield result
+
+            else:
+                results_or_tasks = {executor.submit(func, item) for item in gen_or_iter}
+                for f in as_completed(results_or_tasks):
+                    pbar.update(1)
+                    yield f.result()
+            executor.shutdown()
+
+        else:
+            if keep_order:
+                results_or_tasks = executor.map(func, gen_or_iter)
+            else:
+                results_or_tasks = executor.imap_unordered(func, gen_or_iter)
+
+            for _ in results_or_tasks:
+                pbar.update(1)
+                yield _
+
+            executor.close()
+            executor.join()
+
+    del results_or_tasks
+
+
+class AsyncWebScraper:
+    def __init__(self, urls: List[str] = None, all_scraped_data: List[Any] = None):
+        self.urls = urls
+        self.all_scraped_data = all_scraped_data
+
+    async def fetch(self, session, url, **kwargs):
+        try:
+            async with session.get(url) as response:
+                # extracting the text
+                text = await response.text()
+                # extracted data
+                data = await self.extract_data(text, url, **kwargs)
+                print(f"Successfully extracted data from {url}")
+                return data
+        except Exception as e:
+            print(f"Error encountered while scraping data from {url}: {e}")
+
+    async def extract_data(self, *args, **kwargs):
+        pass
+
+    async def main(self, **kwargs):
+        tasks = []
+        connector = aiohttp.TCPConnector(limit=50)  # limit to 50 concurrent requests
+        async with aiohttp.ClientSession(connector=connector) as session:
+            if self.urls:
+                for url in self.urls:
+                    tasks.append(self.fetch(session, url, **kwargs))
+
+                scraped_data = await asyncio.gather(*tasks)
+
+                if not self.all_scraped_data:
+                    self.all_scraped_data = []
+
+                self.all_scraped_data.extend(scraped_data)
+
+            else:
+                pass
+
+    def get_data(self, **kwargs):
+        asyncio.run(self.main(**kwargs))
+        return self.all_scraped_data
 
 
 def nullify(input_):
@@ -391,9 +479,11 @@ def proxy_browser(host="127.0.0.1", port=9050, proxy_type=1):
     fp.set_preference("network.proxy.socks", host)
     fp.set_preference("network.proxy.socks_port", int(port))
     fp.update_preferences()
-    options = Options()
+    options = FirefoxOptions()
     options.headless = True
-    return webdriver.Firefox(options=options, firefox_profile=fp)
+    return webdriver.Firefox(
+        executable_path=executable_path, options=options, firefox_profile=fp
+    )
 
 
 def _recaptcha_get_token(url, site_key, invisible=False):
