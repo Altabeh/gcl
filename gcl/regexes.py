@@ -117,7 +117,7 @@ class GCLRegex:
     boundary_patterns = [(r"^(?:[Tt]he |[.,;:\"\'\[\(\- ])+|[;:\"\'\)\]\- ]+$|'s$", "")]
     end_sentence_patterns = [
         (
-            r"(?:AFFIRMED|ORDERED|REMANDED|DENIED|REVERSED|GRANTED|[pP][aA][rR][tT]|@@@@\[[\d\*]+\]|[.!?])(?:[\"\'”’]+)?$",
+            r"(?:AFFIRMED|ORDERED|REMANDED|DENIED|REVERSED|GRANTED|[pP][aA][rR][tT]|@@@@\[[\d\*]+\]|[.!?])(?:[\"\'”’\n\s]+)?$",
             "",
         )
     ]
