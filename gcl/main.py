@@ -714,7 +714,6 @@ class GCLParse(GCLRegex, USPTOscrape, GooglePatents):
             concurrent_run(
                 self.gcl_citation_summary,
                 [f.stem for f in case_files],
-                return_results=True,
             )
         )
         case_summaries.sort(
