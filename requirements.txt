@@ -10,4 +10,3 @@ selenium==4.1.5
 python-anticaptcha==0.7.1
 python-dateutil==2.8.1
 webdriver-manager==3.5.4
-black
