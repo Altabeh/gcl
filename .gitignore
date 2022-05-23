@@ -137,6 +137,9 @@ data/
 !/data/reporters.json
 !/data/months.json
 
+# executables data
+executables/
+
 # google patents api
 google_key/
 google_patent.py
@@ -146,3 +149,4 @@ tor.py
 extra.py
 alice.py
 geckodriver.log
+.DS_Store

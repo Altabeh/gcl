@@ -9,6 +9,7 @@ PEDS, transaction history, IFW and etc.
 import json
 import random
 import re
+import warnings
 from copy import deepcopy
 from datetime import datetime
 from functools import reduce
@@ -22,6 +23,7 @@ from zipfile import ZipFile
 
 import requests
 from bs4 import BeautifulSoup as BS
+from bs4.builder import XMLParsedAsHTMLWarning
 from dateutil import parser
 from tqdm import tqdm
 
@@ -30,6 +32,8 @@ from gcl.regexes import GeneralRegex, PTABRegex
 from gcl.settings import root_dir
 from gcl.utils import (closest_value, create_dir, deaccent, load_json, regex,
                        rm_repeated, timestamp)
+
+warnings.filterwarnings("ignore", category=XMLParsedAsHTMLWarning)
 
 logger = getLogger(__name__)
 
@@ -454,7 +458,7 @@ class USPTOscrape(PTABRegex, GeneralRegex):
         if not isinstance(xml_file, Path):
             xml_file = Path(xml_file)
 
-        clm = BS(deaccent(xml_file.read_text()), "lxml")
+        clm = BS(deaccent(xml_file.read_text()), features="lxml")
         date = clm.find(self.official_mailroom_date_patterns).get_text()
 
         if cs := clm.find(self.claimset_tag_patterns):
@@ -593,6 +597,6 @@ class USPTOscrape(PTABRegex, GeneralRegex):
                 else:
                     break
             except ValueError or json.decoder.JSONDecodeError:
-                pass
+                break
 
         return metadata

@@ -1690,7 +1690,12 @@ class GCLParse(GCLRegex, USPTOscrape, GooglePatents):
 
         if "/" in number:
             metadata = self.peds_call(searchText=f"applId:({standard_number})")
-            response = metadata["queryResults"]["searchResponse"]["response"]
+            response = {}
+            if metadata:
+                response = metadata["queryResults"]["searchResponse"]["response"]
+            else:
+                response["numFound"] = 0
+
             if response["numFound"] > 0:
                 docs = response["docs"][0]
                 appl_data = docs.get("childContinuity", []) or docs.get(

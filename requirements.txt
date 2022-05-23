@@ -6,7 +6,8 @@ reporters-db==2.0.5
 pathos==0.2.7
 stem==1.8.0
 lxml>=4.6.5
-selenium==3.141.0
+selenium==4.1.5
 python-anticaptcha==0.7.1
 python-dateutil==2.8.1
+webdriver-manager==3.5.4
 black

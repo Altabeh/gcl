@@ -19,29 +19,31 @@ import requests
 from dateutil import parser
 from python_anticaptcha import AnticaptchaClient, NoCaptchaTaskProxylessTask
 from selenium import webdriver
-from selenium.webdriver import FirefoxOptions
+from selenium.webdriver import ChromeOptions
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 from stem import Signal
 from stem.control import Controller
 from tqdm import tqdm
+from webdriver_manager.chrome import ChromeDriverManager
 
 from gcl.settings import root_dir
 
 logger = getLogger(__name__)
 
-firefox_options = FirefoxOptions()
-firefox_options.add_argument("--headless")
-firefox_options.add_argument("--no-sandbox")
-firefox_options.add_argument("--disable-dev-shm-usage")
-executable_path = str(root_dir / "gcl" / "executables" / "geckodriver")
+chrome_options = ChromeOptions()
+chrome_options.add_argument("--headless")
+chrome_options.add_argument("--no-sandbox")
+chrome_options.add_argument("--disable-gpu")
+executable_path = root_dir / "gcl" / "executables" / "chromedriver"
 
-SELENIUM_DRIVER = webdriver.Firefox(
-    executable_path=executable_path, firefox_options=firefox_options
+SELENIUM_DRIVER = webdriver.Chrome(
+    executable_path=ChromeDriverManager(
+        path=executable_path.parent.__str__()
+    ).install(),
+    options=chrome_options,
 )
-
-
 DOMAIN_FORMAT = re.compile(
     r"(?:^(\w{1,255}):(.{1,255})@|^)"  # http basic authentication [optional]
     # check full domain length to be less than or equal to 253 (starting after http basic auth, stopping before port)
