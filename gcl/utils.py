@@ -20,6 +20,7 @@ from dateutil import parser
 from python_anticaptcha import AnticaptchaClient, NoCaptchaTaskProxylessTask
 from selenium import webdriver
 from selenium.webdriver import ChromeOptions
+from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
@@ -39,9 +40,11 @@ chrome_options.add_argument("--disable-gpu")
 executable_path = root_dir / "gcl" / "executables" / "chromedriver"
 
 SELENIUM_DRIVER = webdriver.Chrome(
-    executable_path=ChromeDriverManager(
-        path=executable_path.parent.__str__()
-    ).install(),
+    service=Service(
+        executable_path=ChromeDriverManager(
+            path=executable_path.parent.__str__()
+        ).install()
+    ),
     options=chrome_options,
 )
 DOMAIN_FORMAT = re.compile(
