@@ -1,4 +1,3 @@
-import asyncio
 import csv
 import json
 import re
@@ -12,14 +11,13 @@ from multiprocessing import Pool
 from os import cpu_count, environ
 from pathlib import Path
 from time import sleep
-from typing import Any, Iterator, List
+from typing import Any, Iterator
 
-import aiohttp
 import requests
 from dateutil import parser
 from python_anticaptcha import AnticaptchaClient, NoCaptchaTaskProxylessTask
 from selenium import webdriver
-from selenium.webdriver import ChromeOptions
+from selenium.webdriver import ChromeOptions, FirefoxOptions
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
@@ -294,49 +292,6 @@ def concurrent_run(
     del results_or_tasks
 
 
-class AsyncWebScraper:
-    def __init__(self, urls: List[str] = None, all_scraped_data: List[Any] = None):
-        self.urls = urls
-        self.all_scraped_data = all_scraped_data
-
-    async def fetch(self, session, url, **kwargs):
-        try:
-            async with session.get(url) as response:
-                # extracting the text
-                text = await response.text()
-                # extracted data
-                data = await self.extract_data(text, url, **kwargs)
-                print(f"Successfully extracted data from {url}")
-                return data
-        except Exception as e:
-            print(f"Error encountered while scraping data from {url}: {e}")
-
-    async def extract_data(self, *args, **kwargs):
-        pass
-
-    async def main(self, **kwargs):
-        tasks = []
-        connector = aiohttp.TCPConnector(limit=50)  # limit to 50 concurrent requests
-        async with aiohttp.ClientSession(connector=connector) as session:
-            if self.urls:
-                for url in self.urls:
-                    tasks.append(self.fetch(session, url, **kwargs))
-
-                scraped_data = await asyncio.gather(*tasks)
-
-                if not self.all_scraped_data:
-                    self.all_scraped_data = []
-
-                self.all_scraped_data.extend(scraped_data)
-
-            else:
-                pass
-
-    def get_data(self, **kwargs):
-        asyncio.run(self.main(**kwargs))
-        return self.all_scraped_data
-
-
 def nullify(input_):
     if not input_:
         input_ = None
@@ -487,7 +442,13 @@ def proxy_browser(host="127.0.0.1", port=9050, proxy_type=1):
     options = FirefoxOptions()
     options.headless = True
     return webdriver.Firefox(
-        executable_path=executable_path, options=options, firefox_profile=fp
+        service=Service(
+            executable_path=ChromeDriverManager(
+                path=executable_path.parent.__str__()
+            ).install()
+        ),
+        options=options,
+        firefox_profile=fp,
     )
 
 
