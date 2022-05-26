@@ -13,7 +13,7 @@ def get_property(prop):
 
 
 AUTHOR = "Alireza Behtash"
-EMAIL = "proof.beh@gmail.com"
+EMAIL = "ali@stacksai.com"
 VERSION = get_property("__version__")
 HERE = Path(__file__).resolve().parent
 
@@ -24,7 +24,7 @@ with open(str(HERE / "requirements.txt")) as reqs_file:
 setup(
     name="gcl",
     description="A package for scraping and parsing Google Caselaw pages.",
-    url="https://github.com/StacksLaw/gcl",
+    url="https://github.com/stacks-ai/gcl",
     author=AUTHOR,
     author_email=EMAIL,
     maintainer=AUTHOR,
