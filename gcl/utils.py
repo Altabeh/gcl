@@ -26,6 +26,7 @@ from stem import Signal
 from stem.control import Controller
 from tqdm import tqdm
 from webdriver_manager.chrome import ChromeDriverManager
+from webdriver_manager.firefox import GeckoDriverManager
 
 from gcl.settings import root_dir
 
@@ -443,7 +444,7 @@ def proxy_browser(host="127.0.0.1", port=9050, proxy_type=1):
     options.headless = True
     return webdriver.Firefox(
         service=Service(
-            executable_path=ChromeDriverManager(
+            executable_path=GeckoDriverManager(
                 path=executable_path.parent.__str__()
             ).install()
         ),
