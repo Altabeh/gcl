@@ -31,7 +31,7 @@ class GCLRegex:
     claim_patterns_2 = r"(?<=[cC]laim[s ])[^,:](?:([\d,\-: ]+)(?:(?:[, ]+)?(?:and|through) ([\d\- ]+))*)+"
     patent_number_patterns_1 = [
         (
-            r"(?:us|no[s.]+|number(?:s|ed)?|pat(?:\.|ents?)|and|then?|[,;:`'’]) ?("
+            r"(?:us|no[s.]+|number(?:s|ed)?|pat(?:\.|ents?)|and|then?|[,;:`'’ \.]) ?("
             + patent_number_pattern
             + ")",
             "",
