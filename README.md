@@ -1,4 +1,3 @@
-```
 ![gcl|test](https://github.com/Altabeh/gcl/actions/workflows/tests.yml/badge.svg)
 
 # gcl
@@ -67,4 +66,3 @@ Running this code will save a JSON file `9862061449582190482.json` under the dir
 ```
 
 **Note:** `need_proxy` is advised to be set to `False` for now since it is still experimental and therefore not recommended to be turned on in this preliminary version. This has the caveat that we cannot run the `GCL` instance in parallel to make multiple queries to Google Scholar as your IP will be temporarily blocked. In the next version, we will make multiple parallel queries operational.
-```
