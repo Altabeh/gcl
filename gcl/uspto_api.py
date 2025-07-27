@@ -6,6 +6,8 @@ PTAB data, bulk search and download of applications and patents,
 PEDS, transaction history, IFW and etc.
 """
 
+__version__ = "1.3.0"  # Directly specify version
+
 import json
 import random
 import re
@@ -27,15 +29,22 @@ from bs4.builder import XMLParsedAsHTMLWarning
 from dateutil import parser
 from tqdm import tqdm
 
-from gcl import __version__
-from gcl.regexes import GeneralRegex, PTABRegex
-from gcl.settings import root_dir
-from gcl.utils import (closest_value, create_dir, deaccent, load_json, regex,
-                       rm_repeated, timestamp)
+from .regexes import GeneralRegex, PTABRegex
+from .settings import root_dir
+from .utils import (
+    closest_value,
+    create_dir,
+    deaccent,
+    load_json,
+    regex,
+    rm_repeated,
+)
 
 warnings.filterwarnings("ignore", category=XMLParsedAsHTMLWarning)
 
 logger = getLogger(__name__)
+
+__all__ = ["USPTOscrape"]
 
 
 class USPTOscrape(PTABRegex, GeneralRegex):
@@ -77,7 +86,7 @@ class USPTOscrape(PTABRegex, GeneralRegex):
         record_per_call = int(self.__query_params__["recordTotalQuantity"])
         self.save_metadata(
             metadata,
-            suffix=f'-{int(self.__query_params__["recordStartNumber"]/record_per_call)}',
+            suffix=f"-{int(self.__query_params__['recordStartNumber'] / record_per_call)}",
             dir_name="ptab-api",
         )
 
@@ -89,7 +98,7 @@ class USPTOscrape(PTABRegex, GeneralRegex):
                 < metadata["recordTotalQuantity"]
             ):
                 logger.info(
-                    f'Records left: {metadata["recordTotalQuantity"] - self.__query_params__["recordStartNumber"]}'
+                    f"Records left: {metadata['recordTotalQuantity'] - self.__query_params__['recordStartNumber']}"
                 )
                 self.__query_params__["recordStartNumber"] += record_per_call
                 self.ptab_call()
@@ -112,7 +121,7 @@ class USPTOscrape(PTABRegex, GeneralRegex):
         metadata = r.json()["response"]
         self.save_metadata(
             metadata,
-            suffix=f"-{int(start/rows)}",
+            suffix=f"-{int(start / rows)}",
             filename="docs",
             dir_name="bulk-search-api",
         )
@@ -121,7 +130,7 @@ class USPTOscrape(PTABRegex, GeneralRegex):
                 raise Exception(f"Server returned {e}.")
 
             while start + rows < metadata["numFound"]:
-                logger.info(f'Records left: {metadata["numFound"] - start}')
+                logger.info(f"Records left: {metadata['numFound'] - start}")
                 start += rows
                 self.bulk_search_download_call(start=start, rows=rows, **kwargs)
                 break
@@ -170,14 +179,14 @@ class USPTOscrape(PTABRegex, GeneralRegex):
             if pause:
                 sleep(1)
             r = requests.get(
-                url=f'{self.__uspto_dev_base_url__}ptab-api/documents/{metadata["documentIdentifier"]}/download'
+                url=f"{self.__uspto_dev_base_url__}ptab-api/documents/{metadata['documentIdentifier']}/download"
             )
 
             with open(doc_path.__str__(), "wb") as f:
                 f.write(r.content)
-            logger.info(f'{metadata["documentName"]} saved successfully')
+            logger.info(f"{metadata['documentName']} saved successfully")
 
-        logger.info(f'{metadata["documentName"]} already saved')
+        logger.info(f"{metadata['documentName']} already saved")
         return
 
     def aggrigator(

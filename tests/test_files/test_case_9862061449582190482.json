@@ -1,0 +1,767 @@
+{
+    "id": "9862061449582190482",
+    "full_case_name": "HORIZON GLOBAL AMERICAS INC., Plaintiff, v. CONTINENTAL AUTOMOTIVE SYSTEMS, INC., Defendant.",
+    "case_numbers": [
+        {
+            "id": "7394999848422851431",
+            "docket_number": [
+                "2:20-cv-10536"
+            ]
+        }
+    ],
+    "citation": "HORIZON GLOBAL AMERICAS INC. v. CONTINENTAL AUTOMOTIVE SYSTEMS, INC., No. 2:20-cv-10536 (E.D. Mich. Mar. 02, 2021)",
+    "short_citation": [],
+    "first_page": null,
+    "last_page": null,
+    "cites_to": {
+        "12104168823829098064": [
+            {
+                "case_name": "Alice Corp. v. CLS Bank Int'l",
+                "variations": [
+                    {
+                        "citation": "Alice Corp. v. CLS Bank Int'l, 573 U.S. 208 (2014)",
+                        "identifier": "[2]"
+                    }
+                ]
+            },
+            {
+                "case_name": "Alice",
+                "variations": [
+                    {
+                        "citation": "Alice, 573 U.S. at 216-17",
+                        "identifier": "[11]"
+                    },
+                    {
+                        "citation": "Alice, 573 U.S. at 218",
+                        "identifier": "[25]"
+                    },
+                    {
+                        "citation": "Alice, 573 U.S. at 223",
+                        "identifier": "[28]"
+                    },
+                    {
+                        "citation": "Alice, 573 U.S. at 217-18",
+                        "identifier": "[29]"
+                    },
+                    {
+                        "citation": "Alice, 573 U.S. at 225",
+                        "identifier": "[31]"
+                    }
+                ]
+            }
+        ],
+        "11898648053353743590": [
+            {
+                "case_name": "Lambert v. Hartman",
+                "variations": [
+                    {
+                        "citation": "Lambert v. Hartman, 517 F.3d 433, 439 (6th Cir. 2008)",
+                        "identifier": "[3]"
+                    }
+                ]
+            },
+            {
+                "case_name": "Lambert",
+                "variations": [
+                    {
+                        "citation": "Lambert, 517 F.3d at 439",
+                        "identifier": "[8]"
+                    }
+                ]
+            }
+        ],
+        "913703117340005992": [
+            {
+                "case_name": "Bell Atl. Corp. v. Twombly",
+                "variations": [
+                    {
+                        "citation": "Bell Atl. Corp. v. Twombly, 550 U.S. 544, 570 (2007)",
+                        "identifier": "[4]"
+                    }
+                ]
+            },
+            {
+                "case_name": "Twombly",
+                "variations": [
+                    {
+                        "citation": "Twombly, 550 U.S. at 556",
+                        "identifier": "[6]"
+                    },
+                    {
+                        "citation": "Twombly, 550 U.S. at 557",
+                        "identifier": "[7]"
+                    }
+                ]
+            }
+        ],
+        "16725752296468120395": [
+            {
+                "case_name": "Ashcroft v. Iqbal",
+                "variations": [
+                    {
+                        "citation": "Ashcroft v. Iqbal, 556 U.S. 662, 678 (2009)",
+                        "identifier": "[5]"
+                    }
+                ]
+            }
+        ],
+        "3420814358029019827": [
+            {
+                "case_name": "Berkheimer v. HP Inc.",
+                "variations": [
+                    {
+                        "citation": "Berkheimer v. HP Inc., 881 F.3d 1360, 1370-71 (Fed. Cir. 2018)",
+                        "identifier": "[9]"
+                    }
+                ]
+            },
+            {
+                "case_name": "Berkheimer",
+                "variations": [
+                    {
+                        "citation": "Berkheimer, 881 F.3d at 1368",
+                        "identifier": "[18]"
+                    },
+                    {
+                        "citation": "Berkheimer, 881 F.3d at 1365",
+                        "identifier": "[21]"
+                    },
+                    {
+                        "citation": "Berkheimer, 881 F.3d at 1370",
+                        "identifier": "[33]"
+                    }
+                ]
+            }
+        ],
+        "16025237560214135711": [
+            {
+                "case_name": "Mayo Collaborative Servs. v. Prometheus Labs., Inc.",
+                "variations": [
+                    {
+                        "citation": "Mayo Collaborative Servs. v. Prometheus Labs., Inc., 566 U.S. 66, 72-73, 77-79 (2012)",
+                        "identifier": "[12]"
+                    }
+                ]
+            },
+            {
+                "case_name": "Mayo",
+                "variations": [
+                    {
+                        "citation": "Mayo, 566 U.S. at 90",
+                        "identifier": "[35]"
+                    }
+                ]
+            }
+        ],
+        "16104658582734245440": [
+            {
+                "case_name": "Aatrix Software, Inc. v. Green Shades Software, Inc.",
+                "variations": [
+                    {
+                        "citation": "Aatrix Software, Inc. v. Green Shades Software, Inc., 882 F.3d 1121, 1128 (Fed. Cir. 2018)",
+                        "identifier": "[13]"
+                    }
+                ]
+            },
+            {
+                "case_name": "Aatrix",
+                "variations": [
+                    {
+                        "citation": "Aatrix, 882 F.3d at 1125",
+                        "identifier": "[17]"
+                    }
+                ]
+            }
+        ],
+        "14288905870829986880": [
+            {
+                "case_name": "Microsoft Corp. v. i4i Ltd. P'ship",
+                "variations": [
+                    {
+                        "citation": "Microsoft Corp. v. i4i Ltd. P'ship, 564 U.S. 91, 95 (2011)",
+                        "identifier": "[14]"
+                    }
+                ]
+            },
+            {
+                "case_name": "Microsoft",
+                "variations": [
+                    {
+                        "citation": "Microsoft, 564 U.S. at 95",
+                        "identifier": "[19]"
+                    }
+                ]
+            }
+        ],
+        "7570633126279742469": [
+            {
+                "case_name": "Cellspin Soft, Inc. v. Fitbit, Inc.",
+                "variations": [
+                    {
+                        "citation": "Cellspin Soft, Inc. v. Fitbit, Inc., 927 F.3d 1306, 1319 (Fed. Cir. 2019)",
+                        "identifier": "[15]"
+                    }
+                ]
+            }
+        ],
+        "16226248573370819841": [
+            {
+                "case_name": "McRO, Inc. v. Bandai Namco Games Am. Inc.",
+                "variations": [
+                    {
+                        "citation": "McRO, Inc. v. Bandai Namco Games Am. Inc., 837 F.3d 1299, 1313 (Fed. Cir. 2016)",
+                        "identifier": "[22]"
+                    }
+                ]
+            }
+        ],
+        "12062831924000026282": [
+            {
+                "case_name": "Biotec Biologische Naturverpackungen GmbH v. Biocorp, Inc.",
+                "variations": [
+                    {
+                        "citation": "Biotec Biologische Naturverpackungen GmbH v. Biocorp, Inc., 249 F.3d 1341, 1353 (Fed. Cir. 2001)",
+                        "identifier": "[24]"
+                    }
+                ]
+            }
+        ],
+        "8526352094994628413": [
+            {
+                "case_name": "Chamberlain",
+                "variations": [
+                    {
+                        "citation": "Chamberlain, 935 F.3d at 1346",
+                        "identifier": "[26]"
+                    }
+                ]
+            },
+            {
+                "case_name": "Chamberlain Grp., Inc. v. Techtronic Indus. Co.",
+                "variations": [
+                    {
+                        "citation": "Chamberlain Grp., Inc. v. Techtronic Indus. Co., 935 F.3d 1341, 1348 (Fed. Cir. 2019)",
+                        "identifier": "[38]"
+                    }
+                ]
+            }
+        ],
+        "14524935561110783952": [
+            {
+                "case_name": "Enfish, LLC v. Microsoft Corp.",
+                "variations": [
+                    {
+                        "citation": "Enfish, LLC v. Microsoft Corp., 822 F.3d 1327, 1335 (Fed. Cir. 2016)",
+                        "identifier": "[27]"
+                    }
+                ]
+            }
+        ]
+    },
+    "date": "2021-03-02",
+    "court": {
+        "full_name": "District Court, E.D. Michigan",
+        "short_name": "E.D. Michigan",
+        "court_code": "mied",
+        "jurisdiction": "FD"
+    },
+    "judges": [
+        "Sean F. Cox"
+    ],
+    "personal_opinions": {
+        "concur": null,
+        "dissent": null
+    },
+    "patents_in_suit": [
+        {
+            "patent_number": "US8789896",
+            "application_number": null,
+            "patent_found": true,
+            "claims": {
+                "1": {
+                    "claim_number": 1,
+                    "context": "A method of controlling braking of a towed vehicle, said method comprising: receiving a speed signal based on speed of a towing vehicle, or a towed vehicle, or both said towing vehicle and said towed vehicle; receiving a pressure signal based on a brake system of said towing vehicle; generating a brake output signal based on said speed signal and said pressure signal; sending said brake output signal to brakes of said towed vehicle to provide power to said brakes; applying said brakes of said towed vehicle based on said brake output signal; determining a relationship between said speed and a speed threshold; applying a function to modify said brake output signal when said speed of the towing vehicle is below said speed threshold; wherein said function modifies said brake output based on said speed; and wherein said brake output signal is not modified based on speed when said speed of said towing vehicle is above said speed threshold.",
+                    "dependent_on": null
+                },
+                "2": {
+                    "claim_number": 2,
+                    "context": "The method of claim 1, further comprising receiving a speed signal based on speed of said towed vehicle.",
+                    "dependent_on": [
+                        1
+                    ]
+                },
+                "3": {
+                    "claim_number": 3,
+                    "context": "The method of claim 1, further comprising modifying said brake output signal to provide more power to said brakes as a function of pressure.",
+                    "dependent_on": [
+                        1
+                    ]
+                },
+                "4": {
+                    "claim_number": 4,
+                    "context": "The method of claim 3, wherein said speed signal is provided by at least one of a global positioning system receiver, a wheel speed sensor, an engine speed sensor, a throttle position sensor, and a Doppler sensor.",
+                    "dependent_on": [
+                        3
+                    ]
+                },
+                "5": {
+                    "claim_number": 5,
+                    "context": "The method of claim 1, wherein said pressure signal is provided by at least one of a brake pedal sensor, a brake pad sensor, a hydraulic brake system pressure sensor of the towing vehicle, and a signal from a communications bus.",
+                    "dependent_on": [
+                        1
+                    ]
+                },
+                "6": {
+                    "claim_number": 6,
+                    "context": "The method of claim 1, further comprising: determining an actual deceleration of said towed vehicle based upon said speed signal; determining a characteristic of said towed vehicle based upon said actual deceleration of said towed vehicle in response to a previously determined brake output signal; and adjusting said brake output signal to achieve a desired deceleration of said towed vehicle.",
+                    "dependent_on": [
+                        1
+                    ]
+                },
+                "7": {
+                    "claim_number": 7,
+                    "context": "The method of claim 6, wherein said characteristic of said towed vehicle includes at least one of brake temperature of said towed vehicle, brake pad wear of said towed vehicle, proximity of brake pads to brake drum of said towed vehicle, brake magnet strength of said towed vehicle, brake spring strength of said towed vehicle, brake pad moisture of said towed vehicle, battery voltage of said towed vehicle, number of axles of said towed vehicle, load of said towed vehicle, weight distribution of said towed vehicle, tire conditions of tires of said towed vehicle, speed of said towed vehicle and road conditions as experienced by said towed vehicle.",
+                    "dependent_on": [
+                        6
+                    ]
+                },
+                "8": {
+                    "claim_number": 8,
+                    "context": "The method of claim 6, further comprising: examining said actual deceleration to determine whether said actual deceleration increases when said pressure increases; and reducing a gain setting associated with said brake output signal when said actual deceleration does not increase when said pressure increases, wherein said reduced gain setting causes said brake output signal to provide reduced power to brakes of said towed vehicle.",
+                    "dependent_on": [
+                        6
+                    ]
+                },
+                "9": {
+                    "claim_number": 9,
+                    "context": "The method of claim 6, further comprising: examining said actual deceleration to determine whether said actual deceleration is proportional to said previously determined brake output signal; reducing a gain setting associated with said brake output signal when said actual deceleration is not proportional to said brake output signal; and reducing said brake output signal to provide reduced power to brakes of said towed vehicle.",
+                    "dependent_on": [
+                        6
+                    ]
+                },
+                "10": {
+                    "claim_number": 10,
+                    "context": "The method of claim 9, wherein if said speed signal of said towed vehicle is about zero, said brake output signal is substantially equal to said reduced gain setting, and wherein said brake output signal corresponds to a maximum brake output signal that can be applied to said brakes of said towed vehicle.",
+                    "dependent_on": [
+                        9
+                    ]
+                },
+                "11": {
+                    "claim_number": 11,
+                    "context": "The method of claim 9, wherein said reduced gain setting reduces power to said brakes of said towed vehicle until said reduced gain setting is modified.",
+                    "dependent_on": [
+                        9
+                    ]
+                },
+                "12": {
+                    "claim_number": 12,
+                    "context": "The method of claim 9, wherein said reduced gain setting reduces power to said brakes of said towed vehicle irrespective of said pressure signal.",
+                    "dependent_on": [
+                        9
+                    ]
+                },
+                "13": {
+                    "claim_number": 13,
+                    "context": "The method of claim 1, further comprising: determining an actual deceleration of said towed vehicle using an accelerometer; determining a characteristic of said towed vehicle based upon said actual deceleration of said towed vehicle in response to a known brake output signal; and adjusting said brake output signal to achieve a desired deceleration of said towed vehicle.",
+                    "dependent_on": [
+                        1
+                    ]
+                },
+                "14": {
+                    "claim_number": 14,
+                    "context": "The method of claim 1, wherein said speed signal is present on a communication bus of said towing vehicle.",
+                    "dependent_on": [
+                        1
+                    ]
+                }
+            },
+            "extra": [],
+            "cited_claims": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9,
+                10,
+                11,
+                12,
+                13,
+                14
+            ]
+        },
+        {
+            "patent_number": "US9758138",
+            "application_number": null,
+            "patent_found": true,
+            "claims": {
+                "1": {
+                    "claim_number": 1,
+                    "context": "A method of controlling braking of a towed vehicle, said method comprising: receiving a speed signal based on speed of a towing vehicle, or a towed vehicle, or both said towing vehicle and said towed vehicle; generating a brake output signal based on at least said speed signal; sending said brake output signal to brakes of said towed vehicle to provide power to said brakes; applying said brakes of said towed vehicle based on said brake output signal; determining a relationship between said speed and a speed threshold; applying a function to modify said brake output signal only when said speed of the towing vehicle is below said speed threshold; wherein said function modifies said brake output based on said speed; and wherein said brake output signal is not modified based on speed when said speed of said towing vehicle is above said speed threshold.",
+                    "dependent_on": null
+                },
+                "2": {
+                    "claim_number": 2,
+                    "context": "The method of claim 1, further comprising receiving a speed signal based on speed of said towed vehicle.",
+                    "dependent_on": [
+                        1
+                    ]
+                },
+                "3": {
+                    "claim_number": 3,
+                    "context": "The method of claim 1, further comprising modifying said brake output signal to provide more power to said brakes as a function of pressure.",
+                    "dependent_on": [
+                        1
+                    ]
+                },
+                "4": {
+                    "claim_number": 4,
+                    "context": "The method of claim 3, wherein a pressure signal is provided by at least one of a brake pedal sensor, a brake pad sensor, a hydraulic brake system pressure sensor of the towing vehicle, and a signal from a communications bus.",
+                    "dependent_on": [
+                        3
+                    ]
+                },
+                "5": {
+                    "claim_number": 5,
+                    "context": "The method of claim 1, further comprising: determining an actual deceleration of said towed vehicle based upon said speed signal; determining a characteristic of said towed vehicle based upon said actual deceleration of said towed vehicle in response to a previously determined brake output signal; and adjusting said brake output signal to achieve a desired deceleration of said towed vehicle.",
+                    "dependent_on": [
+                        1
+                    ]
+                },
+                "6": {
+                    "claim_number": 6,
+                    "context": "The method of claim 5, wherein said characteristic of said towed vehicle includes at least one of brake temperature of said towed vehicle, brake pad wear of said towed vehicle, proximity of brake pads to brake drum of said towed vehicle, brake magnet strength of said towed vehicle, brake spring strength of said towed vehicle, brake pad moisture of said towed vehicle, battery voltage of said towed vehicle, number of axles of said towed vehicle, load of said towed vehicle, weight distribution of said towed vehicle, tire conditions of tires of said towed vehicle, speed of said towed vehicle and road conditions as experienced by said towed vehicle.",
+                    "dependent_on": [
+                        5
+                    ]
+                },
+                "7": {
+                    "claim_number": 7,
+                    "context": "The method of claim 6, further comprising: examining said actual deceleration to determine whether said actual deceleration increases when brake pressure increases; and reducing a gain setting associated with said brake output signal when said actual deceleration does not increase when said pressure increases, wherein said reduced gain setting causes said brake output signal to provide reduced power to brakes of said towed vehicle.",
+                    "dependent_on": [
+                        6
+                    ]
+                },
+                "8": {
+                    "claim_number": 8,
+                    "context": "The method of claim 6, further comprising: examining said actual deceleration to determine whether said actual deceleration is proportional to said previously determined brake output signal; reducing a gain setting associated with said brake output signal when said actual deceleration is not proportional to said brake output signal; and reducing said brake output signal to provide reduced power to brakes of said towed vehicle.",
+                    "dependent_on": [
+                        6
+                    ]
+                },
+                "9": {
+                    "claim_number": 9,
+                    "context": "A method of controlling braking of a towed vehicle, said method comprising: receiving an input signal based on: i) a pressure in a brake system of a towing vehicle; and ii) speed of a towing vehicle, or a towed vehicle, or both said towing vehicle and said towed vehicle; generating a brake output signal based on at least said input signal; sending said brake output signal to brakes of said towed vehicle to provide power to said brakes; applying said brakes of said towed vehicle based on said brake output signal; determining a relationship between said speed and a speed threshold; applying a function to modify said brake output signal only when said speed of the towing vehicle is below said speed threshold; wherein said function modifies said brake output based on said input signal; and wherein said brake output signal is not modified based on speed when said speed of said towing vehicle is above said speed threshold.",
+                    "dependent_on": null
+                },
+                "10": {
+                    "claim_number": 10,
+                    "context": "The method of claim 9, further comprising receiving a speed signal based on speed of said towed vehicle.",
+                    "dependent_on": [
+                        9
+                    ]
+                },
+                "11": {
+                    "claim_number": 11,
+                    "context": "The method of claim 9, further comprising modifying said brake output signal to provide more power to said brakes as a function of pressure.",
+                    "dependent_on": [
+                        9
+                    ]
+                },
+                "12": {
+                    "claim_number": 12,
+                    "context": "The method of claim 11, wherein said input signal is provided by at least one of a brake pedal sensor, a brake pad sensor, a hydraulic brake system pressure sensor of the towing vehicle, and a signal from a communications bus.",
+                    "dependent_on": [
+                        11
+                    ]
+                },
+                "13": {
+                    "claim_number": 13,
+                    "context": "The method of claim 9, further comprising: determining an actual deceleration of said towed vehicle based upon said speed signal; determining a characteristic of said towed vehicle based upon said actual deceleration of said towed vehicle in response to a previously determined brake output signal; and adjusting said brake output signal to achieve a desired deceleration of said towed vehicle.",
+                    "dependent_on": [
+                        9
+                    ]
+                },
+                "14": {
+                    "claim_number": 14,
+                    "context": "The method of claim 13, wherein said characteristic of said towed vehicle includes at least one of brake temperature of said towed vehicle, brake pad wear of said towed vehicle, proximity of brake pads to brake drum of said towed vehicle, brake magnet strength of said towed vehicle, brake spring strength of said towed vehicle, brake pad moisture of said towed vehicle, battery voltage of said towed vehicle, number of axles of said towed vehicle, load of said towed vehicle, weight distribution of said towed vehicle, tire conditions of tires of said towed vehicle, speed of said towed vehicle and road conditions as experienced by said towed vehicle.",
+                    "dependent_on": [
+                        13
+                    ]
+                },
+                "15": {
+                    "claim_number": 15,
+                    "context": "The method of claim 14, further comprising: examining said actual deceleration to determine whether said actual deceleration increases when brake pressure increases; and reducing a gain setting associated with said brake output signal when said actual deceleration does not increase when said pressure increases, wherein said reduced gain setting causes said brake output signal to provide reduced power to brakes of said towed vehicle.",
+                    "dependent_on": [
+                        14
+                    ]
+                },
+                "16": {
+                    "claim_number": 16,
+                    "context": "The method of claim 14, further comprising: examining said actual deceleration to determine whether said actual deceleration is proportional to said previously determined brake output signal; reducing a gain setting associated with said brake output signal when said actual deceleration is not proportional to said brake output signal; and reducing said brake output signal to provide reduced power to brakes of said towed vehicle.",
+                    "dependent_on": [
+                        14
+                    ]
+                },
+                "17": {
+                    "claim_number": 17,
+                    "context": "A method of controlling braking of a towed vehicle, said method comprising: periodically receiving speed signals based on speed of a towing vehicle, or a towed vehicle, or both said towing vehicle and said towed vehicle; estimating a gain setting of said towed vehicle based on said speed signals and prevailing conditions of said towed vehicle to determine a maximum braking power before wheels of said towed vehicle lock up; applying said gain setting to limit said maximum braking power; providing an initial brake output signal to brakes of said towed vehicle based on said estimated gain setting; setting a slew rate of said brake output signal based on said estimated gain setting; and modifying said initial brake output signal based on said estimated gain setting.",
+                    "dependent_on": null
+                },
+                "18": {
+                    "claim_number": 18,
+                    "context": "A method of controlling braking of a towed vehicle, said method comprising: periodically receiving speed signals based on speed of a towing vehicle, or a towed vehicle, or both said towing vehicle and said towed vehicle; estimating a gain setting of said towed vehicle based on said speed signals and prevailing conditions of said towed vehicle to determine a maximum braking power before wheels of said towed vehicle lock up; applying said gain setting to limit said maximum braking power; and estimating a boost setting of said towed vehicle based on said estimated gain setting; and modifying said brake output signal to brakes of said towed vehicle based on said estimated boost setting.",
+                    "dependent_on": null
+                }
+            },
+            "extra": [],
+            "cited_claims": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9,
+                10,
+                11,
+                12,
+                13,
+                14,
+                15,
+                16,
+                17,
+                18
+            ]
+        },
+        {
+            "patent_number": "US10040437",
+            "application_number": null,
+            "patent_found": true,
+            "claims": {
+                "1": {
+                    "claim_number": 1,
+                    "context": "A method for controlling braking of a towed vehicle, the method comprising: receiving a first signal at a brake controller via a towing vehicle communication bus, the first signal relating to at least one operating condition of the towing vehicle; and sending a second signal from the brake controller to brakes of the towed vehicle, the second signal based on the first signal; and wherein the towing vehicle communication bus is configured to communicate electronic signals and the towing vehicle communication bus interconnects a plurality of components on the towing vehicle and is externally connected to the brake controller.",
+                    "dependent_on": null
+                },
+                "2": {
+                    "claim_number": 2,
+                    "context": "The method of claim 1, wherein the first signal is received by a processor from at least one of a brake pressure transducer of the towing vehicle, a brake-on-off line, towing vehicle interior lighting, memory of the towing vehicle, transmission of the towing vehicle, powertrain of the towing vehicle, an anti-lock brake system of the towing vehicle, a speed meter, an ignition of the towing vehicle, a speedometer of the towing vehicle, and a brake pedal of the towing vehicle.",
+                    "dependent_on": [
+                        1
+                    ]
+                },
+                "3": {
+                    "claim_number": 3,
+                    "context": "The method of claim 1, wherein the first signal is received by a processor from a plurality of the following: a brake pressure transducer of the towing vehicle, a brake-on-off line, towing vehicle interior lighting, memory of the towing vehicle, transmission of the towing vehicle, powertrain of the towing vehicle, an anti-lock brake system of the towing vehicle, a speed meter, an ignition of the towing vehicle, a speedometer of the towing vehicle, and a brake pedal of the towing vehicle.",
+                    "dependent_on": [
+                        1
+                    ]
+                },
+                "4": {
+                    "claim_number": 4,
+                    "context": "The method of claim 1, further comprising receiving a signal through the towing vehicle communication bus from a brake pressure transducer of the towing vehicle.",
+                    "dependent_on": [
+                        1
+                    ]
+                },
+                "5": {
+                    "claim_number": 5,
+                    "context": "The method of claim 4, wherein the second signal is based on the first signal and the signal from the brake pressure transducer.",
+                    "dependent_on": [
+                        4
+                    ]
+                },
+                "6": {
+                    "claim_number": 6,
+                    "context": "The method of claim 1, wherein the at least one operating condition comprises at least one of speed of the towing vehicle, speed of the towed vehicle, the towing vehicle's anti-lock brakes, vehicle identification number of the towing vehicle, condition of an ignition of the towing vehicle, selected gear of a transmission of the towing vehicle, and powertrain load of the towing vehicle.",
+                    "dependent_on": [
+                        1
+                    ]
+                },
+                "7": {
+                    "claim_number": 7,
+                    "context": "The method of claim 1, wherein the at least one operating condition comprises a plurality of the following: speed of the towing vehicle, speed of the towed vehicle, the towing vehicle's anti-lock brakes, vehicle identification number of the towing vehicle, condition of an ignition of the towing vehicle, selected gear of a transmission of the towing vehicle, and powertrain load of the towing vehicle.",
+                    "dependent_on": [
+                        1
+                    ]
+                },
+                "8": {
+                    "claim_number": 8,
+                    "context": "The method of claim 1, further comprising collecting and storing information in a memory to allow for diagnostics, life cycle management, and variables for future use.",
+                    "dependent_on": [
+                        1
+                    ]
+                },
+                "9": {
+                    "claim_number": 9,
+                    "context": "The method of claim 1, further comprising interfacing with components of the towing vehicle to diagnose the components of the towing vehicle.",
+                    "dependent_on": [
+                        1
+                    ]
+                },
+                "10": {
+                    "claim_number": 10,
+                    "context": "The method of claim 9, wherein the components of the towing vehicle comprises at least one of brake pressure transducer, anti-lock brake system, brake on-off, cluster instrument panels, stability system, and power distribution.",
+                    "dependent_on": [
+                        9
+                    ]
+                },
+                "11": {
+                    "claim_number": 11,
+                    "context": "The method of claim 1, further comprising receiving a signal from the towing vehicle relating to detection of the ignition of the towing vehicle being turned off and sending a signal to a brake control unit via the towing vehicle communication bus instructing the brake control unit to power down.",
+                    "dependent_on": [
+                        1
+                    ]
+                },
+                "12": {
+                    "claim_number": 12,
+                    "context": "The method of claim 11, further comprising receiving a signal relating to detection of ignition of the towing vehicle being turned on and sending a signal to the brake control unit to power up.",
+                    "dependent_on": [
+                        11
+                    ]
+                },
+                "13": {
+                    "claim_number": 13,
+                    "context": "The method of claim 1, further comprising receiving a signal relating to a lack of activity on the towing vehicle communication bus and sending a signal to a brake control unit via the communication bus instructing the brake control unit to power down.",
+                    "dependent_on": [
+                        1
+                    ]
+                },
+                "14": {
+                    "claim_number": 14,
+                    "context": "The method of claim 13, further comprising receiving a signal relating to detection of activity on the towing vehicle communication bus and sending a signal to the brake control unit to power up.",
+                    "dependent_on": [
+                        13
+                    ]
+                },
+                "15": {
+                    "claim_number": 15,
+                    "context": "The method of claim 1, further comprising performing at least one of a limited operating strategy, an automatic adjustment of output based on variable inputs from the towing vehicle, an inductive and resistive load testing, an internal short circuit protection procedure, and a gain button and scroll stuck routine.",
+                    "dependent_on": [
+                        1
+                    ]
+                },
+                "16": {
+                    "claim_number": 16,
+                    "context": "The method of claim 15, wherein performing the limited operating strategy comprises operating the brakes of the towed vehicle despite unavailability of a main input.",
+                    "dependent_on": [
+                        15
+                    ]
+                },
+                "17": {
+                    "claim_number": 17,
+                    "context": "The method of claim 15, wherein performing the automatic adjustment of output based on variable inputs from the towing vehicle comprises continuously sampling supply voltage and adjusting the second signal based on the sampling.",
+                    "dependent_on": [
+                        15
+                    ]
+                },
+                "18": {
+                    "claim_number": 18,
+                    "context": "The method of claim 15, further comprising performing inductive and resistive load testing comprising sensing load of the brakes of the towed vehicle to determine if the load is normal and sensing if the brakes are available on the towed vehicle.",
+                    "dependent_on": [
+                        15
+                    ]
+                },
+                "19": {
+                    "claim_number": 19,
+                    "context": "The method of claim 15, wherein performing the gain button and scroll stuck routine comprises continuously sampling inputs activated by an operator and determining if the inputs are real or an electrical failure.",
+                    "dependent_on": [
+                        15
+                    ]
+                },
+                "20": {
+                    "claim_number": 20,
+                    "context": "The method of claim 1, wherein the towing vehicle communications bus is a HSCAN communications bus.",
+                    "dependent_on": [
+                        1
+                    ]
+                },
+                "21": {
+                    "claim_number": 21,
+                    "context": "The method of claim 1, wherein the towing vehicle communications bus is a CAN communications bus.",
+                    "dependent_on": [
+                        1
+                    ]
+                },
+                "22": {
+                    "claim_number": 22,
+                    "context": "The method of claim 1, wherein the towing vehicle communications bus is a LIN communications bus.",
+                    "dependent_on": [
+                        1
+                    ]
+                },
+                "23": {
+                    "claim_number": 23,
+                    "context": "A method for controlling braking of a towed vehicle, the method comprising: receiving a first signal at a brake controller via a towing vehicle communication bus, the first signal relating to at least one operating condition of the towing vehicle; and sending a second signal from the brake controller to brakes of the towed vehicle, the second signal based on the first signal; wherein the towing vehicle communication bus is configured to communicate electronic signals and the towing vehicle communication bus interconnects a plurality of components on the towing vehicle and is externally connected to the brake controller; and sending a third signal to the towing vehicle via the towing vehicle communication bus, the third signal based on at least one of the first signal and the second signal.",
+                    "dependent_on": null
+                },
+                "24": {
+                    "claim_number": 24,
+                    "context": "A method for controlling braking of a towed vehicle, the method comprising: receiving a first signal at a brake controller via a towing vehicle communication bus, the first signal relating to at least one operating condition of the towing vehicle; and sending a second signal from the brake controller to brakes of the towed vehicle, the second signal based on the first signal; wherein the towing vehicle communication bus is configured to communicate electronic signals and the towing vehicle communication bus interconnects a plurality of components on the towing vehicle and is externally connected to the brake controller; and wherein the at least one operating condition comprises a plurality of speed of the towing vehicle, speed of the towed vehicle, the towing vehicle's anti-lock brakes, vehicle identification number of the towing vehicle, condition of an ignition of the towing vehicle, selected gear of a transmission of the towing vehicle, and powertrain load of the towing vehicle.",
+                    "dependent_on": null
+                },
+                "25": {
+                    "claim_number": 25,
+                    "context": "A method for controlling braking of a towed vehicle, the method comprising: receiving a first signal at a brake controller via a towing vehicle HSCAN communication bus, the first signal relating to at least one operating condition of the towing vehicle; and sending a second signal from the brake controller to brakes of the towed vehicle, the second signal based on the first signal; and wherein the towing vehicle HSCAN communication bus is configured to communicate electronic signals and the towing vehicle HSCAN communication bus interconnects a plurality of components on the towing vehicle and is externally connected to the brake controller.",
+                    "dependent_on": null
+                },
+                "26": {
+                    "claim_number": 26,
+                    "context": "A method for controlling braking of a towed vehicle, the method comprising: receiving a first signal at a brake controller via a towing vehicle CAN communication bus, the first signal relating to at least one operating condition of the towing vehicle; and sending a second signal from the brake controller to brakes of the towed vehicle, the second signal based on the first signal; and wherein the towing vehicle CAN communication bus is configured to communicate electronic signals and the towing vehicle CAN communication bus interconnects a plurality of components on the towing vehicle and is externally connected to the brake controller.",
+                    "dependent_on": null
+                }
+            },
+            "extra": [],
+            "cited_claims": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9,
+                10,
+                11,
+                12,
+                13,
+                14,
+                15,
+                16,
+                17,
+                18,
+                19,
+                20,
+                21,
+                22,
+                23,
+                24,
+                25,
+                26
+            ]
+        }
+    ],
+    "html": "<div id=\"gs_opinion\">\n<center><h3 id=\"gsl_case_name\">HORIZON GLOBAL AMERICAS INC., Plaintiff,<br/>\r\nv.<br/>\r\nCONTINENTAL AUTOMOTIVE SYSTEMS, INC., Defendant.</h3></center>\n<center><a href=\"/scholar?scidkt=7394999848422851431&amp;as_sdt=2&amp;hl=en\">Civil Action No. 2:20-cv-10536.</a></center>\n<center><p><b>United States District Court, E.D. Michigan, Southern Division.</b></p></center>\n<center>March 2, 2021.</center>\n<p><h2>OPINION AND ORDER DENYING DEFENDANT'S MOTION TO DISMISS PLAINTIFF'S FIRST AMENDED COMPLAINT FOR UNPATENTABILITY UNDER 35 U.S.C. \u00a7 101 (ECF NOS. 13, 14, 25, 28)</h2></p>\n<p>SEAN F. COX, District Judge.</p>\n<p>This is a patent infringement case. In its first amended complaint (the \"FAC\"), Plaintiff Horizon Global Americas Inc. (\"Horizon\") alleges that Defendant Continental Automotive Systems, Inc. (\"Continental\") infringes three patents on Horizon's brake control technology, U.S. Patent Nos. 8,789,896 (the \"'896 Patent\"), 9,758,138 (the \"'138 Patent\"), and 10,040,437 (the \"'437 Patent\") (collectively, the \"Patents\").</p>\n<p>This case is before the Court on Continental's motion to dismiss the FAC on the grounds that the Patents are invalid for patent ineligibility (the \"Motion\"). The parties have submitted written briefs explaining their positions on patent eligibility. Def.'s Mot., ECF No. 13; Def.'s Mot. Br., ECF No. 14; Pl.'s Resp. Br., ECF No. 25; Def.'s Reply Br., ECF No. 28. Pursuant to E.D. Mich. LR 7.1(f)(2), the Court will decide the Motion without a hearing. Accordingly, the hearing scheduled for March 11, 2021 is canceled. <i>See</i> Notice of Mot. Hr'g, ECF No. 33. For the reasons set forth below, the Court will deny the Motion.</p>\n<p><h2>I. PROCEDURAL HISTORY</h2></p>\n<p>Horizon filed this case on February 28, 2020 and later filed the FAC on July 10, 2020. Compl., ECF No. 1; FAC, ECF No. 6.</p>\n<p>On September 2, 2020, in lieu of answering the FAC, Continental filed the instant Motion. In the Motion, Continental asks the Court to dismiss the FAC under Rule 12(b)(6). Continental argues that the Court should grant the Motion and dismiss the FAC because the Patents are invalid for patent ineligibility. In particular, Continental argues that in light of the Supreme Court's <i>Alice</i> decision, <a href=\"/scholar_case?case=12104168823829098064&amp;hl=en&amp;as_sdt=6,34\"><i>Alice Corp. v. CLS Bank Int'l,</i> 573 U.S. 208 (2014),</a> and lower court cases applying <i>Alice,</i> the Patents are invalid under Section 101 of the Patent Act for claiming a patent-ineligible abstract idea. Def.'s Mot. &amp; Mot. Br., ECF Nos. 13 &amp; 14.</p>\n<p><h2>II. PLEADING STANDARDS</h2></p>\n<p>Rule 8(a)(2) requires a complaint to include \"a short and plain statement of the claim showing that the pleader is entitled to relief.\" Fed. R. Civ. P. 8(a)(2). A complaint that fails to make such a showing may be dismissed pursuant to Rule 12(b)(6) for \"failure to state a claim upon which relief can be granted.\" Fed. R. Civ. P. 12(b)(6).</p>\n<p>When deciding a motion to dismiss under Rule 12(b)(6), the Court must construe the complaint in the light most favorable to the plaintiff and accept all the factual allegations contained in the complaint as true. <i>See </i><a href=\"/scholar_case?case=11898648053353743590&amp;hl=en&amp;as_sdt=6,34\"><i>Lambert v. Hartman,</i> 517 F.3d 433, 439 (6th Cir. 2008)</a>. In order to survive a Rule 12(b)(6) motion, a complaint need contain only \"enough facts to state a claim for relief that is plausible on its face.\" <a href=\"/scholar_case?case=913703117340005992&amp;hl=en&amp;as_sdt=6,34\"><i>Bell Atl. Corp. v. Twombly,</i> 550 U.S. 544, 570 (2007)</a>. \"A claim has facial plausibility when the plaintiff pleads factual content that allows the court to draw the reasonable inference that the defendant is liable for the misconduct alleged.\" <a href=\"/scholar_case?case=16725752296468120395&amp;hl=en&amp;as_sdt=6,34\"><i>Ashcroft v. Iqbal,</i> 556 U.S. 662, 678 (2009)</a> (citing <a href=\"/scholar_case?case=913703117340005992&amp;hl=en&amp;as_sdt=6,34\"><i>Twombly,</i> 550 U.S. at 556</a>). \"Where a complaint pleads facts that are merely consistent with a defendant's liability, it `stops short of the line between possibility and plausibility of entitlement to relief.'\" <i>Id.</i> (quoting <a href=\"/scholar_case?case=913703117340005992&amp;hl=en&amp;as_sdt=6,34\"><i>Twombly,</i> 550 U.S. at 557</a>). \"Determining whether a complaint states a plausible claim for relief will . . . be a context-specific task that requires the reviewing court to draw on its judicial experience and common sense.\" <i>Id.</i> at 679.</p>\n<p><h2>III. FACTUAL BACKGROUND</h2></p>\n<p>For purposes of this Opinion and Order, the Court accepts as true the following factual allegations set forth by Horizon in the FAC and the following disclosure set forth in the Patents. <a href=\"/scholar_case?case=11898648053353743590&amp;hl=en&amp;as_sdt=6,34\"><i>Lambert,</i> 517 F.3d at 439</a>; <i>see also </i><a href=\"/scholar_case?case=3420814358029019827&amp;hl=en&amp;as_sdt=6,34\"><i>Berkheimer v. HP Inc.,</i> 881 F.3d 1360, 1370-71 (Fed. Cir. 2018)</a> (finding that \"summary judgment [of patent ineligibility] was improper, given the fact questions created by the specification's disclosure\").</p>\n<p><h2>A. Horizon's Factual Allegations</h2></p>\n<p>Horizon is a global leader in OEM and aftermarket towing and trailering equipment. FAC \u00b6\u00b6 2, 10, ECF No. 6 at PageID.87-89. As the result of efforts to build a patent portfolio on its innovations, Horizon owns patents on its brake control technology, including the Patents at issue in this case. <i>Id.</i> \u00b6\u00b6 12-13, ECF No. 6 at PageID.90; Ex. A (Brake Control Unit, U.S. Patent No. 8,789,896), ECF No. 6-1; Ex. B (Brake Control Unit, U.S. Patent No. 9,758,138), ECF No. 6-2; Ex. C (Brake Control Unit, U.S. Patent No. 10,040,437), ECF No. 6-3.</p>\n<p>Continental is also in the business of brake control technology. FAC \u00b6 6, ECF No. 6 at PageID.88. This case arose when Horizon learned that Continental was selling an OEM integrated trailer brake controller (the \"Accused ITBC\"). <i>Id.</i> \u00b6 22, ECF No. 6 at PageID.91. In connection with making, using, selling, and offering to sell the Accused ITBC, Horizon alleges that Continental infringes as \"a non-limiting, illustrative example\" at least Claim 1 of the '896 Patent, Claim 1 of the '138 Patent, and Claim 1 of the '437 Patent (collectively, the \"Example Claims\"). <i>Id.</i> \u00b6\u00b6 21, 28-29, 40-41, 52-53, ECF No. 6 at PageID.91-97, 99-103, 105-11.</p>\n<p><h2>B. The Patents</h2></p>\n<p>The Patents describe the brake control technology at issue in this case in the context of a \"towing vehicle\" (e.g., a pickup truck) and a \"towed vehicle\" (e.g., a trailer). The towing vehicle is equipped with the usual brakes. In addition, the towed vehicle is equipped with brakes of its own. In connection with normal operation of the towing vehicle's brakes, \"brake control\" in the context of the Patents refers to technology for controlling braking of the towed vehicle by powering the towed vehicle's brakes.</p>\n<p>The Patents, each entitled \"Brake Control Unit,\" describe embodiments of an electronic device located within the towing vehicle. From within the towing vehicle, the brake control unit controls braking of the towed vehicle by generating brake output signals for powering the towed vehicle's brakes. The brake control unit receives input signals related to the towing vehicle, the towed vehicle, or both, and generates the brake output signals based on the input signals. Among other input signals, the brake control unit receives pressure signals related to the operation of the towing vehicle's brakes, and speed signals related to the speed of the towing vehicle, the towed vehicle, or both. Depending on the input signals, the brake control unit generates the brake output signals with a varying magnitude corresponding to how much the towed vehicle's brakes should be powered.</p>\n<p>Although each describing and claiming a method for controlling braking of the towed vehicle, the Patents belong to two different patent \"families,\" one including the '896 and '138 Patents (the \"'896/'138 Patent Family\") and one including the '437 Patent.<sup><a class=\"gsl_hash\" href=\"#[1]\" name=\"r[1]\">[1]</a></sup></p>\n<p><h2>1. The '896/'138 Patent Family</h2></p>\n<p>In the '896/'138 Patent Family, the method is drawn to purportedly inventive embodiments involving the use of speed signals. In connection with the embodiments, the written description sections of the patents state that then-known prior art brake control units did not disclose \"how speed signals can be used to control and/or optimize control of the brakes of the towed vehicle.\" '896 Patent 1:28-33, ECF No. 6-1 at PageID.122.</p>\n<p>With respect to the '896/'138 Patent Family, the Example Claims consist of Claim 1 of the '896 Patent and Claim 1 of the '138 Patent. These claims are drawn to a \"speed threshold\" embodiment. According to the speed threshold embodiment, the method involves generating and modifying the brake output signals based on the speed signals to solve a jerking problem. In connection with the speed threshold embodiment, the written description sections of the patents explain that at low speeds, the towed vehicle's brakes \"are often too aggressive causing significant jerking, or in the worst case, locking of the brakes of the towed vehicle.\" <i>Id.</i> 1:34-37, ECF No. 6-1 at PageID.122. To solve the jerking problem, the brake output signals are modified based on the speed signals in an effort \"to reduce power to the towed vehicle brakes when it is traveling at low speeds.\" <i>Id.</i> 1:37-45, ECF No. 6-1 at PageID.122.</p>\n<p>Claim 1 of the '896 Patent, reproduced below, is representative:</p>\n<blockquote>1. A method of controlling braking of a towed vehicle, said method comprising:</blockquote>\n<blockquote>receiving a speed signal based on speed of a towing vehicle, or a towed vehicle, or both said towing vehicle and said towed vehicle;</blockquote>\n<blockquote>receiving a pressure signal based on a brake system of said towing vehicle;</blockquote>\n<blockquote>generating a brake output signal based on said speed signal and said pressure signal;</blockquote>\n<blockquote>sending said brake output signal to brakes of said towed vehicle to provide power to said brakes;</blockquote>\n<blockquote>applying said brakes of said towed vehicle based on said brake output signal;</blockquote>\n<blockquote>determining a relationship between said speed and a speed threshold;</blockquote>\n<blockquote>applying a function to modify said brake output signal when said speed of the towing vehicle is below said speed threshold;</blockquote>\n<blockquote>wherein said function modifies said brake output based on said speed; and</blockquote>\n<blockquote>wherein said brake output signal is not modified based on speed when said speed of said towing vehicle is above said speed threshold.</blockquote>\n<p><i>Id.</i> 12:48-13:3, ECF No. 6-1 at PageID.127-28.</p>\n<p>According to other \"speed signal\" embodiments, the method involves generating, modifying, adjusting, and modulating the brake output signals based on the speed signals, including determining the characteristics of the towed vehicle, determining the maximum brake output signals, and estimating, setting, and applying gain settings, boost settings, slew rates, and the like. <i>Id.</i> 1:66-3:8, 7:63-12:35 (detailing numerous \"embodiment[s] of the present invention\" involving the use of speed signals), ECF No. 6-1 at PageID.122-23, 125-27.</p>\n<p><h2>2. The '437 Patent</h2></p>\n<p>In the '437 Patent, the method is drawn to purportedly inventive embodiments involving the use of the towing vehicle's communication bus as a source of input signals. In connection with the embodiments, the written description section of the patent states that then-known prior art brake control units were mostly \"aftermarket units\" that were \"not able to communicate with and communicate over existing systems within the towing vehicle.\" '437 Patent 1:46-49, ECF No. 6-3 at PageID.156.</p>\n<p>With respect to the '437 Patent, the Example Claims consist of Claim 1. This claim is drawn to the basic \"communication bus\" embodiment. According to the communication bus embodiment, the method involves receiving input signals related to the towing vehicle via the towing vehicle's communication bus, including in connection with generating and adjusting the brake output signals based on the input signals.</p>\n<p>Claim 1 of the '437 Patent is reproduced below:</p>\n<blockquote>1. A method for controlling braking of a towed vehicle, the method comprising:</blockquote>\n<blockquote>receiving a first signal at a brake controller via a towing vehicle communication bus, the first signal relating to at least one operating condition of the towing vehicle; and sending a second signal from the brake controller to brakes of the towed vehicle, the second signal based on the first signal; and</blockquote>\n<blockquote>wherein the towing vehicle communication bus is configured to communicate electronic signals and the towing vehicle communication bus interconnects a plurality of components on the towing vehicle and is externally connected to the brake controller.</blockquote>\n<p><i>Id.</i> 17:27-40, ECF No. 6-3 at PageID.164.</p>\n<p>According to \"performance feature\" embodiments, the method further involves redundancy procedures, diagnostics, life cycle management, brake control unit mode determination, towed vehicle brake load testing, short circuit protection, stuck operator input determination, and the like. <i>Id.</i> 1:65-2:59, 7:16-17:14 (detailing numerous \"embodiment[s] of the present invention\" and \"performance feature[s]\" involving the use of the towing vehicle's communication bus as a source of input signals), ECF No. 6-3 at PageID.156, 159-64.</p>\n<p><h2>IV. PATENT ELIGIBILITY STANDARDS</h2></p>\n<p>Section 101 of the Patent Act, entitled \"Inventions patentable,\" defines patent-eligible subject matter as \"any new and useful process, machine, manufacture, or composition of matter, or any new and useful improvement thereof.\" 35 U.S.C. \u00a7 101. The Supreme Court has created a non-textual exception to Section 101 for laws of nature, natural phenomena, and abstract ideas, which are \"building blocks of human ingenuity.\" <a href=\"/scholar_case?case=12104168823829098064&amp;hl=en&amp;as_sdt=6,34\"><i>Alice,</i> 573 U.S. at 216-17</a>. In determining patent eligibility, courts must distinguish between patents that \"claim the building blocks\" and those whose claims \"integrate the building blocks into something more.\" <i>Id.</i> at 217.</p>\n<p>The Supreme Court in <i>Alice</i> explains its two-step framework for determining patent eligibility. <i>See id.</i> at 217-18 (citing <a href=\"/scholar_case?case=16025237560214135711&amp;hl=en&amp;as_sdt=6,34\"><i>Mayo Collaborative Servs. v. Prometheus Labs., Inc.,</i> 566 U.S. 66, 72-73, 77-79 (2012)</a>). At <i>Alice</i> step one, courts must determine whether the claims are \"directed to\" a patent-ineligible concept, such as an abstract idea. <i>Id.</i> at 218. Here, courts must be careful not to allow the judicial exception for patent-ineligible concepts to \"swallow all of patent law.\" <i>Id.</i> at 217. It is not enough that the claims \"involve\" a patent-ineligible concept because \"[a]t some level, all inventions embody, use, reflect, rest upon, or apply laws of nature, natural phenomena, or abstract ideas.\" <i>Ibid.</i> (quotation, alteration and citation omitted). If the claims are directed to a patent-ineligible concept, at <i>Alice</i> step two, courts must consider the claim elements \"both individually and as an ordered combination\" to determine whether the claims contain an \"inventive concept\" sufficient to \"transform\" the concept into a patent-eligible \"application\" of the concept. <i>Id.</i> at 217-18 (quotation and citation omitted). <i>Alice</i> step two is satisfied when the claim elements recite more than performance of \"well-understood, routine, conventional activities previously known to the industry.\" <i>Id.</i> at 225 (quotation and citation omitted).</p>\n<p>Patent eligibility is a question of law based on underlying facts. <a href=\"/scholar_case?case=16104658582734245440&amp;hl=en&amp;as_sdt=6,34\"><i>Aatrix Software, Inc. v. Green Shades Software, Inc.,</i> 882 F.3d 1121, 1128 (Fed. Cir. 2018)</a>. Patent eligibility may be determined on a motion to dismiss where \"there are no factual allegations that, taken as true, prevent resolving the eligibility question as a matter of law.\" <i>Id.</i> at 1125.</p>\n<p>A patent enjoys a statutory presumption of validity, and the party asserting invalidity must prove invalidity by clear and convincing evidence. 35 U.S.C. \u00a7 282(a); <a href=\"/scholar_case?case=14288905870829986880&amp;hl=en&amp;as_sdt=6,34\"><i>Microsoft Corp. v. i4i Ltd. P'ship,</i> 564 U.S. 91, 95 (2011)</a>. Settling a previously debated issue, the Federal Circuit holds that a patent is presumptively patent-eligible. <a href=\"/scholar_case?case=7570633126279742469&amp;hl=en&amp;as_sdt=6,34\"><i>Cellspin Soft, Inc. v. Fitbit, Inc.,</i> 927 F.3d 1306, 1319 (Fed. Cir. 2019)</a> (rejecting district court's contrary conclusion based on <i>Ultramercial, Inc. v. Hulu,</i> LLC, 772 F.3d 709, 721 (Fed. Cir. 2014) (Mayer, J., concurring) (\"no presumption of eligibility attends the section 101 inquiry\")).</p>\n<p><h2>V. THE PARTIES' POSITIONS</h2></p>\n<p>Continental argues that the Patents are invalid for patent ineligibility because the claims fail <i>Alice</i> step one and <i>Alice</i> step two. Contrariwise, Horizon argues that the Patents are not invalid for patent ineligibility because the claims satisfy <i>Alice</i> step one and <i>Alice</i> step two.</p>\n<p><h2>A. Continental's Argument</h2></p>\n<p>With respect to <i>Alice</i> step one, Continental argues that the claims are directed to the abstract idea of brake control technology\u2014i.e., receiving, generating, and transmitting signals, applied in the context of controlling braking of the towed vehicle. With respect to <i>Alice</i> step two, Continental argues that the claims implement the abstract idea of brake control technology using only routine steps and prior art, generic, and commercially available components.</p>\n<p><h2>1. Representative Claim Relationships</h2></p>\n<p>Continental begins by asking the Court to treat the Example Claims as representative of the remaining claims. While ostensibly asking for representative treatment of the Example Claims, Continental does not explain its position on patent eligibility based on the Example Claims per se. Rather, for purposes of the Motion, Continental generalizes the claims as reciting \"receiving input signal(s) from the towing/towed vehicles, analyzing the inputs to generate a corresponding brake output signal, and sending the brake output signal to apply the brakes.\" Def.'s Mot. Br. 10, ECF No. 14 at PageID.195.</p>\n<p>In asking for representative treatment of its generalization of the claims, Continental argues that the Patents do not create any issues of meaningful differences. Starting with the '896/'138 Patent Family and the '437 Patent, Continental argues that they are \"effectively identical\" because the abstracts are \"substantively the same.\" <i>Id.</i> 3, ECF No. 14 at PageID.188. As to the Example Claims, Continental argues that \"aside from minor linguistic differences and levels of detail,\" they are \"substantively alike and directed to the same concept [quoted above].\" <i>Id.</i> 10, ECF No. 14 at PageID.195. As to the remaining claims, Continental argues that the other independent claims are \"substantially similar\" and that the dependent claims \"at most, merely add generic limitations.\" <i>Id.</i> 11, ECF No. 14 at PageID.196.</p>\n<p><h2>2. <i>Alice</i> Step One</h2></p>\n<p>At <i>Alice</i> step one, Continental argues that from the perspective of generating the brake output signals, the claims recite a \"black box.\" For instance, Continental argues that the claims do not recite \"formulas, algorithms, or computer improvements of any kind.\" <i>Id.</i> 13, ECF No. 14 at PageID.198. Similarly, Continental argues that the input signals \"are analyzed in some unspecified and non-inventive way\" and that the brake output signals are \"generated and then applied in an unspecified way to achieve a broad result.\" <i>Id.</i> 12-13, ECF No. 14 at PageID.197-98.</p>\n<p>Applying various patent ineligibility cases, Continental argues that the claims fail <i>Alice</i> step one because they, among other things, \"do not include any limitations as to <i>how</i> the signals are analyzed or <i>how</i> the method generates the output signal to produce the claimed result,\" <i>id.</i> 14, ECF No. 14 at PageID.199, \"do not recite any non-abstract technological improvement or solution,\" <i>id.</i> 16, ECF No. 14 at PageID.201, \"use result-based functional language without describing how to achieve these results in a non-abstract way,\" <i>id.</i> 18, ECF No. 14 at PageID.203, and \"neither include any special components to be used in the method, nor claim any improvement to the physical brake control unit itself,\" <i>id.</i> 19, ECF No. 14 at PageID.204.</p>\n<p><h2>3. <i>Alice</i> Step Two</h2></p>\n<p>In furtherance of its argument that the claims recite a black box at <i>Alice</i> step one, at <i>Alice</i> step two, Continental argues that the claims are un-transformative. Applying various patent ineligibility cases, Continental argues that the claims fail <i>Alice</i> step two because they, among other things, \"are entirely silent as to how to implement the signal processing method,\" <i>id.</i> 20, ECF No. 14 at PageID.205, \"invoke the use of technology that was already well-known and conventional, operating in their well-known ways,\" <i>id.</i> 21, ECF No. 14 at PageID.206, \"do not even purport to require the use of any specific software algorithm,\" <i>id.</i> 20-21, ECF No. 14 at PageID.205-06, recite \"generic components operating in well-known ways,\" <i>id.</i> 22-23, ECF No. 14 at PageID.207-08, and recite \"routine steps\" \"in a conventional order,\" <i>id.</i> 23, ECF No. 14 at PageID.208.</p>\n<p><h2>B. Horizon's Argument</h2></p>\n<p>With respect to <i>Alice</i> step one, Horizon argues that the claims are directed to specific improvements to brake control technology.<sup><a class=\"gsl_hash\" href=\"#[2]\" name=\"r[2]\">[2]</a></sup> With respect to <i>Alice</i> step two, Horizon argues that because they are directed to specific improvements to brake control technology, the claims contain an inventive concept.</p>\n<p><h2>1. Representative Claim Relationships</h2></p>\n<p>Horizon begins by disputing that Continental's generalization of the claims is representative. Horizon points out that Continental's generalization of the claims not only oversimplifies the claim language, but also fails to give separate treatment to the respective Example Claims of the '896/'138 Patent Family and the '437 Patent. Horizon also asks the Court not to treat the Example Claims as representative of the other claims. In particular, Horizon points out that compared to the Example Claims, many of the other claims are drawn to different embodiments.</p>\n<p><h2>2. <i>Alice</i> Step One</h2></p>\n<p>At <i>Alice</i> step one, Horizon argues that as opposed to brake control technology in the abstract, the claims are directed to specific improvements to brake control technology.</p>\n<p>With respect to the '896/'138 Patent Family, Horizon argues that the claims are directed to controlling braking of the towed vehicle not only using speed signals, but also based on a speed threshold to solve the jerking problem. Horizon points out that the written description sections of the patents state that then-known prior art brake control units did not disclose \"how speed signals can be used to control and/or optimize control of the brakes of the towed vehicle.\" '896 Patent 1:28-33, ECF No. 6-1 at PageID.122.</p>\n<p>As to the speed threshold embodiment in particular, Horizon points out that to solve the jerking problem, the method involves not only generating the brake output signals based on the speed signals, but also modifying the brake output signals based on the speed signals. Similarly, Horizon points out that the claims recite a specific algorithm to solve the jerking problem involving not just generating the brake output signals based on the speed signals, but thereafter modifying the brake output signals based on the speed signals. <i>See, e.g., id.</i> 12:48-13:3 (Claim 1), ECF No. 6-1 at PageID.127-28.</p>\n<p>In summary, Horizon argues that the claims \"identify specific steps on <i>how</i> the real-world towing vehicle conditions (e.g., its speed) provides the appropriate brake output from the vehicle to control the braking system of the towed vehicle in a new way that prevents jerking or lockup,\" Pl.'s Resp. Br. 22, ECF No. 25 at PageID.264, and \"provide a novel solution that modifies the braking of the trailer when certain conditions exist,\" <i>id.</i> 22-23, ECF No. 25 at PageID.264-65.</p>\n<p>Applying various patent eligibility cases, Horizon argues that the claims satisfy <i>Alice</i> step one because they, among other things, use \"physical measurements to improve performance,\" <i>id.</i> 12, ECF No. 25 at PageID.254, and use \"real-world data and tangible vehicle components as tools to provide appropriate (and improved) trailer braking,\" <i>id.</i> 14, ECF No. 25 at PageID.256.</p>\n<p>With respect to the '437 Patent, Horizon argues that in connection with controlling braking of the towed vehicle, the claims are directed to the connection and interaction between the towing vehicle's communication bus and the brake control unit. Horizon points out that the written description of the patent states that then-known prior art brake control units were mostly \"aftermarket units\" that were \"not able to communicate with and communicate over existing systems within the towing vehicle.\" '437 Patent 1:46-49, ECF No. 6-3 at PageID.156.</p>\n<p>In summary, Horizon argues that the claims \"use components in a new way to brake a moving trailer,\" Pl.'s Resp. Br. 16, ECF No. 25 at PageID.258, \"ingeniously use the communication bus in the vehicle with the [brake control unit] to provide better controlled trailer braking,\" <i>id.</i> 21, ECF No. 25 at PageID.263, and \"provide a new method of using a vehicle's communication bus to achieve a solution to improve trailer braking,\" <i>id.</i> 23, ECF No. 25 at PageID.265.</p>\n<p>Applying various patent eligibility cases, Horizon argues that the claims satisfy <i>Alice</i> step one because they, among other things, recite a \"specific improvement\" \"in the functionality of the vehicle's communication bus system itself.\" <i>Id.</i> 13-14 (quotation, alteration and citation omitted), ECF No. 25 at PageID.255-56.</p>\n<p><h2>3. <i>Alice</i> Step Two</h2></p>\n<p>In furtherance of its argument at <i>Alice</i> step one that the claims are directed to specific improvements to brake control technology, at <i>Alice</i> step two, Horizon argues that the claims contain an inventive concept.</p>\n<p>With respect to the '896/'138 Patent Family, Horizon argues that the claims \"explain that the speed threshold, which was not conventional, provides the inventive concept to solve the problems of jerking and locking in the prior art.\" Pl.'s Resp. Br. 24, ECF No. 25 at PageID.266. Applying various patent eligibility cases, Horizon argues that the claims satisfy <i>Alice</i> step two because they, among other things, yield \"a different or better result than prior art systems.\" <i>Id.</i></p>\n<p>With respect to the '437 Patent, Horizon argues that the claims \"use the vehicle's communication bus in a new and unconventional way as a connection to, and source of information for, a brake controller.\" <i>Id.</i> 24-25, ECF No. 25 at PageID.266-67. Applying various patent eligibility cases, Horizon argues that the claims satisfy <i>Alice</i> step two because they, among other things, \"recite an unconventional arrangement of conventional components\" and yield \"a different or better result than prior art systems.\" <i>Id.</i> 24, ECF No. 25 at PageID.266.</p>\n<p><h2>VI. ANALYSIS</h2></p>\n<p>While patent eligibility may be determined on a motion to dismiss, this is only the case where \"there are no factual allegations that, taken as true, prevent resolving the eligibility question as a matter of law.\" <a href=\"/scholar_case?case=16104658582734245440&amp;hl=en&amp;as_sdt=6,34\"><i>Aatrix,</i> 882 F.3d at 1125</a>. Because a patent enjoys a statutory presumption of patent eligibility, \"[a]ny fact . . . that is pertinent to the invalidity conclusion must be proven by clear and convincing evidence.\" <a href=\"/scholar_case?case=3420814358029019827&amp;hl=en&amp;as_sdt=6,34\"><i>Berkheimer,</i> 881 F.3d at 1368</a> (citing <a href=\"/scholar_case?case=14288905870829986880&amp;hl=en&amp;as_sdt=6,34\"><i>Microsoft,</i> 564 U.S. at 95</a>).</p>\n<p>For this Rule 12(b)(6) motion, the record consists of the Patents and well pleaded allegations of the Complaint, whose disclosure the Court accepts as true. <a href=\"/scholar_case?case=11898648053353743590&amp;hl=en&amp;as_sdt=6,34\"><i>Lambert,</i> 517 F.3d at 439</a>. Looking to the text of the Patents, the Court finds that Continental has not met its burden of proving that the Patents are invalid for patent ineligibility by clear and convincing evidence. In particular, the text of the Patents contradicts Continental's argument that the claims are directed to an abstract idea pursuant to the <i>Alice</i> test. The Patents, on their face, set forth claims directed to specific improvements to brake control technology. Because the claims of the Patents are plausibly directed to specific improvements to brake control technology, not brake control technology in the abstract, the Court finds that the claims plausibly satisfy <i>Alice</i> step one and/or <i>Alice</i> step two.</p>\n<p><h2>A. Representative Claim Relationships</h2></p>\n<p>The Court, like the parties, begins with the issue of whether to treat the Example Claims referenced in the Complaint as representative of all the claims in the Patents. \"Courts may treat a claim as representative in certain situations, such as if the patentee does not present any meaningful argument for the distinctive significance of any claim limitations not found in the representative claim or if the parties agree to treat a claim as representative.\" <a href=\"/scholar_case?case=3420814358029019827&amp;hl=en&amp;as_sdt=6,34\"><i>Berkheimer,</i> 881 F.3d at 1365</a>. Here, the parties have not agreed to treat the Example Claims as representative of all the claims in the Patents.</p>\n<p>The Court agrees with Horizon that it should not treat the Example Claims as representative of all the claims in the Patents. Initially, as Horizon points out, Continental's generalization of the claims not only oversimplifies the claim language, but also fails to account for the differences between the claims in the patents. <i>See,</i> <i>e.g., </i><a href=\"/scholar_case?case=16226248573370819841&amp;hl=en&amp;as_sdt=6,34\"><i>McRO, Inc. v. Bandai Namco Games Am. Inc.,</i> 837 F.3d 1299, 1313 (Fed. Cir. 2016)</a> (cautioning that \"courts must be careful to avoid oversimplifying the claims by looking at them generally and failing to account for the specific requirements of the claims\") (quotation and citation omitted).</p>\n<p>Horizon correctly points out that, compared to the Example Claims, many of the other claims of the Patents are drawn to different embodiments.<sup><a class=\"gsl_hash\" href=\"#[3]\" name=\"r[3]\">[3]</a></sup> With respect to the '896/'138 Patent Family, while example Claim 1 of the '896 Patent and example Claim 1 of the '138 Patent are directed to a specific speed threshold embodiment, it appears that many of the other claims of the '896 and '138 Patents are drawn to the other speed signal embodiments. <i>See</i> '896 Patent 13:17-14:37 (dependent Claims 6-13), ECF No. 6-1 at PageID.128; '138 Patent 13:44-14:15 (dependent Claims 5-8), 14:48-16:25 (dependent Claims 13-16 and independent Claims 17 and 18), ECF No. 6-2 at PageID.144-45. Similarly, while example Claim 1 of the '437 Patent is directed to the communication bus embodiment, it appears that many of the remaining claims are drawn to the performance feature embodiments. <i>See</i> '437 Patent 17:41-58 (dependent Claims 2 and 3), 17:65-18:64 (dependent Claims 6-19), ECF No. 6-3 at PageID.164.</p>\n<p>Because Continental does not address the different embodiments set forth in the claims of the Patents, the Court will only address the Example Claims. <i>See </i><a href=\"/scholar_case?case=12062831924000026282&amp;hl=en&amp;as_sdt=6,34\"><i>Biotec Biologische Naturverpackungen GmbH v. Biocorp, Inc.,</i> 249 F.3d 1341, 1353 (Fed. Cir. 2001)</a> (it is not the Court's \"burden to search through lengthy technologic documents for possible evidence\" of invalidity).</p>\n<p><h2>B. <i>Alice</i> Step One</h2></p>\n<p>At <i>Alice</i> step one, the Court must determine whether the claims are \"directed to\" a patent-ineligible concept, such as an abstract idea. <a href=\"/scholar_case?case=12104168823829098064&amp;hl=en&amp;as_sdt=6,34\"><i>Alice,</i> 573 U.S. at 218</a>. The Court must \"look at the focus of the claimed advance over the prior art to determine if the claim's character as a whole is directed to excluded subject matter.\" <a href=\"/scholar_case?case=8526352094994628413&amp;hl=en&amp;as_sdt=6,34\"><i>Chamberlain,</i> 935 F.3d at 1346</a> (quotation and citation omitted). \"The specification is helpful in illuminating what a claim is directed to.\" <i>Id.</i> (quotation, alteration and citation omitted).</p>\n<p>The Court finds, based on the limited record at this stage of the case, that claims are plausibly directed to a specific improvement in brake control technology, not an abstract idea. As noted above, the Patents each describe and claim a method for controlling braking of the towed vehicle. Looking to their text, the Patents acknowledge then-known prior art brake control units, and after identifying purported shortcomings of these brake control units, describe and claim purportedly inventive embodiments directed to the shortcomings.</p>\n<p>More specifically, with respect to the '896 and '138 Patents, the claims are directed to purportedly inventive embodiments to solve the real world problem of brake jerking experienced when towing a trailer at low speeds. The written description sections of the '896 and '138 Patents acknowledge that then-known prior art brake control units \"have proposed utilization of a signal provided by a component, located within a towing vehicle, to determine a magnitude for a brake output signal that is provided to brakes of a towed vehicle to initiate braking of the towed vehicle.\" '896 Patent 1:23-28, ECF No. 6-1 at PageID.122. However, the written description sections of the patents state that these brake control units did not disclose \"how speed signals can be used to control and/or optimize control of the brakes of the towed vehicle.\" <i>Id.</i> 1:28-33, ECF No. 6-1 at PageID.122. According to the speed threshold embodiment of the '896 and '138 Patents, the patented improvement involves generating and modifying the brake output signals based on the speed input signals to solve the brake jerking problem at slower vehicle speeds. The written description explains that at low speeds, the towed vehicle's brakes \"are often too aggressive causing significant jerking, or in the worst case, locking of the brakes of the towed vehicle.\" <i>Id.</i> 1:34-37, ECF No. 6-1 at PageID.122. To solve the jerking problem, the brake output signals are modified based on the speed input signals in an effort \"to reduce power to the towed vehicle brakes when it is traveling at low speeds.\" <i>Id.</i> 1:37-45, ECF No. 6-1 at PageID.122.</p>\n<p>Similarly, the '437 Patent is directed to a purported improvement involving the use of the towing vehicle's communication bus as a source of input signals. In connection with the embodiments, the written description section of the patent acknowledges that then-known prior art brake control units \"provide a brake output signal to the brakes of a towed vehicle.\" '437 Patent 1:25-27, ECF No. 6-3 at PageID.156. However, the written description maintains that these brake control units were mostly \"aftermarket units\" that were \"not able to communicate with and communicate over existing systems within the towing vehicle.\" <i>Id.</i> 1:46-49, ECF No. 6-3 at PageID.156. The patented purported improvement involves the brake controller receiving input signals related to the towing vehicle via the towing vehicle's communication bus.</p>\n<p>For purposes of the Motion, Continental overly generalizes the claims as reciting \"receiving input signal(s) from the towing/towed vehicles, analyzing the inputs to generate a corresponding brake output signal, and sending the brake output signal to apply the brakes.\" Def.'s Mot. Br. 10, ECF No. 14 at PageID.195.</p>\n<p>In particular, Continental's generalization of the claims omits the entirety of the claim language drawn to the embodiments. For instance, with respect to the speed threshold embodiment in the '896/'138 Patent Family, compared to Continental's generalization of the claims, Claim 1 of the '896 Patent additionally recites:</p>\n<blockquote>* * *</blockquote>\n<blockquote>determining a relationship between said speed and a speed threshold;</blockquote>\n<blockquote>applying a function to modify said brake output signal when said speed of the towing vehicle is below said speed threshold;</blockquote>\n<blockquote>wherein said function modifies said brake output based on said speed; and</blockquote>\n<blockquote>wherein said brake output signal is not modified based on speed when said speed of said towing vehicle is above said speed threshold.</blockquote>\n<p>'896 Patent 12:48-13:3, ECF No. 6-1 at PageID.127-28. Likewise, the claim language contradicts Continental's argument that the claims recite a black box for generating the brake output signals. Instead, the claims recite a specific algorithm to solve the jerking problem involving not just generating the brake output signals based on the speed signals, but thereafter modifying the brake output signals based on the speed signals.</p>\n<p>Similarly, with respect to the communication bus embodiment in the '437 Patent, compared to Continental's generalization of the claims, Claim 1 additionally recites:</p>\n<blockquote>* * *</blockquote>\n<blockquote>receiving a first signal at a brake controller via a towing vehicle communication bus . . .; and</blockquote>\n<blockquote>* * *</blockquote>\n<blockquote>wherein . . . the towing vehicle communication bus . . . is externally connected to the brake controller.</blockquote>\n<p>'437 Patent 17:27-40, ECF No. 6-3 at PageID.164.</p>\n<p>In summary, as opposed to brake control technology in the abstract, the Patents, on their face, set forth claims plausibly directed to specific improvements to brake control technology and therefore plausibly satisfy <i>Alice</i> step one. While discovery or trial may reveal that the patents did not improve the prior art, for purposes of a Rule 12(b)(6) motion, the Court assumes that the improvements set forth in the Complaint and the Patents are true. <a href=\"/scholar_case?case=14524935561110783952&amp;hl=en&amp;as_sdt=6,34\"><i>Enfish, LLC v. Microsoft Corp.,</i> 822 F.3d 1327, 1335 (Fed. Cir. 2016)</a> (\"The Supreme Court has suggested that claims `improv[ing] an existing technological process' might not succumb to the abstract idea exception.\") (quoting <a href=\"/scholar_case?case=12104168823829098064&amp;hl=en&amp;as_sdt=6,34\"><i>Alice,</i> 573 U.S. at 223</a>).</p>\n<p><h2>C. <i>Alice</i> Step Two</h2></p>\n<p>Finding that the claims plausibly satisfy <i>Alice</i> step one, the Court need not proceed to <i>Alice</i> step two. However, the Court will address step two of the <i>Alice</i> test for the benefit of the parties.</p>\n<p>At <i>Alice</i> step two, the Court must determine whether the claims contain an \"inventive concept\" sufficient to \"transform\" the abstract idea of brake control technology into a patent-eligible \"application\" of brake control technology. <a href=\"/scholar_case?case=12104168823829098064&amp;hl=en&amp;as_sdt=6,34\"><i>Alice,</i> 573 U.S. at 217-18</a>. <i>Alice</i> step two is satisfied when the claims recite more than performance of \"well-understood, routine, conventional activities\" in connection with prior art brake control units. <i>Id.</i> at 225. \"The question of whether a claim element or combination of elements is well-understood, routine and conventional to a skilled artisan in the relevant field is a question of fact.\" <a href=\"/scholar_case?case=3420814358029019827&amp;hl=en&amp;as_sdt=6,34\"><i>Berkheimer,</i> 881 F.3d at 1368</a>.</p>\n<p>The Court finds that Horizon has plausibly alleged that the claims recite more than performance of \"well-understood, routine, conventional activities\" in connection with prior art brake control units. As set forth above in the Court's <i>Alice</i> step one analysis, the Patents, on their face, set forth claims directed to specific improvements to brake control technology\u2014i.e., claims that recite more than performance of \"well-understood, routine, conventional activities\" in connection with prior art brake control units. <a href=\"/scholar_case?case=12104168823829098064&amp;hl=en&amp;as_sdt=6,34\"><i>Alice,</i> 573 U.S. at 225</a>. Specifically, the '896 and '138 Patents are directed to a purported improvement to solve the real world problem of brake jerking experienced when towing a trailer at low speeds. The '437 Patent is directed to the purported improvement involving the use of the towing vehicle's communication bus as a source of electronic input signals for the electronic brake controller. The written description sections of the Patents state that the inventions were new and not conventional. <i>See</i> '896 Patent 1:28-45, ECF No. 6-1 at PageID.122; '437 Patent 1:46-49, ECF p. 6-3 at PageID.156. Because the claims are plausibly directed to specific improvements to brake control technology, the claims plausibly contain an inventive concept sufficient to transform the abstract idea of brake control technology into a patent-eligible application of brake control technology. <i>Id.</i> at 217-18. Accordingly, the claims plausibly satisfy <i>Alice</i> step two.</p>\n<p><h2>D. Summary</h2></p>\n<p>Continental's argument may be more persuasive on a full record at later stages of this case. However, at this stage of the case, the disclosure of the Patents, \"taken as true, prevent[s] resolving the eligibility question as a matter of law\" in Continental's favor. <a href=\"/scholar_case?case=16104658582734245440&amp;hl=en&amp;as_sdt=6,34\"><i>Aatrix,</i> 882 F.3d at 1125</a>; <i>see also </i><a href=\"/scholar_case?case=3420814358029019827&amp;hl=en&amp;as_sdt=6,34\"><i>Berkheimer,</i> 881 F.3d at 1370</a> (finding that \"summary judgment [of patent ineligibility] was improper, given the fact questions created by the specification's disclosure\").</p>\n<p>Likewise, the Court recognizes that the ultimate determination of patent eligibility may require more precise articulations of what the claims are \"directed to,\" application of various patent eligibility and patent ineligibility cases, and final determinations under <i>Alice</i> step one and <i>Alice</i> step two. However, because it remains to be seen whether and to what extent the prior art informs the ultimate determination of patent eligibility, these issues are more properly addressed on a full record at later stages of this case. <a href=\"/scholar_case?case=3420814358029019827&amp;hl=en&amp;as_sdt=6,34\"><i>Berkheimer,</i> 881 F.3d at 1368</a> (\"[T]he Supreme Court recognize[s] that in making the \u00a7 101 determination, the inquiry `might sometimes overlap' with other fact-intensive inquiries like novelty under \u00a7 102.\") (quoting <a href=\"/scholar_case?case=16025237560214135711&amp;hl=en&amp;as_sdt=6,34\"><i>Mayo,</i> 566 U.S. at 90</a>).</p>\n<p>At this stage of the case, it is enough that the text of the Patents shows that the claims plausibly satisfy <i>Alice</i> step one and/or <i>Alice</i> step two.</p>\n<p><h2>VII. CONCLUSION</h2></p>\n<p>For the reasons set forth above, finding that Continental has not met its burden of proving that the Patents are invalid for patent ineligibility by clear and convincing evidence, the Court will deny the Motion.</p>\n<small><p><a class=\"gsl_hash\" href=\"#r[1]\" name=\"[1]\">[1]</a>  The '896/'138 Patent Family claims benefit of a provisional patent application filed on October 8, 2004. The '896 Patent, the first-filed \"parent,\" was filed on October 11, 2005 and issued on July 29, 2014. The '138 Patent, a \"child\" continuation of the '896 Patent, was filed on July 14, 2014 and issued on September 12, 2017. <i>See</i> '896 Patent Related U.S. Application Data, ECF No. 6-1 at PageID.116; '138 Patent Related U.S. Application Data, ECF No. 6-2 at PageID.130. For ease of reference, in this Opinion and Order, the Court, like the parties in the written briefs, cites to the shared written description of the '896 Patent. The '437 Patent claims benefit of two different provisional patent applications filed on October 8, 2004. A second-generation \"child\" continuation of the first-filed \"parent,\" the '437 Patent was filed on April 13, 2017 and issued on August 7, 2018. <i>See</i> '437 Patent Related U.S. Application Data, ECF No. 6-3 at PageID.147-48.</p>\n<p><a class=\"gsl_hash\" href=\"#r[2]\" name=\"[2]\">[2]</a>  In a theme it emphasizes throughout its response brief, Horizon also argues that brake control technology is not an abstract idea. Horizon argues that as opposed to being abstract, brake control technology has a tangible, physical, concrete, and otherwise real-world nature. However, the Court notes that brake control technology's real-world nature does not answer the question of whether the claims are directed to an abstract idea. <i>See, e.g., </i><a href=\"/scholar_case?case=8526352094994628413&amp;hl=en&amp;as_sdt=6,34\"><i>Chamberlain Grp., Inc. v. Techtronic Indus. Co.,</i> 935 F.3d 1341, 1348 (Fed. Cir. 2019)</a> (\"the mere physical nature of [the technology at issue] is not enough to save the claims from abstractness\").</p>\n<p><a class=\"gsl_hash\" href=\"#r[3]\" name=\"[3]\">[3]</a>  In total, the Patents have 58 claims. <i>See</i> '896 Patent 12:48-14:39 (independent Claim 1 and dependent Claims 2-14), ECF No. 6-1 at PageID.127-28; '138 Patent 13:14-16:25 (independent Claim 1 and dependent Claims 2-8, independent Claim 9 and dependent Claims 10-16, and independent Claims 17 and 18), ECF No. 6-2 at PageID.144-45; '437 Patent 17:27-20:33 (independent Claim 1 and dependent Claims 2-22, and independent Claims 23, 24, 25, and 26), ECF No. 6-3 at PageID.164-65.</p>\n</small>\n</div>",
+    "training_text": " This is a patent infringement case. In its first amended complaint (the \"FAC\"), Plaintiff Horizon Global Americas Inc. (\"Horizon\") alleges that Defendant Continental Automotive Systems, Inc. (\"Continental\") infringes three patents on Horizon's brake control technology, U.S. Patent Nos. 8,789,896 (the \"'896 Patent\"), 9,758,138 (the \"'138 Patent\"), and 10,040,437 (the \"'437 Patent\") (collectively, the \"Patents\"). $$$$ This case is before the Court on Continental's motion to dismiss the FAC on the grounds that the Patents are invalid for patent ineligibility (the \"Motion\"). The parties have submitted written briefs explaining their positions on patent eligibility. Def.'s Mot., ECF No. 13; Def.'s Mot. Br., ECF No. 14; Pl.'s Resp. Br., ECF No. 25; Def.'s Reply Br., ECF No. 28. Pursuant to E.D. Mich. LR 7.1(f)(2), the Court will decide the Motion without a hearing. Accordingly, the hearing scheduled for March 11, 2021 is canceled. See Notice of Mot. Hr'g, ECF No. 33. For the reasons set forth below, the Court will deny the Motion. $$$$ Horizon filed this case on February 28, 2020 and later filed the FAC on July 10, 2020. Compl., ECF No. 1; FAC, ECF No. 6. $$$$ On September 2, 2020, in lieu of answering the FAC, Continental filed the instant Motion. In the Motion, Continental asks the Court to dismiss the FAC under Rule 12(b)(6). Continental argues that the Court should grant the Motion and dismiss the FAC because the Patents are invalid for patent ineligibility. In particular, Continental argues that in light of the Supreme Court's ####12104168823829098064 decision, ####12104168823829098064[2] and lower court cases applying ####12104168823829098064 , the Patents are invalid under Section 101 of the Patent Act for claiming a patent-ineligible abstract idea. Def.'s Mot. & Mot. Br., ECF Nos. 13 & 14. $$$$ Rule 8(a)(2) requires a complaint to include \"a short and plain statement of the claim showing that the pleader is entitled to relief.\" Fed. R. Civ. P. 8(a)(2). A complaint that fails to make such a showing may be dismissed pursuant to Rule 12(b)(6) for \"failure to state a claim upon which relief can be granted.\" Fed. R. Civ. P. 12(b)(6). $$$$ When deciding a motion to dismiss under Rule 12(b)(6), the Court must construe the complaint in the light most favorable to the plaintiff and accept all the factual allegations contained in the complaint as true. See ####11898648053353743590[3] . In order to survive a Rule 12(b)(6) motion, a complaint need contain only \"enough facts to state a claim for relief that is plausible on its face.\" ####913703117340005992[4] . \"A claim has facial plausibility when the plaintiff pleads factual content that allows the court to draw the reasonable inference that the defendant is liable for the misconduct alleged.\" ####16725752296468120395[5] (citing ####913703117340005992[6] ). \"Where a complaint pleads facts that are merely consistent with a defendant's liability, it `stops short of the line between possibility and plausibility of entitlement to relief.'\" Id. (quoting ####913703117340005992[7] ). \"Determining whether a complaint states a plausible claim for relief will . . . be a context-specific task that requires the reviewing court to draw on its judicial experience and common sense.\" Id. at 679. $$$$ For purposes of this Opinion and Order, the Court accepts as true the following factual allegations set forth by Horizon in the FAC and the following disclosure set forth in the Patents. ####11898648053353743590[8] ; see also ####3420814358029019827[9] (finding that \"summary judgment [of patent ineligibility] was improper, given the fact questions created by the specification's disclosure\"). $$$$ Horizon is a global leader in OEM and aftermarket towing and trailering equipment. FAC \u00b6\u00b6 2, 10, ECF No. 6 at PageID.87-89. As the result of efforts to build a patent portfolio on its innovations, Horizon owns patents on its brake control technology, including the Patents at issue in this case. Id. \u00b6\u00b6 12-13, ECF No. 6 at PageID.90; Ex. A (Brake Control Unit, U.S. Patent No. 8,789,896), ECF No. 6-1; Ex. B (Brake Control Unit, U.S. Patent No. 9,758,138), ECF No. 6-2; Ex. C (Brake Control Unit, U.S. Patent No. 10,040,437), ECF No. 6-3. $$$$ Continental is also in the business of brake control technology. FAC \u00b6 6, ECF No. 6 at PageID.88. This case arose when Horizon learned that Continental was selling an OEM integrated trailer brake controller (the \"Accused ITBC\"). Id. \u00b6 22, ECF No. 6 at PageID.91. In connection with making, using, selling, and offering to sell the Accused ITBC, Horizon alleges that Continental infringes as \"a non-limiting, illustrative example\" at least Claim 1 of the '896 Patent, Claim 1 of the '138 Patent, and Claim 1 of the '437 Patent (collectively, the \"Example Claims\"). Id. \u00b6\u00b6 21, 28-29, 40-41, 52-53, ECF No. 6 at PageID.91-97, 99-103, 105-11. $$$$ The Patents describe the brake control technology at issue in this case in the context of a \"towing vehicle\" (e.g., a pickup truck) and a \"towed vehicle\" (e.g., a trailer). The towing vehicle is equipped with the usual brakes. In addition, the towed vehicle is equipped with brakes of its own. In connection with normal operation of the towing vehicle's brakes, \"brake control\" in the context of the Patents refers to technology for controlling braking of the towed vehicle by powering the towed vehicle's brakes. $$$$ The Patents, each entitled \"Brake Control Unit,\" describe embodiments of an electronic device located within the towing vehicle. From within the towing vehicle, the brake control unit controls braking of the towed vehicle by generating brake output signals for powering the towed vehicle's brakes. The brake control unit receives input signals related to the towing vehicle, the towed vehicle, or both, and generates the brake output signals based on the input signals. Among other input signals, the brake control unit receives pressure signals related to the operation of the towing vehicle's brakes, and speed signals related to the speed of the towing vehicle, the towed vehicle, or both. Depending on the input signals, the brake control unit generates the brake output signals with a varying magnitude corresponding to how much the towed vehicle's brakes should be powered. $$$$ Although each describing and claiming a method for controlling braking of the towed vehicle, the Patents belong to two different patent \"families,\" one including the '896 and '138 Patents (the \"'896/'138 Patent Family\") and one including the '437 Patent. @@@@[1] $$$$ In the '896/'138 Patent Family, the method is drawn to purportedly inventive embodiments involving the use of speed signals. In connection with the embodiments, the written description sections of the patents state that then-known prior art brake control units did not disclose \"how speed signals can be used to control and/or optimize control of the brakes of the towed vehicle.\" '896 Patent 1:28-33, ECF No. 6-1 at PageID.122. $$$$ With respect to the '896/'138 Patent Family, the Example Claims consist of Claim 1 of the '896 Patent and Claim 1 of the '138 Patent. These claims are drawn to a \"speed threshold\" embodiment. According to the speed threshold embodiment, the method involves generating and modifying the brake output signals based on the speed signals to solve a jerking problem. In connection with the speed threshold embodiment, the written description sections of the patents explain that at low speeds, the towed vehicle's brakes \"are often too aggressive causing significant jerking, or in the worst case, locking of the brakes of the towed vehicle.\" Id. 1:34-37, ECF No. 6-1 at PageID.122. To solve the jerking problem, the brake output signals are modified based on the speed signals in an effort \"to reduce power to the towed vehicle brakes when it is traveling at low speeds.\" Id. 1:37-45, ECF No. 6-1 at PageID.122. $$$$ Claim 1 of the '896 Patent, reproduced below, is representative: $qq$ 1. A method of controlling braking of a towed vehicle, said method comprising: $/qq$ $qq$ receiving a speed signal based on speed of a towing vehicle, or a towed vehicle, or both said towing vehicle and said towed vehicle; $/qq$ $qq$ receiving a pressure signal based on a brake system of said towing vehicle; $/qq$ $qq$ generating a brake output signal based on said speed signal and said pressure signal; $/qq$ $qq$ sending said brake output signal to brakes of said towed vehicle to provide power to said brakes; $/qq$ $qq$ applying said brakes of said towed vehicle based on said brake output signal; $/qq$ $qq$ determining a relationship between said speed and a speed threshold; $/qq$ $qq$ applying a function to modify said brake output signal when said speed of the towing vehicle is below said speed threshold; $/qq$ $qq$ wherein said function modifies said brake output based on said speed; and $/qq$ $qq$ wherein said brake output signal is not modified based on speed when said speed of said towing vehicle is above said speed threshold. $/qq$ Id. 12:48-13:3, ECF No. 6-1 at PageID.127-28. $$$$ According to other \"speed signal\" embodiments, the method involves generating, modifying, adjusting, and modulating the brake output signals based on the speed signals, including determining the characteristics of the towed vehicle, determining the maximum brake output signals, and estimating, setting, and applying gain settings, boost settings, slew rates, and the like. Id. 1:66-3:8, 7:63-12:35 (detailing numerous \"embodiment[s] of the present invention\" involving the use of speed signals), ECF No. 6-1 at PageID.122-23, 125-27. $$$$ In the '437 Patent, the method is drawn to purportedly inventive embodiments involving the use of the towing vehicle's communication bus as a source of input signals. In connection with the embodiments, the written description section of the patent states that then-known prior art brake control units were mostly \"aftermarket units\" that were \"not able to communicate with and communicate over existing systems within the towing vehicle.\" '437 Patent 1:46-49, ECF No. 6-3 at PageID.156. $$$$ With respect to the '437 Patent, the Example Claims consist of Claim 1. This claim is drawn to the basic \"communication bus\" embodiment. According to the communication bus embodiment, the method involves receiving input signals related to the towing vehicle via the towing vehicle's communication bus, including in connection with generating and adjusting the brake output signals based on the input signals. $$$$ Claim 1 of the '437 Patent is reproduced below: $qq$ 1. A method for controlling braking of a towed vehicle, the method comprising: $/qq$ $qq$ receiving a first signal at a brake controller via a towing vehicle communication bus, the first signal relating to at least one operating condition of the towing vehicle; and sending a second signal from the brake controller to brakes of the towed vehicle, the second signal based on the first signal; and $/qq$ $qq$ wherein the towing vehicle communication bus is configured to communicate electronic signals and the towing vehicle communication bus interconnects a plurality of components on the towing vehicle and is externally connected to the brake controller. $/qq$ Id. 17:27-40, ECF No. 6-3 at PageID.164. $$$$ According to \"performance feature\" embodiments, the method further involves redundancy procedures, diagnostics, life cycle management, brake control unit mode determination, towed vehicle brake load testing, short circuit protection, stuck operator input determination, and the like. Id. 1:65-2:59, 7:16-17:14 (detailing numerous \"embodiment[s] of the present invention\" and \"performance feature[s]\" involving the use of the towing vehicle's communication bus as a source of input signals), ECF No. 6-3 at PageID.156, 159-64. $$$$ Section 101 of the Patent Act, entitled \"Inventions patentable,\" defines patent-eligible subject matter as \"any new and useful process, machine, manufacture, or composition of matter, or any new and useful improvement thereof.\" 35 U.S.C. \u00a7 101. The Supreme Court has created a non-textual exception to Section 101 for laws of nature, natural phenomena, and abstract ideas, which are \"building blocks of human ingenuity.\" ####12104168823829098064[11] . In determining patent eligibility, courts must distinguish between patents that \"claim the building blocks\" and those whose claims \"integrate the building blocks into something more.\" Id. at 217. $$$$ The Supreme Court in ####12104168823829098064 explains its two-step framework for determining patent eligibility. See id. at 217-18 (citing ####16025237560214135711[12] ). At ####12104168823829098064 step one, courts must determine whether the claims are \"directed to\" a patent-ineligible concept, such as an abstract idea. Id. at 218. Here, courts must be careful not to allow the judicial exception for patent-ineligible concepts to \"swallow all of patent law.\" Id. at 217. It is not enough that the claims \"involve\" a patent-ineligible concept because \"[a]t some level, all inventions embody, use, reflect, rest upon, or apply laws of nature, natural phenomena, or abstract ideas.\" Ibid. (quotation, alteration and citation omitted). If the claims are directed to a patent-ineligible concept, at ####12104168823829098064 step two, courts must consider the claim elements \"both individually and as an ordered combination\" to determine whether the claims contain an \"inventive concept\" sufficient to \"transform\" the concept into a patent-eligible \"application\" of the concept. Id. at 217-18 (quotation and citation omitted). ####12104168823829098064 step two is satisfied when the claim elements recite more than performance of \"well-understood, routine, conventional activities previously known to the industry.\" Id. at 225 (quotation and citation omitted). $$$$ Patent eligibility is a question of law based on underlying facts. ####16104658582734245440[13] . Patent eligibility may be determined on a motion to dismiss where \"there are no factual allegations that, taken as true, prevent resolving the eligibility question as a matter of law.\" Id. at 1125. $$$$ A patent enjoys a statutory presumption of validity, and the party asserting invalidity must prove invalidity by clear and convincing evidence. 35 U.S.C. \u00a7 282(a); ####14288905870829986880[14] . Settling a previously debated issue, the Federal Circuit holds that a patent is presumptively patent-eligible. ####7570633126279742469[15] (rejecting district court's contrary conclusion based on Ultramercial, Inc. v. Hulu, LLC, 772 F.3d 709, 721 (Fed. Cir. 2014) (Mayer, J., concurring) (\"no presumption of eligibility attends the section 101 inquiry\")). $$$$ Continental argues that the Patents are invalid for patent ineligibility because the claims fail ####12104168823829098064 step one and ####12104168823829098064 step two. Contrariwise, Horizon argues that the Patents are not invalid for patent ineligibility because the claims satisfy ####12104168823829098064 step one and ####12104168823829098064 step two. $$$$ With respect to ####12104168823829098064 step one, Continental argues that the claims are directed to the abstract idea of brake control technology\u2014i.e., receiving, generating, and transmitting signals, applied in the context of controlling braking of the towed vehicle. With respect to ####12104168823829098064 step two, Continental argues that the claims implement the abstract idea of brake control technology using only routine steps and prior art, generic, and commercially available components. $$$$ Continental begins by asking the Court to treat the Example Claims as representative of the remaining claims. While ostensibly asking for representative treatment of the Example Claims, Continental does not explain its position on patent eligibility based on the Example Claims per se. Rather, for purposes of the Motion, Continental generalizes the claims as reciting \"receiving input signal(s) from the towing/towed vehicles, analyzing the inputs to generate a corresponding brake output signal, and sending the brake output signal to apply the brakes.\" Def.'s Mot. Br. 10, ECF No. 14 at PageID.195. $$$$ In asking for representative treatment of its generalization of the claims, Continental argues that the Patents do not create any issues of meaningful differences. Starting with the '896/'138 Patent Family and the '437 Patent, Continental argues that they are \"effectively identical\" because the abstracts are \"substantively the same.\" Id. 3, ECF No. 14 at PageID.188. As to the Example Claims, Continental argues that \"aside from minor linguistic differences and levels of detail,\" they are \"substantively alike and directed to the same concept [quoted above].\" Id. 10, ECF No. 14 at PageID.195. As to the remaining claims, Continental argues that the other independent claims are \"substantially similar\" and that the dependent claims \"at most, merely add generic limitations.\" Id. 11, ECF No. 14 at PageID.196. $$$$ At ####12104168823829098064 step one, Continental argues that from the perspective of generating the brake output signals, the claims recite a \"black box.\" For instance, Continental argues that the claims do not recite \"formulas, algorithms, or computer improvements of any kind.\" Id. 13, ECF No. 14 at PageID.198. Similarly, Continental argues that the input signals \"are analyzed in some unspecified and non-inventive way\" and that the brake output signals are \"generated and then applied in an unspecified way to achieve a broad result.\" Id. 12-13, ECF No. 14 at PageID.197-98. $$$$ Applying various patent ineligibility cases, Continental argues that the claims fail ####12104168823829098064 step one because they, among other things, \"do not include any limitations as to how the signals are analyzed or how the method generates the output signal to produce the claimed result,\" id. 14, ECF No. 14 at PageID.199, \"do not recite any non-abstract technological improvement or solution,\" id. 16, ECF No. 14 at PageID.201, \"use result-based functional language without describing how to achieve these results in a non-abstract way,\" id. 18, ECF No. 14 at PageID.203, and \"neither include any special components to be used in the method, nor claim any improvement to the physical brake control unit itself,\" id. 19, ECF No. 14 at PageID.204. $$$$ In furtherance of its argument that the claims recite a black box at ####12104168823829098064 step one, at ####12104168823829098064 step two, Continental argues that the claims are un-transformative. Applying various patent ineligibility cases, Continental argues that the claims fail ####12104168823829098064 step two because they, among other things, \"are entirely silent as to how to implement the signal processing method,\" id. 20, ECF No. 14 at PageID.205, \"invoke the use of technology that was already well-known and conventional, operating in their well-known ways,\" id. 21, ECF No. 14 at PageID.206, \"do not even purport to require the use of any specific software algorithm,\" id. 20-21, ECF No. 14 at PageID.205-06, recite \"generic components operating in well-known ways,\" id. 22-23, ECF No. 14 at PageID.207-08, and recite \"routine steps\" \"in a conventional order,\" id. 23, ECF No. 14 at PageID.208. $$$$ With respect to ####12104168823829098064 step one, Horizon argues that the claims are directed to specific improvements to brake control technology. @@@@[2] With respect to ####12104168823829098064 step two, Horizon argues that because they are directed to specific improvements to brake control technology, the claims contain an inventive concept. $$$$ Horizon begins by disputing that Continental's generalization of the claims is representative. Horizon points out that Continental's generalization of the claims not only oversimplifies the claim language, but also fails to give separate treatment to the respective Example Claims of the '896/'138 Patent Family and the '437 Patent. Horizon also asks the Court not to treat the Example Claims as representative of the other claims. In particular, Horizon points out that compared to the Example Claims, many of the other claims are drawn to different embodiments. $$$$ At ####12104168823829098064 step one, Horizon argues that as opposed to brake control technology in the abstract, the claims are directed to specific improvements to brake control technology. $$$$ With respect to the '896/'138 Patent Family, Horizon argues that the claims are directed to controlling braking of the towed vehicle not only using speed signals, but also based on a speed threshold to solve the jerking problem. Horizon points out that the written description sections of the patents state that then-known prior art brake control units did not disclose \"how speed signals can be used to control and/or optimize control of the brakes of the towed vehicle.\" '896 Patent 1:28-33, ECF No. 6-1 at PageID.122. $$$$ As to the speed threshold embodiment in particular, Horizon points out that to solve the jerking problem, the method involves not only generating the brake output signals based on the speed signals, but also modifying the brake output signals based on the speed signals. Similarly, Horizon points out that the claims recite a specific algorithm to solve the jerking problem involving not just generating the brake output signals based on the speed signals, but thereafter modifying the brake output signals based on the speed signals. See, e.g., id. 12:48-13:3 (Claim 1), ECF No. 6-1 at PageID.127-28. $$$$ In summary, Horizon argues that the claims \"identify specific steps on how the real-world towing vehicle conditions (e.g., its speed) provides the appropriate brake output from the vehicle to control the braking system of the towed vehicle in a new way that prevents jerking or lockup,\" Pl.'s Resp. Br. 22, ECF No. 25 at PageID.264, and \"provide a novel solution that modifies the braking of the trailer when certain conditions exist,\" id. 22-23, ECF No. 25 at PageID.264-65. $$$$ Applying various patent eligibility cases, Horizon argues that the claims satisfy ####12104168823829098064 step one because they, among other things, use \"physical measurements to improve performance,\" id. 12, ECF No. 25 at PageID.254, and use \"real-world data and tangible vehicle components as tools to provide appropriate (and improved) trailer braking,\" id. 14, ECF No. 25 at PageID.256. $$$$ With respect to the '437 Patent, Horizon argues that in connection with controlling braking of the towed vehicle, the claims are directed to the connection and interaction between the towing vehicle's communication bus and the brake control unit. Horizon points out that the written description of the patent states that then-known prior art brake control units were mostly \"aftermarket units\" that were \"not able to communicate with and communicate over existing systems within the towing vehicle.\" '437 Patent 1:46-49, ECF No. 6-3 at PageID.156. $$$$ In summary, Horizon argues that the claims \"use components in a new way to brake a moving trailer,\" Pl.'s Resp. Br. 16, ECF No. 25 at PageID.258, \"ingeniously use the communication bus in the vehicle with the [brake control unit] to provide better controlled trailer braking,\" id. 21, ECF No. 25 at PageID.263, and \"provide a new method of using a vehicle's communication bus to achieve a solution to improve trailer braking,\" id. 23, ECF No. 25 at PageID.265. $$$$ Applying various patent eligibility cases, Horizon argues that the claims satisfy ####12104168823829098064 step one because they, among other things, recite a \"specific improvement\" \"in the functionality of the vehicle's communication bus system itself.\" Id. 13-14 (quotation, alteration and citation omitted), ECF No. 25 at PageID.255-56. $$$$ In furtherance of its argument at ####12104168823829098064 step one that the claims are directed to specific improvements to brake control technology, at ####12104168823829098064 step two, Horizon argues that the claims contain an inventive concept. $$$$ With respect to the '896/'138 Patent Family, Horizon argues that the claims \"explain that the speed threshold, which was not conventional, provides the inventive concept to solve the problems of jerking and locking in the prior art.\" Pl.'s Resp. Br. 24, ECF No. 25 at PageID.266. Applying various patent eligibility cases, Horizon argues that the claims satisfy ####12104168823829098064 step two because they, among other things, yield \"a different or better result than prior art systems.\" Id. $$$$ With respect to the '437 Patent, Horizon argues that the claims \"use the vehicle's communication bus in a new and unconventional way as a connection to, and source of information for, a brake controller.\" Id. 24-25, ECF No. 25 at PageID.266-67. Applying various patent eligibility cases, Horizon argues that the claims satisfy ####12104168823829098064 step two because they, among other things, \"recite an unconventional arrangement of conventional components\" and yield \"a different or better result than prior art systems.\" Id. 24, ECF No. 25 at PageID.266. $$$$ While patent eligibility may be determined on a motion to dismiss, this is only the case where \"there are no factual allegations that, taken as true, prevent resolving the eligibility question as a matter of law.\" ####16104658582734245440[17] . Because a patent enjoys a statutory presumption of patent eligibility, \"[a]ny fact . . . that is pertinent to the invalidity conclusion must be proven by clear and convincing evidence.\" ####3420814358029019827[18] (citing ####14288905870829986880[19] ). $$$$ For this Rule 12(b)(6) motion, the record consists of the Patents and well pleaded allegations of the Complaint, whose disclosure the Court accepts as true. ####11898648053353743590[8] . Looking to the text of the Patents, the Court finds that Continental has not met its burden of proving that the Patents are invalid for patent ineligibility by clear and convincing evidence. In particular, the text of the Patents contradicts Continental's argument that the claims are directed to an abstract idea pursuant to the ####12104168823829098064 test. The Patents, on their face, set forth claims directed to specific improvements to brake control technology. Because the claims of the Patents are plausibly directed to specific improvements to brake control technology, not brake control technology in the abstract, the Court finds that the claims plausibly satisfy ####12104168823829098064 step one and/or ####12104168823829098064 step two. $$$$ The Court, like the parties, begins with the issue of whether to treat the Example Claims referenced in the Complaint as representative of all the claims in the Patents. \"Courts may treat a claim as representative in certain situations, such as if the patentee does not present any meaningful argument for the distinctive significance of any claim limitations not found in the representative claim or if the parties agree to treat a claim as representative.\" ####3420814358029019827[21] . Here, the parties have not agreed to treat the Example Claims as representative of all the claims in the Patents. $$$$ The Court agrees with Horizon that it should not treat the Example Claims as representative of all the claims in the Patents. Initially, as Horizon points out, Continental's generalization of the claims not only oversimplifies the claim language, but also fails to account for the differences between the claims in the patents. See, e.g., ####16226248573370819841[22] (cautioning that \"courts must be careful to avoid oversimplifying the claims by looking at them generally and failing to account for the specific requirements of the claims\") (quotation and citation omitted). $$$$ Horizon correctly points out that, compared to the Example Claims, many of the other claims of the Patents are drawn to different embodiments. @@@@[3] With respect to the '896/'138 Patent Family, while example Claim 1 of the '896 Patent and example Claim 1 of the '138 Patent are directed to a specific speed threshold embodiment, it appears that many of the other claims of the '896 and '138 Patents are drawn to the other speed signal embodiments. See '896 Patent 13:17-14:37 (dependent Claims 6-13), ECF No. 6-1 at PageID.128; '138 Patent 13:44-14:15 (dependent Claims 5-8), 14:48-16:25 (dependent Claims 13-16 and independent Claims 17 and 18), ECF No. 6-2 at PageID.144-45. Similarly, while example Claim 1 of the '437 Patent is directed to the communication bus embodiment, it appears that many of the remaining claims are drawn to the performance feature embodiments. See '437 Patent 17:41-58 (dependent Claims 2 and 3), 17:65-18:64 (dependent Claims 6-19), ECF No. 6-3 at PageID.164. $$$$ Because Continental does not address the different embodiments set forth in the claims of the Patents, the Court will only address the Example Claims. See ####12062831924000026282[24] (it is not the Court's \"burden to search through lengthy technologic documents for possible evidence\" of invalidity). $$$$ At ####12104168823829098064 step one, the Court must determine whether the claims are \"directed to\" a patent-ineligible concept, such as an abstract idea. ####12104168823829098064[25] . The Court must \"look at the focus of the claimed advance over the prior art to determine if the claim's character as a whole is directed to excluded subject matter.\" ####8526352094994628413[26] (quotation and citation omitted). \"The specification is helpful in illuminating what a claim is directed to.\" Id. (quotation, alteration and citation omitted). $$$$ The Court finds, based on the limited record at this stage of the case, that claims are plausibly directed to a specific improvement in brake control technology, not an abstract idea. As noted above, the Patents each describe and claim a method for controlling braking of the towed vehicle. Looking to their text, the Patents acknowledge then-known prior art brake control units, and after identifying purported shortcomings of these brake control units, describe and claim purportedly inventive embodiments directed to the shortcomings. $$$$ More specifically, with respect to the '896 and '138 Patents, the claims are directed to purportedly inventive embodiments to solve the real world problem of brake jerking experienced when towing a trailer at low speeds. The written description sections of the '896 and '138 Patents acknowledge that then-known prior art brake control units \"have proposed utilization of a signal provided by a component, located within a towing vehicle, to determine a magnitude for a brake output signal that is provided to brakes of a towed vehicle to initiate braking of the towed vehicle.\" '896 Patent 1:23-28, ECF No. 6-1 at PageID.122. However, the written description sections of the patents state that these brake control units did not disclose \"how speed signals can be used to control and/or optimize control of the brakes of the towed vehicle.\" Id. 1:28-33, ECF No. 6-1 at PageID.122. According to the speed threshold embodiment of the '896 and '138 Patents, the patented improvement involves generating and modifying the brake output signals based on the speed input signals to solve the brake jerking problem at slower vehicle speeds. The written description explains that at low speeds, the towed vehicle's brakes \"are often too aggressive causing significant jerking, or in the worst case, locking of the brakes of the towed vehicle.\" Id. 1:34-37, ECF No. 6-1 at PageID.122. To solve the jerking problem, the brake output signals are modified based on the speed input signals in an effort \"to reduce power to the towed vehicle brakes when it is traveling at low speeds.\" Id. 1:37-45, ECF No. 6-1 at PageID.122. $$$$ Similarly, the '437 Patent is directed to a purported improvement involving the use of the towing vehicle's communication bus as a source of input signals. In connection with the embodiments, the written description section of the patent acknowledges that then-known prior art brake control units \"provide a brake output signal to the brakes of a towed vehicle.\" '437 Patent 1:25-27, ECF No. 6-3 at PageID.156. However, the written description maintains that these brake control units were mostly \"aftermarket units\" that were \"not able to communicate with and communicate over existing systems within the towing vehicle.\" Id. 1:46-49, ECF No. 6-3 at PageID.156. The patented purported improvement involves the brake controller receiving input signals related to the towing vehicle via the towing vehicle's communication bus. $$$$ For purposes of the Motion, Continental overly generalizes the claims as reciting \"receiving input signal(s) from the towing/towed vehicles, analyzing the inputs to generate a corresponding brake output signal, and sending the brake output signal to apply the brakes.\" Def.'s Mot. Br. 10, ECF No. 14 at PageID.195. $$$$ In particular, Continental's generalization of the claims omits the entirety of the claim language drawn to the embodiments. For instance, with respect to the speed threshold embodiment in the '896/'138 Patent Family, compared to Continental's generalization of the claims, Claim 1 of the '896 Patent additionally recites: $qq$ * * * $/qq$ $qq$ determining a relationship between said speed and a speed threshold; $/qq$ $qq$ applying a function to modify said brake output signal when said speed of the towing vehicle is below said speed threshold; $/qq$ $qq$ wherein said function modifies said brake output based on said speed; and $/qq$ $qq$ wherein said brake output signal is not modified based on speed when said speed of said towing vehicle is above said speed threshold. $/qq$ '896 Patent 12:48-13:3, ECF No. 6-1 at PageID.127-28. Likewise, the claim language contradicts Continental's argument that the claims recite a black box for generating the brake output signals. Instead, the claims recite a specific algorithm to solve the jerking problem involving not just generating the brake output signals based on the speed signals, but thereafter modifying the brake output signals based on the speed signals. $$$$ Similarly, with respect to the communication bus embodiment in the '437 Patent, compared to Continental's generalization of the claims, Claim 1 additionally recites: $qq$ * * * $/qq$ $qq$ receiving a first signal at a brake controller via a towing vehicle communication bus . . .; and $/qq$ $qq$ * * * $/qq$ $qq$ wherein . . . the towing vehicle communication bus . . . is externally connected to the brake controller. $/qq$ '437 Patent 17:27-40, ECF No. 6-3 at PageID.164. $$$$ In summary, as opposed to brake control technology in the abstract, the Patents, on their face, set forth claims plausibly directed to specific improvements to brake control technology and therefore plausibly satisfy ####12104168823829098064 step one. While discovery or trial may reveal that the patents did not improve the prior art, for purposes of a Rule 12(b)(6) motion, the Court assumes that the improvements set forth in the Complaint and the Patents are true. ####14524935561110783952[27] (\"The Supreme Court has suggested that claims `improv[ing] an existing technological process' might not succumb to the abstract idea exception.\") (quoting ####12104168823829098064[28] ). $$$$ Finding that the claims plausibly satisfy ####12104168823829098064 step one, the Court need not proceed to ####12104168823829098064 step two. However, the Court will address step two of the ####12104168823829098064 test for the benefit of the parties. $$$$ At ####12104168823829098064 step two, the Court must determine whether the claims contain an \"inventive concept\" sufficient to \"transform\" the abstract idea of brake control technology into a patent-eligible \"application\" of brake control technology. ####12104168823829098064[29] . ####12104168823829098064 step two is satisfied when the claims recite more than performance of \"well-understood, routine, conventional activities\" in connection with prior art brake control units. Id. at 225. \"The question of whether a claim element or combination of elements is well-understood, routine and conventional to a skilled artisan in the relevant field is a question of fact.\" ####3420814358029019827[18] . $$$$ The Court finds that Horizon has plausibly alleged that the claims recite more than performance of \"well-understood, routine, conventional activities\" in connection with prior art brake control units. As set forth above in the Court's ####12104168823829098064 step one analysis, the Patents, on their face, set forth claims directed to specific improvements to brake control technology\u2014i.e., claims that recite more than performance of \"well-understood, routine, conventional activities\" in connection with prior art brake control units. ####12104168823829098064[31] . Specifically, the '896 and '138 Patents are directed to a purported improvement to solve the real world problem of brake jerking experienced when towing a trailer at low speeds. The '437 Patent is directed to the purported improvement involving the use of the towing vehicle's communication bus as a source of electronic input signals for the electronic brake controller. The written description sections of the Patents state that the inventions were new and not conventional. See '896 Patent 1:28-45, ECF No. 6-1 at PageID.122; '437 Patent 1:46-49, ECF p. 6-3 at PageID.156. Because the claims are plausibly directed to specific improvements to brake control technology, the claims plausibly contain an inventive concept sufficient to transform the abstract idea of brake control technology into a patent-eligible application of brake control technology. Id. at 217-18. Accordingly, the claims plausibly satisfy ####12104168823829098064 step two. $$$$ Continental's argument may be more persuasive on a full record at later stages of this case. However, at this stage of the case, the disclosure of the Patents, \"taken as true, prevent[s] resolving the eligibility question as a matter of law\" in Continental's favor. ####16104658582734245440[17] ; see also ####3420814358029019827[33] (finding that \"summary judgment [of patent ineligibility] was improper, given the fact questions created by the specification's disclosure\"). $$$$ Likewise, the Court recognizes that the ultimate determination of patent eligibility may require more precise articulations of what the claims are \"directed to,\" application of various patent eligibility and patent ineligibility cases, and final determinations under ####12104168823829098064 step one and ####12104168823829098064 step two. However, because it remains to be seen whether and to what extent the prior art informs the ultimate determination of patent eligibility, these issues are more properly addressed on a full record at later stages of this case. ####3420814358029019827[18] (\"[T]he Supreme Court recognize[s] that in making the \u00a7 101 determination, the inquiry `might sometimes overlap' with other fact-intensive inquiries like novelty under \u00a7 102.\") (quoting ####16025237560214135711[35] ). $$$$ At this stage of the case, it is enough that the text of the Patents shows that the claims plausibly satisfy ####12104168823829098064 step one and/or ####12104168823829098064 step two. $$$$ For the reasons set forth above, finding that Continental has not met its burden of proving that the Patents are invalid for patent ineligibility by clear and convincing evidence, the Court will deny the Motion. $$$$ ",
+    "footnotes": [
+        {
+            "identifier": "[1]",
+            "context": "The '896/'138 Patent Family claims benefit of a provisional patent application filed on October 8, 2004. The '896 Patent, the first-filed \"parent,\" was filed on October 11, 2005 and issued on July 29, 2014. The '138 Patent, a \"child\" continuation of the '896 Patent, was filed on July 14, 2014 and issued on September 12, 2017. See '896 Patent Related U.S. Application Data, ECF No. 6-1 at PageID.116; '138 Patent Related U.S. Application Data, ECF No. 6-2 at PageID.130. For ease of reference, in this Opinion and Order, the Court, like the parties in the written briefs, cites to the shared written description of the '896 Patent. The '437 Patent claims benefit of two different provisional patent applications filed on October 8, 2004. A second-generation \"child\" continuation of the first-filed \"parent,\" the '437 Patent was filed on April 13, 2017 and issued on August 7, 2018. See '437 Patent Related U.S. Application Data, ECF No. 6-3 at PageID.147-48."
+        },
+        {
+            "identifier": "[2]",
+            "context": "In a theme it emphasizes throughout its response brief, Horizon also argues that brake control technology is not an abstract idea. Horizon argues that as opposed to being abstract, brake control technology has a tangible, physical, concrete, and otherwise real-world nature. However, the Court notes that brake control technology's real-world nature does not answer the question of whether the claims are directed to an abstract idea. See, e.g.,  ####8526352094994628413[38]  (\"the mere physical nature of [the technology at issue] is not enough to save the claims from abstractness\")."
+        },
+        {
+            "identifier": "[3]",
+            "context": "In total, the Patents have 58 claims. See '896 Patent 12:48-14:39 (independent Claim 1 and dependent Claims 2-14), ECF No. 6-1 at PageID.127-28; '138 Patent 13:14-16:25 (independent Claim 1 and dependent Claims 2-8, independent Claim 9 and dependent Claims 10-16, and independent Claims 17 and 18), ECF No. 6-2 at PageID.144-45; '437 Patent 17:27-20:33 (independent Claim 1 and dependent Claims 2-22, and independent Claims 23, 24, 25, and 26), ECF No. 6-3 at PageID.164-65."
+        }
+    ]
+}

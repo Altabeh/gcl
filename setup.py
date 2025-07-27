@@ -1,49 +1,34 @@
-import re
-from pathlib import Path
+from setuptools import setup, find_packages
 
-from setuptools import find_packages, setup
-
-
-def get_property(prop):
-    result = re.search(
-        r'{}\s*=\s*[\'"]([^\'"]*)[\'"]'.format(prop),
-        (Path.cwd() / "gcl" / "__init__.py").read_text(),
-    )
-    return result.group(1)
-
-
-AUTHOR = "Alireza Behtash"
-EMAIL = "proof.beh@gmail.com"
-VERSION = get_property("__version__")
-HERE = Path(__file__).resolve().parent
-
-with open(str(HERE / "requirements.txt")) as reqs_file:
-    reqs = reqs_file.read().splitlines()
-
+with open("README.md", "r", encoding="utf-8") as fh:
+    long_description = fh.read()
 
 setup(
     name="gcl",
-    description="A package for scraping and parsing Google Caselaw pages.",
-    url="https://github.com/Altabeh/gcl",
-    author=AUTHOR,
-    author_email=EMAIL,
-    maintainer=AUTHOR,
-    maintainer_email=EMAIL,
-    version=VERSION,
-    license="MIT",
-    packages=find_packages(include=["gcl"]),
-    package_data={"gcl": ["data/*"]},
-    install_requires=reqs,
+    version="1.3.0",
+    author="Alireza Behtash",
+    description="Google Case Law and Patent Parser",
+    long_description=long_description,
+    long_description_content_type="text/markdown",
+    url="https://github.com/alirezabehtash/gcl",
+    packages=find_packages(),
     classifiers=[
-        "Intended Audience :: Legal Industry",
-        "Intended Audience :: Developers",
-        "Natural Language :: English",
+        "Programming Language :: Python :: 3",
+        "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
-        "Programming Language :: Python :: 3.8",
-        "Programming Language :: Python :: 3.9",
-        "Programming Language :: Python :: 3.10",
-        "Programming Language :: Python :: Implementation :: PyPy",
-        "Development Status :: 3 - Alpha",
-        "Topic :: Software Development :: Libraries :: Python Modules",
     ],
-)
+    python_requires=">=3.8,<3.13",
+    install_requires=[
+        "beautifulsoup4>=4.12.2",
+        "lxml>=4.9.0",
+        "requests>=2.31.0",
+        "selenium>=4.0.0",
+        "tqdm>=4.66.4",
+        "python-dateutil>=2.8.2",
+        "reporters-db>=3.2.56",
+        "webdriver-manager>=3.5.4"
+    ],
+    package_data={
+        'gcl': ['data/*.json'],
+    },
+) 

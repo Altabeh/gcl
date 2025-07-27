@@ -8,44 +8,16 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 from logging import getLogger
 from multiprocessing import Pool
-from os import cpu_count, environ
+from os import cpu_count
 from pathlib import Path
-from time import sleep
 from typing import Any, Iterator
-
-import requests
-from dateutil import parser
-from python_anticaptcha import AnticaptchaClient, NoCaptchaTaskProxylessTask
-from selenium import webdriver
-from selenium.webdriver import ChromeOptions, FirefoxOptions
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.support.ui import WebDriverWait
-from stem import Signal
-from stem.control import Controller
 from tqdm import tqdm
-from webdriver_manager.chrome import ChromeDriverManager
-from webdriver_manager.firefox import GeckoDriverManager
 
-from gcl.settings import root_dir
+from dateutil import parser
+
 
 logger = getLogger(__name__)
 
-chrome_options = ChromeOptions()
-chrome_options.add_argument("--headless")
-chrome_options.add_argument("--no-sandbox")
-chrome_options.add_argument("--disable-gpu")
-executable_path = root_dir / "gcl" / "executables" / "chromedriver"
-
-SELENIUM_DRIVER = webdriver.Chrome(
-    service=Service(
-        executable_path=ChromeDriverManager(
-            path=executable_path.parent.__str__()
-        ).install()
-    ),
-    options=chrome_options,
-)
 DOMAIN_FORMAT = re.compile(
     r"(?:^(\w{1,255}):(.{1,255})@|^)"  # http basic authentication [optional]
     # check full domain length to be less than or equal to 253 (starting after http basic auth, stopping before port)
@@ -58,7 +30,8 @@ DOMAIN_FORMAT = re.compile(
     re.IGNORECASE,
 )
 SCHEME_FORMAT = re.compile(
-    r"^(http|hxxp|ftp|fxp)s?$", re.IGNORECASE  # scheme: http(s) or ftp(s)
+    r"^(http|hxxp|ftp|fxp)s?$",
+    re.IGNORECASE,  # scheme: http(s) or ftp(s)
 )
 
 
@@ -144,7 +117,8 @@ def read_csv(path, start_row=1, end_row=None, ignore_column=[]):
                     lambda r: literal_eval(r)
                     # If type(r) is either list or tuple, or dict, then preserve the type by applying
                     # ast.literal_eval().
-                    if regex(r, [(r"^[\[\({].*[\]\)}]$", "")], sub=False) else r,
+                    if regex(r, [(r"^[\[\({].*[\]\)}]$", "")], sub=False)
+                    else r,
                     # Ignore the columns in `ignore_column`.
                     [i for i in x if x.index(i) not in ignore_column],
                 )
@@ -262,7 +236,6 @@ def concurrent_run(
         total=len(gen_or_iter) if not isinstance(gen_or_iter, Iterator) else None,
         disable=disable_progress_bar,
     ) as pbar:
-
         if threading:
             if keep_order:
                 results_or_tasks = executor.map(func, gen_or_iter)
@@ -382,14 +355,14 @@ def hyphen_to_numbers(string):
     return " ".join(final_list)
 
 
-def rm_repeated(l):
+def rm_repeated(lst: list) -> list:
     """
     Remove repeated elements of a list while keeping the order intact.
     """
-    return list(dict.fromkeys(l))
+    return list(dict.fromkeys(lst))
 
 
-def validate_url(url: str):
+def validate_url(url: str) -> str:
     url = url.strip()
 
     if not url:
@@ -419,131 +392,3 @@ def validate_url(url: str):
         raise Exception(f"URL domain malformed (domain={domain})")
 
     return url
-
-
-def switch_ip():
-    """
-    Signal TOR for a new connection.
-    """
-    with Controller.from_port(port=9051) as controller:
-        controller.authenticate()
-        controller.signal(Signal.NEWNYM)
-
-
-def proxy_browser(host="127.0.0.1", port=9050, proxy_type=1):
-    """
-    Get a new selenium webdriver with tor as the proxy.
-    """
-    fp = webdriver.FirefoxProfile()
-    # Direct = 0, Manual = 1, PAC = 2, AUTODETECT = 4, SYSTEM = 5
-    fp.set_preference("network.proxy.type", proxy_type)
-    fp.set_preference("network.proxy.socks", host)
-    fp.set_preference("network.proxy.socks_port", int(port))
-    fp.update_preferences()
-    options = FirefoxOptions()
-    options.headless = True
-    return webdriver.Firefox(
-        service=Service(
-            executable_path=GeckoDriverManager(
-                path=executable_path.parent.__str__()
-            ).install()
-        ),
-        options=options,
-        firefox_profile=fp,
-    )
-
-
-def _recaptcha_get_token(url, site_key, invisible=False):
-    """
-    Enter a `url` and a valid `site_key` to call https://anticaptcha.com API to solve
-    the recaptcha encountered at the url. The response is a token soon to be used
-    for verification purposes.
-
-    Args
-    ----
-    * :param invisible: ---> bool: If True, calls the invisible recaptcha api.
-    """
-    task = NoCaptchaTaskProxylessTask(
-        website_url=url, website_key=site_key, is_invisible=invisible
-    )
-
-    ANTICAPTCHA_KEY = environ.get("ANTICAPTCHA_KEY", None)
-
-    if ANTICAPTCHA_KEY:
-        client = AnticaptchaClient(ANTICAPTCHA_KEY)
-        job = client.createTask(task)
-        job.join(maximum_time=60 * 15)
-        return job.get_solution_response()
-
-    raise Exception("ANTICAPTCHA_KEY could not be found in the python env.")
-
-
-def _recaptcha_form_submit(driver, token):
-    """
-    Submit the recaptcha form with a valid `token`.
-    """
-    driver.execute_script(
-        "document.getElementById('g-recaptcha-response').innerHTML='{}';".format(token)
-    )
-    driver.execute_script("gs_captcha_cb('{}')".format(token))
-    sleep(1)
-
-
-def recaptcha_process(url, driver):
-    """
-    Wait for a recaptcha-success message to show up in DOM after receiving
-    the correct token from the anticaptcha servers and submitting the recaptcha form.
-    """
-    driver.get(url)
-    site_key = regex(
-        driver.find_element(By.TAG_NAME, "iframe").get_attribute("src"),
-        [(r"&k=(.*?)&", "")],
-        sub=False,
-    )[0]
-    token = _recaptcha_get_token(url, site_key)
-    _recaptcha_form_submit(driver, token)
-    return driver.find_element_by_class_name("recaptcha-success").text
-
-
-def async_get(url, xpath):
-    """
-    Return page source of the `url` by engaging an interactive selenium driver for active
-    javascript execution that would be required in the websites that follow an AJAX call
-    to perform a task.
-
-    Args
-    ----
-    * :param xpath: ---> str: wait for the element with xpath `xpath` to appear in DOM
-    to get the page content.
-    """
-    SELENIUM_DRIVER.get(url)
-    try:
-        WebDriverWait(SELENIUM_DRIVER, 10).until(
-            EC.presence_of_element_located((By.XPATH, xpath))
-        )
-    finally:
-        r = SELENIUM_DRIVER.page_source
-        return r
-
-
-def get(url, json=False):
-    """
-    Return server response by making a get request to a given `url`.
-    If `json` is set to True, the response will have a serialized structure.
-    """
-    res_content = ""
-    response = requests.get(url)
-    response.encoding = response.apparent_encoding
-    status = response.status_code
-
-    if status == 200:
-        res_content = response.text
-        if json:
-            res_content = response.json()
-
-    if status == 404:
-        logger.info(f'URL "{url}" not found')
-
-    if status not in [200, 404]:
-        raise Exception(f"Server response: {status}")
-    return status, res_content

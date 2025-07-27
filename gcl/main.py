@@ -12,6 +12,8 @@ in machine-learning applications.
 
 from __future__ import absolute_import
 
+__version__ = "1.3.0"  # Directly specify version
+
 import json
 import re
 from csv import QUOTE_ALL, writer
@@ -31,15 +33,25 @@ from bs4 import NavigableString
 from reporters_db import EDITIONS, REPORTERS
 from tqdm import tqdm
 
-from gcl import __version__
-from gcl.google_patents_scrape import GooglePatents
-from gcl.regexes import GCLRegex
-from gcl.settings import root_dir
-from gcl.uspto_api import USPTOscrape
-from gcl.utils import (closest_value, concurrent_run, create_dir, deaccent,
-                       hyphen_to_numbers, load_json, nullify, proxy_browser,
-                       recaptcha_process, regex, rm_repeated, rm_tree,
-                       shorten_date, sort_int, switch_ip, validate_url)
+from .google_patents_scrape import GooglePatents
+from .regexes import GCLRegex
+from .settings import root_dir
+from .uspto_api import USPTOscrape
+from .utils import (
+    closest_value,
+    concurrent_run,
+    create_dir,
+    deaccent,
+    hyphen_to_numbers,
+    load_json,
+    nullify,
+    regex,
+    rm_repeated,
+    rm_tree,
+    shorten_date,
+    sort_int,
+    validate_url,
+)
 
 logger = getLogger(__name__)
 
@@ -265,7 +277,6 @@ class GCLParse(GCLRegex, USPTOscrape, GooglePatents, Thread):
         skip_patent: bool = False,
         skip_application: bool = False,
         return_data: bool = False,
-        need_proxy: bool = False,
         random_sleep: bool = False,
     ) -> None or dict:
         """
@@ -286,7 +297,7 @@ class GCLParse(GCLRegex, USPTOscrape, GooglePatents, Thread):
 
         html_text = ""
         if not Path(path_or_url).is_file():
-            html_text = tuple(self._get(path_or_url, need_proxy))[1]
+            html_text = tuple(self._get(path_or_url))[1]
             if random_sleep:
                 sleep(randint(2, 10))
         else:
@@ -316,15 +327,12 @@ class GCLParse(GCLRegex, USPTOscrape, GooglePatents, Thread):
         self._personal_opinion()
 
         subdir = subdir or f"json_{self.suffix}"
-
-        with open(
-            str(
-                create_dir(self.data_dir / "json" / subdir)
-                / f"{self.gl.case['id']}.json"
-            ),
-            "w",
-        ) as f:
+        save_path = create_dir(self.data_dir / "json" / subdir) / f"{self.gl.case['id']}.json"
+        
+        logger.info(f"Saving case to {save_path}")
+        with open(str(save_path), "w") as f:
             json.dump(self.gl.case, f, indent=4)
+        logger.info(f"Successfully saved case to {save_path}")
 
         if return_data:
             return self.gl.case
@@ -392,7 +400,7 @@ class GCLParse(GCLRegex, USPTOscrape, GooglePatents, Thread):
                 if regex(person, self.roman_patterns, sub=False) or regex(
                     person, self.abbreviation_patterns, sub=False
                 ):
-                    judges[i - 1] = f"{judges[i-1]}, {person}"
+                    judges[i - 1] = f"{judges[i - 1]}, {person}"
                     judges.pop(i)
                 elif not person:
                     judges.pop(i)
@@ -401,10 +409,10 @@ class GCLParse(GCLRegex, USPTOscrape, GooglePatents, Thread):
                 [
                     " ".join(
                         [
-                            l.lower().capitalize()
-                            if not regex(l, self.roman_patterns, sub=False)
-                            else l
-                            for l in name.split()
+                            l_.lower().capitalize()
+                            if not regex(l_, self.roman_patterns, sub=False)
+                            else l_
+                            for l_ in name.split()
                         ]
                     )
                     for name in [j for j in judges if j]
@@ -489,7 +497,7 @@ class GCLParse(GCLRegex, USPTOscrape, GooglePatents, Thread):
 
             court_name_spaced = f"{court_name} " if court_name else ""
             if not court_name:
-                case_number = "" if delimiter == "-" else f", No. XXXXXX"
+                case_number = "" if delimiter == "-" else ", No. XXXXXX"
                 date = year if delimiter == "-" else self.gcl_get_date(html, True)
                 citation = regex(
                     citation.replace(
@@ -521,7 +529,7 @@ class GCLParse(GCLRegex, USPTOscrape, GooglePatents, Thread):
             court_type_spaced = f"{court_type} " if court_type else ""
             # Encountering a dash after publication in Google cases means that the case has been published.
             # So no case number is needed according to bluebook if a dash is encountered.
-            case_number = "" if delimiter == "-" else f", No. XXXXXX"
+            case_number = "" if delimiter == "-" else ", No. XXXXXX"
             date = year if delimiter == "-" else self.gcl_get_date(html, True)
             citation = regex(
                 citation.replace(
@@ -562,7 +570,7 @@ class GCLParse(GCLRegex, USPTOscrape, GooglePatents, Thread):
 
             state_spaced = "" if "Commw" in court_name else f"{state} "
             court_name_spaced = f"{court_name} "
-            case_number = "" if delimiter == "-" else f", No. XXXXXX"
+            case_number = "" if delimiter == "-" else ", No. XXXXXX"
             date = year if delimiter == "-" else self.gcl_get_date(html, True)
             citation = regex(
                 citation.replace(
@@ -832,57 +840,46 @@ class GCLParse(GCLRegex, USPTOscrape, GooglePatents, Thread):
 
         return
 
-    def _get(self, url_or_id, need_proxy=False):
-        """
-        Request to access the content of a Google Scholar case law page with a valid `url_or_id`.
-
-        Args
-        ----
-        * :param need_proxy: ---> bool: if True, start switching proxy IP after each request
-        to reduce risk of getting blocked.
-        """
+    def _get(self, url_or_id):
+        """Get html content of a case law page."""
+        # Format the URL if it's just a case ID
         url = url_or_id
         if regex(url_or_id, self.just_number_patterns, sub=False):
             url = f"{self.__gs_base_url__}scholar_case?case={url_or_id}"
+        elif not url_or_id.startswith(('http://', 'https://')):
+            url = f"{self.__gs_base_url__}{url_or_id}"
+        
+        # Validate the URL
+        url = validate_url(url)
+        status = None
 
-        assert validate_url(url)
-
-        res_content = ""
-
-        if need_proxy:
-            proxy = proxy_browser()
-            proxy.get(url)
-            res_content = proxy.page_source
-            status = 200
-
-            if not res_content:
-                status = 0
-
-            else:
-                # Obtain a `404` error indicator if server returned html.
-                if regex(res_content, [(r"class=\"gs_med\"", "")], sub=False):
-                    status = 404
-                # Solve recaptcha if encountered.
-                elif regex(res_content, [(r"id=\"gs_captcha_c\"", "")], sub=False):
-                    EXPECTED_RESULT = "You are verified"
-                    recaptcha = recaptcha_process(url, proxy)
-                    assert EXPECTED_RESULT in recaptcha
-                switch_ip()
-
-        else:
-            response = requests.get(url)
-            response.encoding = response.apparent_encoding
+        try:
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                'Accept-Language': 'en-US,en;q=0.5',
+                'Referer': 'https://scholar.google.com/',
+            }
+            # Add a random delay between 2-5 seconds
+            sleep(randint(2, 5))
+            response = requests.get(url, headers=headers)
             status = response.status_code
+            
+            if status == 429:
+                logger.warning("Rate limited. Waiting 30 seconds before retry...")
+                sleep(30)  # Wait 30 seconds
+                response = requests.get(url, headers=headers)  # Retry once
+                status = response.status_code
+
             if status == 200:
-                res_content = response.text
+                return url, response.text
 
-        if status == 404:
-            logger.info(f'URL "{url}" not found')
+            if status != 200:
+                raise Exception(f"Server response: {status}")
 
-        if status not in [200, 404]:
-            raise Exception(f"Server response: {status}")
-
-        return status, res_content
+        except Exception as e:
+            logger.error(f"Error fetching URL {url}: {str(e)}")
+            raise
 
     def _opinion(self, path_or_url: str) -> Union[dict, None]:
         """
@@ -913,9 +910,35 @@ class GCLParse(GCLRegex, USPTOscrape, GooglePatents, Thread):
         """
         Retrieve the case ID given the html of the case file.
         """
-        self.gl.case["id"] = regex(
+        # Try to get case ID from URL first
+        if case_id := regex(
             str(self.html.find(id="gs_tbar_lt")), self.case_patterns, sub=False
-        )[0]
+        ):
+            self.gl.case["id"] = case_id[0]
+        else:
+            # Fallback to extracting from the current URL
+            case_id = regex(
+                str(self.html.find("link", {"rel": "canonical"})), 
+                [(r"case=(\d+)", r"\g<1>")], 
+                sub=False
+            )
+            if case_id:
+                self.gl.case["id"] = case_id[0]
+            else:
+                # Last resort: try to extract from any URL in the page that contains case ID
+                for link in self.html.find_all("a"):
+                    if href := link.get("href"):
+                        if case_id := regex(
+                            href,
+                            [(r"case=(\d+)", r"\g<1>")],
+                            sub=False
+                        ):
+                            self.gl.case["id"] = case_id[0]
+                            break
+                
+        if "id" not in self.gl.case:
+            raise Exception("Could not extract case ID from the page")
+            
         return
 
     def _replace_footnotes(self) -> None:
@@ -958,8 +981,9 @@ class GCLParse(GCLRegex, USPTOscrape, GooglePatents, Thread):
         """
         if page_nums := self._page_number_tags():
             pages = [p.get_text() for p in page_nums]
-            self.gl.case["first_page"], self.gl.case["last_page"] = int(pages[0]), int(
-                pages[-1]
+            self.gl.case["first_page"], self.gl.case["last_page"] = (
+                int(pages[0]),
+                int(pages[-1]),
             )
         return
 
@@ -1025,23 +1049,32 @@ class GCLParse(GCLRegex, USPTOscrape, GooglePatents, Thread):
                     (r",? +and +", ","),
                 ],
                 flags=re.I,
-            ).split(",")
+            )
 
         docket_numbers = regex(docket_numbers, self.extra_char_patterns)
+        # Convert string to list if it's a string
+        if isinstance(docket_numbers, str):
+            docket_numbers = [docket_numbers]
+            
+        # Create a new list for modified docket numbers
+        modified_docket_numbers = []
+        
         # Correct the docket numbers if they start with '-'
         for i, d in enumerate(docket_numbers):
-            if d.startswith("-"):
-                docket_numbers[i] = f'{docket_numbers[i-1].split("-")[0]}{d}'
+            if d.startswith("-") and i > 0:
+                modified_docket_numbers.append(f"{docket_numbers[i - 1].split('-')[0]}{d}")
+            else:
+                modified_docket_numbers.append(d)
 
         if only_casenumber:
-            return docket_numbers
+            return modified_docket_numbers
 
-        dn = len(docket_numbers)
+        dn = len(modified_docket_numbers)
         ci = len(case_ids_)
         if dn > ci:
-            return zip(case_ids_ * (dn - ci + 1), docket_numbers)
+            return zip(case_ids_ * (dn - ci + 1), modified_docket_numbers)
 
-        return zip(case_ids_, docket_numbers)
+        return zip(case_ids_, modified_docket_numbers)
 
     def _consolidate_broken_tags(self) -> None:
         """
@@ -1105,15 +1138,15 @@ class GCLParse(GCLRegex, USPTOscrape, GooglePatents, Thread):
         linking to a gcl page with a unique ID and collect the citation.
         """
         cites = {}
-        for i, l in enumerate(self.links):
+        for i, l_ in enumerate(self.links):
             c = f"[{i + 1}]"
-            if fn := l.attrs:
+            if fn := l_.attrs:
                 if fn.get("href", None) and "/scholar_case?" in fn["href"]:
-                    case_citation = regex(l.get_text(), self.extra_char_patterns)
+                    case_citation = regex(l_.get_text(), self.extra_char_patterns)
                     case_name = None
-                    if gn := l.find("i"):
+                    if gn := l_.find("i"):
                         case_name = regex(gn.get_text(), self.comma_space_patterns)
-                    id_ = regex(l.attrs["href"], self.case_patterns, sub=False)[0]
+                    id_ = regex(l_.attrs["href"], self.case_patterns, sub=False)[0]
 
                     # The key `identifier` may be used to trace different variations of
                     # the same citation in the case text specially when substituting a
@@ -1150,11 +1183,11 @@ class GCLParse(GCLRegex, USPTOscrape, GooglePatents, Thread):
                     # Change <i>A</i> to <em>A</em> if it is adjacent to an <a> tag.
                     # This will avoid allowing replacement of broken <i> tags with
                     # citation label later.
-                    for adjacent in [l.next_sibling, l.prev_sibling]:
+                    for adjacent in [l_.next_sibling, l_.prev_sibling]:
                         if adjacent and adjacent.name == "i":
                             adjacent.name = "em"
 
-                    l.replace_with(f" {self.__citation_label__}{id_}{c} ")
+                    l_.replace_with(f" {self.__citation_label__}{id_}{c} ")
 
         self.gl.case["cites_to"] = cites
         return
@@ -1212,7 +1245,6 @@ class GCLParse(GCLRegex, USPTOscrape, GooglePatents, Thread):
                     and cleaned_i_tag not in ["id", "Id"]
                     and not regex(cleaned_i_tag, self.boundary_patterns, sub=False)
                 ):
-
                     end_character = ""
                     for end in [".", ",", "'s"]:
                         if i_tag.endswith(end):

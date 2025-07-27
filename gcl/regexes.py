@@ -1,5 +1,5 @@
 """
-Regex patterns used in the GCLParse and USPTOscrape classes 
+Regex patterns used in the GCLParse and USPTOscrape classes
 go in here.
 """
 
@@ -141,7 +141,9 @@ class PTABRegex:
     claim_num_patterns = re.compile(r"(?:us)?(?:pat:)?claim-?number")
     claim_text_patterns = re.compile(r"(?:us)?(?:pat:)?claim-?text")
     claim_ref_patterns = re.compile(r"(?:us)?(?:pat:)?claim-?reference")
-    official_mailroom_date_patterns = re.compile(r"(?:us)?(?:com|pat)?:?(?:official|mailroom)?date")
+    official_mailroom_date_patterns = re.compile(
+        r"(?:us)?(?:com|pat)?:?(?:official|mailroom)?date"
+    )
     claimset_tag_patterns = re.compile(r"(?:pat:)?claimse?t?")
     dependent_claim_patterns = [
         (

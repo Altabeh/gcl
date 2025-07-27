@@ -5,23 +5,68 @@ The offered features include downloading, parsing and serializing
 patent data such as title, abstract, claims, and description.
 """
 
+__version__ = "1.3.0"  # Directly specify version
+
 import json
 import re
 from functools import wraps
 from logging import getLogger
 from threading import Thread, local
-
 from bs4 import BeautifulSoup as BS
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
-from gcl import __version__
-from gcl.settings import root_dir
-from gcl.utils import create_dir, deaccent, get, regex, validate_url
+from .settings import root_dir
+from .utils import create_dir, deaccent, regex, validate_url
 
 logger = getLogger(__name__)
 
+__all__ = ["GooglePatents"]
+
+
+def get(url):
+    """Get page content using Selenium."""
+    options = webdriver.ChromeOptions()
+    options.add_argument('--headless')
+    options.add_argument('--no-sandbox')
+    options.add_argument('--disable-dev-shm-usage')
+    
+    for attempt in range(3):  # Try 3 times
+        try:
+            driver = webdriver.Remote(
+                command_executor='http://localhost:4444/wd/hub',
+                options=options
+            )
+            driver.set_page_load_timeout(30)
+            driver.get(url)
+            
+            # Wait for body to be present
+            WebDriverWait(driver, 20).until(
+                EC.presence_of_element_located((By.TAG_NAME, "body"))
+            )
+            
+            content = driver.page_source
+            driver.quit()
+            return 200, content
+            
+        except Exception as e:
+            logger.error(f"Attempt {attempt + 1} failed: {str(e)}")
+            try:
+                if 'driver' in locals():
+                    driver.quit()
+            except:
+                pass
+            if attempt == 2:  # Last attempt
+                return 404, ""
+            
+            # Wait before retrying
+            from time import sleep
+            sleep(2)
+
 
 class GooglePatents(Thread):
-
     __gp_base_url__ = "https://patents.google.com/"
     __relevant_patterns__ = [
         (r"\s", " "),
@@ -81,7 +126,6 @@ class GooglePatents(Thread):
             )
 
             for i, tag in enumerate(claim_tags):
-
                 context = tag.get_text()
                 cited_claims = None
 
@@ -103,7 +147,6 @@ class GooglePatents(Thread):
                             "claim" in tag.attrs.get("class", []),
                         ):
                             if gn := fn.attrs.get("num"):
-
                                 # In case a range of claims appear to be cancelled, this block picks up
                                 # the last number and assigns it to `num`.
                                 if gn_range := regex(
@@ -203,7 +246,7 @@ class GooglePatents(Thread):
 
     def _scrape_title(self) -> None:
         self.tl.pat_data["title"] = regex(
-            self.tl.patent.find("h1", attrs={"itemprop": "pageTitle"}).get_text(),
+            self.tl.patent.find("h1", id="title").get_text(),
             [*self.__relevant_patterns__, (r" - Google Patents|^.*? - ", "")],
         )
         return
@@ -267,11 +310,16 @@ class GooglePatents(Thread):
                 self.tl.pat_data[k] = v
 
         try:
-            if validate_url(number_or_url):
-                url = number_or_url
+            # Add base URL if just a patent number is provided
+            if not number_or_url.startswith(('http://', 'https://')):
+                url = f"{self.__gp_base_url__}patent/{number_or_url.upper()}/en"
+                patent_number = number_or_url.upper()
+            else:
+                url = validate_url(number_or_url)
                 if fn := regex(url, [(r"(?<=patent/).*?(?=/|$)", "")], sub=False):
                     patent_number = fn[0].upper()
-        except:
+        except Exception as e:
+            logger.error(f"Error validating URL: {e}")
             patent_number = number_or_url.upper()
 
         json_path = (

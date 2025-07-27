@@ -1,6 +1,5 @@
 from pathlib import Path
 import logging
-import warnings
 
 root_dir = Path(__file__).resolve().parents[1]
 

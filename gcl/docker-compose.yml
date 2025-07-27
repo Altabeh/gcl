@@ -1,0 +1,8 @@
+version: '3'
+services:
+  selenium:
+    image: seleniarm/standalone-chromium:latest
+    ports:
+      - "4444:4444"
+      - "7900:7900"
+    shm_size: "2g" 
