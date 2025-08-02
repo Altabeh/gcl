@@ -12,7 +12,7 @@ in machine-learning applications.
 
 from __future__ import absolute_import
 
-__version__ = "1.3.0"  # Directly specify version
+__version__ = "1.3.1"  # Directly specify version
 
 import json
 import re
@@ -63,6 +63,9 @@ class GCLParse(GCLRegex, USPTOscrape, GooglePatents, Thread):
     Parser for Google case law pages.
     """
 
+    # Flag to indicate whether to use SearchAPI for fetching case content
+    use_search_api = False
+
     gl = local()
 
     __default_data_dir__ = root_dir / "gcl" / "data"
@@ -78,6 +81,16 @@ class GCLParse(GCLRegex, USPTOscrape, GooglePatents, Thread):
     __pre_label_s__, __pre_label_e__ = "$rr$", "$/rr$"
 
     def __init__(self, **kwargs):
+        # Initialize SearchAPI if API key is provided
+        if api_key := kwargs.pop("search_api_key", None):
+            from .search_api import SearchAPIMixin
+
+            # Dynamically add SearchAPIMixin to class bases
+            if SearchAPIMixin not in self.__class__.__bases__:
+                self.__class__.__bases__ = (SearchAPIMixin,) + self.__class__.__bases__
+            self.use_search_api = True
+            kwargs["api_key"] = api_key
+
         self.data_dir = create_dir(kwargs.get("data_dir", self.__default_data_dir__))
         # `jurisdictions.json` contains all U.S. states, territories and federal/state court names,
         # codes, and abbreviations.
@@ -327,8 +340,10 @@ class GCLParse(GCLRegex, USPTOscrape, GooglePatents, Thread):
         self._personal_opinion()
 
         subdir = subdir or f"json_{self.suffix}"
-        save_path = create_dir(self.data_dir / "json" / subdir) / f"{self.gl.case['id']}.json"
-        
+        save_path = (
+            create_dir(self.data_dir / "json" / subdir) / f"{self.gl.case['id']}.json"
+        )
+
         logger.info(f"Saving case to {save_path}")
         with open(str(save_path), "w") as f:
             json.dump(self.gl.case, f, indent=4)
@@ -842,30 +857,46 @@ class GCLParse(GCLRegex, USPTOscrape, GooglePatents, Thread):
 
     def _get(self, url_or_id):
         """Get html content of a case law page."""
+        # Try Proxy SearchAPI first if enabled
+        if self.use_search_api:
+            try:
+                return self._get_with_search_api(url_or_id)
+            except Exception as e:
+                logger.warning(
+                    f"SearchAPI fetch failed, falling back to direct fetch: {str(e)}"
+                )
+
         # Format the URL if it's just a case ID
         url = url_or_id
         if regex(url_or_id, self.just_number_patterns, sub=False):
             url = f"{self.__gs_base_url__}scholar_case?case={url_or_id}"
-        elif not url_or_id.startswith(('http://', 'https://')):
+        elif not url_or_id.startswith(("http://", "https://")):
             url = f"{self.__gs_base_url__}{url_or_id}"
-        
+
         # Validate the URL
         url = validate_url(url)
         status = None
 
         try:
             headers = {
-                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-                'Accept-Language': 'en-US,en;q=0.5',
-                'Referer': 'https://scholar.google.com/',
+                "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+                "Accept-Language": "en-US,en;q=0.5",
+                "Referer": "https://scholar.google.com/",
             }
             # Add a random delay between 2-5 seconds
             sleep(randint(2, 5))
             response = requests.get(url, headers=headers)
             status = response.status_code
-            
+
             if status == 429:
+                # If rate limited and SearchAPI is available, try it as a fallback
+                if self.use_search_api:
+                    try:
+                        return self._get_with_search_api(url_or_id)
+                    except Exception as e:
+                        logger.warning(f"SearchAPI fallback failed: {str(e)}")
+
                 logger.warning("Rate limited. Waiting 30 seconds before retry...")
                 sleep(30)  # Wait 30 seconds
                 response = requests.get(url, headers=headers)  # Retry once
@@ -918,9 +949,9 @@ class GCLParse(GCLRegex, USPTOscrape, GooglePatents, Thread):
         else:
             # Fallback to extracting from the current URL
             case_id = regex(
-                str(self.html.find("link", {"rel": "canonical"})), 
-                [(r"case=(\d+)", r"\g<1>")], 
-                sub=False
+                str(self.html.find("link", {"rel": "canonical"})),
+                [(r"case=(\d+)", r"\g<1>")],
+                sub=False,
             )
             if case_id:
                 self.gl.case["id"] = case_id[0]
@@ -929,16 +960,14 @@ class GCLParse(GCLRegex, USPTOscrape, GooglePatents, Thread):
                 for link in self.html.find_all("a"):
                     if href := link.get("href"):
                         if case_id := regex(
-                            href,
-                            [(r"case=(\d+)", r"\g<1>")],
-                            sub=False
+                            href, [(r"case=(\d+)", r"\g<1>")], sub=False
                         ):
                             self.gl.case["id"] = case_id[0]
                             break
-                
+
         if "id" not in self.gl.case:
             raise Exception("Could not extract case ID from the page")
-            
+
         return
 
     def _replace_footnotes(self) -> None:
@@ -1055,14 +1084,16 @@ class GCLParse(GCLRegex, USPTOscrape, GooglePatents, Thread):
         # Convert string to list if it's a string
         if isinstance(docket_numbers, str):
             docket_numbers = [docket_numbers]
-            
+
         # Create a new list for modified docket numbers
         modified_docket_numbers = []
-        
+
         # Correct the docket numbers if they start with '-'
         for i, d in enumerate(docket_numbers):
             if d.startswith("-") and i > 0:
-                modified_docket_numbers.append(f"{docket_numbers[i - 1].split('-')[0]}{d}")
+                modified_docket_numbers.append(
+                    f"{docket_numbers[i - 1].split('-')[0]}{d}"
+                )
             else:
                 modified_docket_numbers.append(d)
 

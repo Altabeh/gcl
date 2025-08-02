@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="gcl",
-    version="1.3.0",
+    version="1.3.1",
     author="Alireza Behtash",
     description="Google Case Law and Patent Parser",
     long_description=long_description,
@@ -26,9 +26,10 @@ setup(
         "tqdm>=4.66.4",
         "python-dateutil>=2.8.2",
         "reporters-db>=3.2.56",
-        "webdriver-manager>=3.5.4"
+        "webdriver-manager>=3.5.4",
+        "pyyaml>=6.0.1",
     ],
     package_data={
-        'gcl': ['data/*.json'],
+        "gcl": ["data/*.json"],
     },
-) 
+)

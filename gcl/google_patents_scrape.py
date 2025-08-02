@@ -5,7 +5,7 @@ The offered features include downloading, parsing and serializing
 patent data such as title, abstract, claims, and description.
 """
 
-__version__ = "1.3.0"  # Directly specify version
+__version__ = "1.3.1"  # Directly specify version
 
 import json
 import re
@@ -29,40 +29,41 @@ __all__ = ["GooglePatents"]
 def get(url):
     """Get page content using Selenium."""
     options = webdriver.ChromeOptions()
-    options.add_argument('--headless')
-    options.add_argument('--no-sandbox')
-    options.add_argument('--disable-dev-shm-usage')
-    
+    options.add_argument("--headless")
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
+
     for attempt in range(3):  # Try 3 times
         try:
             driver = webdriver.Remote(
-                command_executor='http://localhost:4444/wd/hub',
-                options=options
+                command_executor="http://localhost:4444/wd/hub", options=options
             )
             driver.set_page_load_timeout(30)
             driver.get(url)
-            
+
             # Wait for body to be present
             WebDriverWait(driver, 20).until(
                 EC.presence_of_element_located((By.TAG_NAME, "body"))
             )
-            
+
             content = driver.page_source
             driver.quit()
             return 200, content
-            
+
         except Exception as e:
             logger.error(f"Attempt {attempt + 1} failed: {str(e)}")
             try:
-                if 'driver' in locals():
+                if "driver" in locals():
                     driver.quit()
-            except:
+            except Exception as e:
+                logger.error(f"Error quitting driver: {str(e)}")
                 pass
             if attempt == 2:  # Last attempt
                 return 404, ""
-            
+
             # Wait before retrying
             from time import sleep
+
             sleep(2)
 
 
@@ -311,7 +312,7 @@ class GooglePatents(Thread):
 
         try:
             # Add base URL if just a patent number is provided
-            if not number_or_url.startswith(('http://', 'https://')):
+            if not number_or_url.startswith(("http://", "https://")):
                 url = f"{self.__gp_base_url__}patent/{number_or_url.upper()}/en"
                 patent_number = number_or_url.upper()
             else:

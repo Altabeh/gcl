@@ -8,7 +8,6 @@ from gcl.utils import load_json
 
 
 class TestGCLParse(unittest.TestCase):
-
     __case_id_list__ = ["9862061449582190482", "4398438352003003603"]
 
     def test_case_parse(self):
@@ -24,7 +23,8 @@ class TestGCLParse(unittest.TestCase):
                 original_data = load_json(
                     root_dir / "tests" / "test_files" / f"test_case_{id_}.json"
                 )
-                GCL.gcl_parse(f"https://scholar.google.com/scholar_case?case={id_}")
+                GCL.gcl_parse(f"https://scholar.google.com/scholar_case?case={id_}"
+                )
                 test_data = load_json(
                     GCL.data_dir / "json" / f"json_test_v{__version__}" / f"{id_}.json"
                 )

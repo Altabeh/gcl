@@ -6,7 +6,7 @@ PTAB data, bulk search and download of applications and patents,
 PEDS, transaction history, IFW and etc.
 """
 
-__version__ = "1.3.0"  # Directly specify version
+__version__ = "1.3.1"  # Directly specify version
 
 import json
 import random
