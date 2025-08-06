@@ -36,7 +36,7 @@ from tqdm import tqdm
 from .google_patents_scrape import GooglePatents
 from .regexes import GeneralRegex, GCLRegex
 from .settings import root_dir
-from .search_api import BrightDataMixin
+from .proxy import BrightDataMixin
 from .uspto_api import USPTOAPIMixin
 from .utils import (
     closest_value,
@@ -883,12 +883,12 @@ class GCLParse(
             status = response.status_code
 
             if status == 429:
-                # If rate limited and SearchAPI is available, try it as a fallback
-                if self.use_search_api:
+                # If rate limited and proxy is available, try it as a fallback
+                if self.use_proxy:
                     try:
-                        return self._get_with_search_api(url_or_id)
+                        return self._get_with_proxy(url_or_id)
                     except Exception as e:
-                        logger.warning(f"SearchAPI fallback failed: {str(e)}")
+                        logger.warning(f"Proxy fallback failed: {str(e)}")
 
                 logger.warning("Rate limited. Waiting 30 seconds before retry...")
                 sleep(30)  # Wait 30 seconds
