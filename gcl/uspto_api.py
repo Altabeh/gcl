@@ -1,463 +1,439 @@
 """
-This module provides a python wrapper for USPTO APIs.
+This module provides a python wrapper for USPTO Open Data Portal (ODP) API.
 
 The offered features include downloading, parsing and serializing
-PTAB data, bulk search and download of applications and patents,
-PEDS, transaction history, IFW and etc.
+patent application data, bulk search and download, and more.
 """
 
-__version__ = "1.3.1"  # Directly specify version
-
-import json
-import random
-import re
-import warnings
-from copy import deepcopy
-from datetime import datetime
-from functools import reduce
-from logging import getLogger
-from operator import concat
-from os import path
-from pathlib import Path
-from time import sleep
-from typing import Union
-from zipfile import ZipFile
-
 import requests
+import re
+import json
+from time import sleep
+from zipfile import ZipFile
+import logging
+import os
+from pathlib import Path
+from typing import Dict, List, Optional, Union
 from bs4 import BeautifulSoup as BS
-from bs4.builder import XMLParsedAsHTMLWarning
-from dateutil import parser
-from tqdm import tqdm
-
-from .regexes import GeneralRegex, PTABRegex
-from .settings import root_dir
+from .regexes import PTABRegex
 from .utils import (
-    closest_value,
-    create_dir,
-    deaccent,
-    load_json,
-    regex,
     rm_repeated,
+    deaccent,
+    regex,
+    create_dir,
+    load_json,
+    closest_value,
+    timestamp,
+    parser,
 )
-
-warnings.filterwarnings("ignore", category=XMLParsedAsHTMLWarning)
-
-logger = getLogger(__name__)
-
-__all__ = ["USPTOscrape"]
+from functools import reduce
+from operator import concat
 
 
-class USPTOscrape(PTABRegex, GeneralRegex):
-    """
-    A class that uses USPTO APIs to download and parse useful data for the gcl class.
-    """
+logger = logging.getLogger(__name__)
 
-    __uspto_dev_base_url__ = "https://developer.uspto.gov/"
-    __headers__ = {"Content-Type": "application/json", "Accept": "application/json"}
-    __query_params__ = {}
+__all__ = ["USPTOAPIMixin"]
+
+
+class USPTOAPIMixin(PTABRegex):
+    """Mixin class that adds USPTO API functionality to GCLParse."""
 
     def __init__(self, **kwargs):
-        self.data_dir = create_dir(kwargs.get("data_dir", root_dir / "gcl" / "data"))
-        self.suffix = kwargs.get("suffix", f"v{__version__}")
+        """Initialize USPTO API functionality."""
+        # Initialize with default values
+        self.uspto_api_key = None
+        self.uspto_base_url = None
+        self.uspto_headers = None
+        self.use_uspto_api = False
 
-    def ptab_call(self, **kwargs):
-        """
-        Call PTAB proceedings and documents REST API.
-        """
-        self.__query_params__ = {
-            "dateRangeData": {},
-            "facetData": {},
-            "parameterData": {},
-            "recordTotalQuantity": "100",
-            "searchText": "",
-            "sortDataBag": [],
-            "recordStartNumber": 0,
-        }
-        for key, value in kwargs.items():
-            self.__query_params__[key] = value
+        # Initialize API if key is provided
+        if api_key := kwargs.get("uspto_api_key") or os.getenv("USPTO_API_KEY"):
+            self.uspto_api_key = api_key
+            self.uspto_base_url = "https://api.uspto.gov/api/v1"
+            self.uspto_headers = {
+                "X-API-KEY": self.uspto_api_key,
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+            }
+            self.use_uspto_api = True
 
-        r = requests.post(
-            url=f"{self.__uspto_dev_base_url__}ptab-api/decisions/json",
-            json=self.__query_params__,
-            headers=self.__headers__,
-        )
+        # Call parent class initialization
+        super().__init__(**kwargs)
 
-        metadata = r.json()
-        record_per_call = int(self.__query_params__["recordTotalQuantity"])
-        self.save_metadata(
-            metadata,
-            suffix=f"-{int(self.__query_params__['recordStartNumber'] / record_per_call)}",
-            dir_name="ptab-api",
-        )
-
-        if kwargs.get("getAll", False):
-            if e := metadata.get("error", None):
-                raise Exception(f"Server returned {e}.")
-            while (
-                self.__query_params__["recordStartNumber"] + record_per_call
-                < metadata["recordTotalQuantity"]
-            ):
-                logger.info(
-                    f"Records left: {metadata['recordTotalQuantity'] - self.__query_params__['recordStartNumber']}"
-                )
-                self.__query_params__["recordStartNumber"] += record_per_call
-                self.ptab_call()
-                break
-
-    def bulk_search_download_call(
-        self, start: int = 0, rows: int = 100, **kwargs
-    ) -> None:
-        """
-        Call bulk search and download API.
-        """
-
-        url = f"https://developer.uspto.gov/ibd-api/v1/patent/application?start={start}&rows={rows}"
-
-        if kwargs:
-            for key, val in kwargs.items():
-                url += f"&{key}={val}"
-
-        r = requests.get(url=url, headers=self.__headers__)
-        metadata = r.json()["response"]
-        self.save_metadata(
-            metadata,
-            suffix=f"-{int(start / rows)}",
-            filename="docs",
-            dir_name="bulk-search-api",
-        )
-        if kwargs.get("getAll", False):
-            if e := metadata.get("error", None):
-                raise Exception(f"Server returned {e}.")
-
-            while start + rows < metadata["numFound"]:
-                logger.info(f"Records left: {metadata['numFound'] - start}")
-                start += rows
-                self.bulk_search_download_call(start=start, rows=rows, **kwargs)
-                break
-        return
-
-    def save_metadata(
+    def _search_applications(
         self,
-        metadata: dict,
-        suffix: str = "",
-        filename: str = "response",
-        dir_name: str = "meta",
-    ) -> None:
+        query: Optional[str] = None,
+        filters: Optional[List[Dict]] = None,
+        range_filters: Optional[List[Dict]] = None,
+        sort: Optional[List[Dict]] = None,
+        fields: Optional[List[str]] = None,
+        offset: int = 0,
+        limit: int = 25,
+        facets: Optional[List[str]] = None,
+    ) -> Dict:
         """
-        Save metadata files downloaded using any method that calls a USPTO API.
+        Search patent applications using the USPTO API.
 
-        Args
-        ----
-        * :param file_name: ---> str: name of the metadata file to save.
+        Args:
+            query: Search query string (supports boolean operators, wildcards, exact phrases)
+            filters: List of field filters [{"name": field_name, "value": [value1, value2]}]
+            range_filters: List of range filters [{"field": name, "valueFrom": start, "valueTo": end}]
+            sort: List of sort fields [{"field": name, "order": "asc/desc"}]
+            fields: List of fields to return
+            offset: Starting position (pagination)
+            limit: Number of results to return
+            facets: List of fields to facet on
+
+        Returns:
+            API response data or None if API is not enabled
         """
-        json_subdir = f"json_{self.suffix}"
-        for value in metadata.values():
-            json_path = (
-                create_dir(self.data_dir / "uspto" / dir_name / json_subdir)
-                / f"{filename}{suffix}.json"
+        if not self.use_uspto_api:
+            return None
+
+        try:
+            payload = {
+                "q": query or "",
+                "pagination": {"offset": offset, "limit": limit},
+            }
+
+            if filters:
+                payload["filters"] = filters
+            if range_filters:
+                payload["rangeFilters"] = range_filters
+            if sort:
+                payload["sort"] = sort
+            if fields:
+                payload["fields"] = fields
+            if facets:
+                payload["facets"] = facets
+
+            response = requests.post(
+                f"{self.uspto_base_url}/patent/applications/search",
+                headers=self.uspto_headers,
+                json=payload,
             )
-            with open(json_path.__str__(), "w") as f:
-                json.dump(value, f, indent=4)
-        return
+            response.raise_for_status()
+            return response.json()
 
-    def ptab_document_download_api(self, metadata: dict, pause: bool = False) -> None:
-        """
-        Download PTAB documents whose metadata are stored in a `metadata` file
-        by calling PTAB Documents REST API.
+        except Exception as e:
+            logger.error(f"Error searching applications: {str(e)}")
+            return None
 
-        Args
-        ----
-        * :param pause: ---> bool: allows a 1-second pause before making a new call
-        to download a document to avoid getting blocked by the server.
+    def _get_application(self, application_number: str) -> Optional[Dict]:
         """
-        doc_subdir = f"doc_{self.suffix}"
-        doc_path = (
-            create_dir(self.data_dir / "uspto" / "ptab-api" / doc_subdir)
-            / metadata["documentName"]
-        )
-        if not doc_path.is_file():
-            if pause:
-                sleep(1)
-            r = requests.get(
-                url=f"{self.__uspto_dev_base_url__}ptab-api/documents/{metadata['documentIdentifier']}/download"
+        Get detailed information about a specific patent application.
+
+        Args:
+            application_number: The application number to look up
+
+        Returns:
+            Application data or None if API is not enabled or error occurs
+        """
+        if not self.use_uspto_api:
+            return None
+
+        try:
+            response = requests.get(
+                f"{self.uspto_base_url}/patent/applications/{application_number}",
+                headers=self.uspto_headers,
             )
+            response.raise_for_status()
+            return response.json()
+        except Exception as e:
+            logger.error(f"Error getting application {application_number}: {str(e)}")
+            return None
 
-            with open(doc_path.__str__(), "wb") as f:
-                f.write(r.content)
-            logger.info(f"{metadata['documentName']} saved successfully")
-
-        logger.info(f"{metadata['documentName']} already saved")
-        return
-
-    def aggrigator(
-        self, special_keys: list = None, map_key: str = None, drop_keys: list = None
-    ) -> list:
+    def _get_application_metadata(self, application_number: str) -> Optional[Dict]:
         """
-        Generate a serialized version of the uspto metadata files.
-        Use `map_key` to map all metadata to a single key for faster querying.
+        Get metadata for a specific application.
 
-        Args
-        ----
-        * :param special_keys: ---> list: a special list of keys to be aggrigated and serialized.
-        * :param map_key: ---> str: a key from the metadata files to create a
-        dictionary of the form {key: metadata}.
-        * :param drop_keys: ---> list: a list of key(s) to drop from metadata files.
+        Returns:
+            Application metadata or None if API is not enabled or error occurs
         """
-        json_subdir = f"json_{self.suffix}"
-        json_dir = self.data_dir / "uspto" / "meta" / json_subdir
-        metadata_files = [
-            x for x in json_dir.glob("*.json") if not x.name.startswith("aggregated")
-        ]
-        metadata_files.sort(key=path.getmtime)
+        if not self.use_uspto_api:
+            return None
 
-        logger.info(
-            f"Starting metadata aggrigation of json files under directory {json_dir.__str__()} ..."
-        )
+        try:
+            response = requests.get(
+                f"{self.uspto_base_url}/patent/applications/{application_number}/meta-data",
+                headers=self.uspto_headers,
+            )
+            response.raise_for_status()
+            return response.json()
+        except Exception as e:
+            logger.error(f"Error getting metadata for {application_number}: {str(e)}")
+            return None
 
-        total = []
-        if map_key:
-            total = {}
+    def _get_application_assignments(self, application_number: str) -> Optional[Dict]:
+        """
+        Get assignment data for a specific application.
 
-        for met in tqdm(metadata_files, total=len(metadata_files)):
-            meta = []
-            with open(met, "r") as f:
-                meta = json.load(f)
+        Returns:
+            Assignment data or None if API is not enabled or error occurs
+        """
+        if not self.use_uspto_api:
+            return None
 
-            if map_key:
-                for r in meta:
-                    if drop_keys:
-                        for k in drop_keys:
-                            r.pop(k, None)
-                    total[r[map_key]] = r
+        try:
+            response = requests.get(
+                f"{self.uspto_base_url}/patent/applications/{application_number}/assignment",
+                headers=self.uspto_headers,
+            )
+            response.raise_for_status()
+            return response.json()
+        except Exception as e:
+            logger.error(
+                f"Error getting assignments for {application_number}: {str(e)}"
+            )
+            return None
 
-            else:
-                if special_keys:
-                    total += [
-                        {key: r.get(key, None) for key in special_keys} for r in meta
-                    ]
+    def _get_application_transactions(self, application_number: str) -> Optional[Dict]:
+        """
+        Get transaction history for a specific application.
 
-                else:
-                    total += [
-                        {
-                            "documentIdentifier": r["documentIdentifier"],
-                            "documentName": r["documentName"],
-                        }
-                        for r in meta
-                    ]
+        Returns:
+            Transaction data or None if API is not enabled or error occurs
+        """
+        if not self.use_uspto_api:
+            return None
 
-        with open(
-            str(create_dir(json_dir / "aggregated") / f"aggregated_{self.suffix}.json"),
-            "w",
-        ) as f:
-            json.dump({"aggregated_data": total}, f, indent=4)
+        try:
+            response = requests.get(
+                f"{self.uspto_base_url}/patent/applications/{application_number}/transactions",
+                headers=self.uspto_headers,
+            )
+            response.raise_for_status()
+            return response.json()
+        except Exception as e:
+            logger.error(
+                f"Error getting transactions for {application_number}: {str(e)}"
+            )
+            return None
 
-        return total
+    def _get_application_documents(self, application_number: str) -> Optional[Dict]:
+        """
+        Get document details for a specific application.
 
-    def grab_ifw(
+        Returns:
+            Document data or None if API is not enabled or error occurs
+        """
+        if not self.use_uspto_api:
+            return None
+
+        try:
+            response = requests.get(
+                f"{self.uspto_base_url}/patent/applications/{application_number}/documents",
+                headers=self.uspto_headers,
+            )
+            response.raise_for_status()
+            return response.json()
+        except Exception as e:
+            logger.error(f"Error getting documents for {application_number}: {str(e)}")
+            return None
+
+    def _search_bulk_datasets(
+        self,
+        query: Optional[str] = None,
+        sort: Optional[str] = None,
+        offset: int = 0,
+        limit: int = 25,
+        facets: Optional[List[str]] = None,
+        fields: Optional[List[str]] = None,
+        filters: Optional[List[Dict]] = None,
+        range_filters: Optional[List[Dict]] = None,
+    ) -> Optional[Dict]:
+        """
+        Search USPTO bulk datasets.
+
+        Args:
+            query: Search query string
+            sort: Sort field and order (e.g., "name asc")
+            offset: Starting position
+            limit: Number of results
+            facets: List of fields to facet on
+            fields: List of fields to return
+            filters: List of field filters [{"name": field_name, "value": [value1, value2]}]
+            range_filters: List of range filters [{"field": name, "valueFrom": start, "valueTo": end}]
+
+        Returns:
+            Search results or None if API is not enabled or error occurs
+        """
+        if not self.use_uspto_api:
+            return None
+
+        try:
+            params = {
+                "q": query or "",
+                "offset": offset,
+                "limit": limit,
+            }
+            if sort:
+                params["sort"] = sort
+            if facets:
+                params["facets"] = ",".join(facets)
+            if fields:
+                params["fields"] = ",".join(fields)
+            if filters:
+                params["filters"] = filters
+            if range_filters:
+                params["rangeFilters"] = range_filters
+
+            response = requests.get(
+                f"{self.uspto_base_url}/datasets/products/search",
+                headers=self.uspto_headers,
+                params=params,
+            )
+            response.raise_for_status()
+            return response.json()
+
+        except Exception as e:
+            logger.error(f"Error searching bulk datasets: {str(e)}")
+            return None
+
+    def _get_application_bulk_documents(
         self,
         appl_number: str,
         doc_codes: list = None,
         mime_types: list = None,
         close_to_date: str = None,
         skip_download: bool = False,
-    ) -> list:
+    ) -> List[Path]:
         """
-        Download image file wrapper for a given application number `appl_number`.
+        Get application documents from USPTO API.
 
-        Args
-        ----
-        * :param doc_codes: ---> list: contains specific document codes to be downloaded.
-        * :param mime_types: ---> list: contains specific file mime types to be downloaded.
-        * :param close_to_date: ---> str: allows to restrict the downloading of files to those
-        * with official dates closest to this date.
-        * :param skip_download: ---> bool: if true, skips downloading data files whose metadata are stored in
-        the transactions.
+        Args:
+            appl_number: Application number
+            doc_codes: List of document codes to filter by (e.g., ["CLM", "SPEC"])
+            mime_types: List of MIME types to filter by (e.g., ["XML", "PDF"])
+            close_to_date: Filter for documents closest to this date (YYYY-MM-DD)
+            skip_download: If True, only return metadata without downloading files
+
+        Returns:
+            List of paths to downloaded files
         """
+        if not self.use_uspto_api:
+            return []
 
-        appl_number = regex(appl_number, self.special_chars_patterns)
-        pc_base_url = "https://patentcenter.uspto.gov/retrieval/public"
-        meta_url = f"{pc_base_url}/v1/applications/sdwp/external/metadata/{appl_number}"
-        post_url = f"{pc_base_url}/v2/documents/"
+        try:
+            # Create transactions folder
+            transactions_folder = create_dir(
+                self.data_dir
+                / "uspto"
+                / "ifw"
+                / f"transactions_{self.suffix}"
+                / appl_number
+            )
 
-        transactions_folder = create_dir(
-            self.data_dir
-            / "uspto"
-            / "ifw"
-            / f"transactions_{self.suffix}"
-            / appl_number
-        )
+            # Try to load existing transactions
+            transactions_file = transactions_folder / f"{appl_number}.json"
+            if transactions_file.is_file():
+                transactions = load_json(transactions_file)
+            else:
+                # Get documents from API
+                response = requests.get(
+                    f"{self.uspto_base_url}/patent/applications/{appl_number}/documents",
+                    headers=self.uspto_headers,
+                )
+                response.raise_for_status()
+                transactions = response.json()
 
-        errorBag = []
+                # Save transactions
+                with open(transactions_file, "w") as f:
+                    json.dump(transactions, f, indent=4)
 
-        if (fn := transactions_folder / f"transactions_{appl_number}.json").is_file():
-            transactions = load_json(fn)
+            if not transactions or "documentBag" not in transactions:
+                logger.error(f"No documents found for application {appl_number}")
+                return []
 
-        else:
-            while True:
-                sleep(1)
-                transactions = {}
-                r = requests.get(meta_url, headers=self.__headers__)
-                try:
-                    transactions = r.json()
-                    if retry := r.headers.get("Retry-After", None):
-                        logger.info(
-                            f"Accessing {meta_url} is blocked for {retry} seconds"
-                        )
-                        sleep(int(retry))
-                    else:
-                        if r.status_code == 401:
-                            errorBag = 401
-                            break
+            documents = transactions["documentBag"]
 
-                        if r.status_code == 200:
-                            with open(
-                                str(transactions_folder / f"{appl_number}.json"), "w"
-                            ) as f:
-                                json.dump(transactions, f, indent=4)
-                            errorBag = transactions["errorBag"]
-                            break
+            # Filter by document codes
+            if doc_codes:
+                documents = [
+                    doc for doc in documents if doc.get("documentCode") in doc_codes
+                ]
 
-                except ValueError or json.decoder.JSONDecodeError:
-                    pass
-
-        if not errorBag:
-            documents = transactions["resultBag"][0]["documentBag"]
-
-            # Apply filter to only download specific document codes and mime types.
-            docs = []
-            for i, n in enumerate([doc_codes, mime_types]):
-                if n:
-                    if not isinstance(n, list):
-                        raise Exception(f"{n} must be a list")
-
-                    if not i:
-                        documents = list(
-                            filter(lambda doc: doc["documentCode"] in n, documents)
-                        )
-                    else:
-                        for doc in documents:
-                            if fn := list(set(doc["mimeTypeBag"]) & set(n)):
-                                doc["mimeTypeBag"] = fn
-                                docs += [doc]
-            if mime_types:
-                documents = docs
-
-            # Apply filter to only download a specific document with the official date closest to `close_to_date`.
+            # Filter by date if specified
             if close_to_date:
-                if not isinstance(close_to_date, str):
-                    raise Exception("`close_to_date` must be a string")
-
                 if documents:
                     try:
-                        documents = [
-                            documents[
-                                closest_value(
-                                    [
-                                        int(timestamp(doc["officialDate"]))
-                                        for doc in documents
-                                    ],
-                                    int(timestamp(close_to_date)),
-                                    none_allowed=False,
-                                )
-                            ]
+                        target_date = int(timestamp(close_to_date))
+                        doc_dates = [
+                            (doc, int(timestamp(doc["officialDate"])))
+                            for doc in documents
                         ]
-                    except TypeError:
+                        closest_idx = closest_value(
+                            [date for _, date in doc_dates],
+                            target_date,
+                            none_allowed=False,
+                        )
+                        documents = [doc_dates[closest_idx][0]]
+                    except (TypeError, ValueError) as e:
+                        logger.error(f"Error filtering by date: {str(e)}")
                         documents = []
 
-            documentInformationBag = []
+            if skip_download:
+                return []
 
-            # Make the costumer numbers random to reduce retry chances.
-            cs_num = str(random.randint(1, 1000000))
+            downloaded_files = []
             for doc in documents:
-                mail_date = (
-                    parser.parse(doc["officialDate"]).strftime("%Y-%m-%d").split(" ")[0]
-                )
-                official_date = datetime.strftime(
-                    datetime.strptime(mail_date, "%Y-%m-%d"), "%m-%d-%Y"
-                )
+                # Get download options
+                download_options = doc.get("downloadOptionBag", [])
 
-                for mime in doc["mimeTypeBag"]:
-                    filestem = f"{doc['documentIdentifier']}_{appl_number}_{official_date}_{doc['documentCode']}"
+                # Filter by mime type if specified
+                if mime_types:
+                    download_options = [
+                        opt
+                        for opt in download_options
+                        if opt.get("mimeTypeIdentifier") in mime_types
+                    ]
 
-                    if mime == "XML":
-                        filestem = f"{appl_number}_{mail_date}_{doc['documentCode']}"
+                for opt in download_options:
+                    mime_type = opt.get("mimeTypeIdentifier")
+                    if not mime_type:
+                        continue
 
-                    if not (transactions_folder / f"{filestem}.{mime}").is_file():
-                        doc_bag = [
-                            {
-                                "bookmarkTitleText": doc["documentDescription"],
-                                "documentIdentifier": doc["documentIdentifier"],
-                                "applicationNumberText": appl_number,
-                                "customerNumber": cs_num,
-                                "mailDateTime": official_date,
-                                "documentCode": doc["documentCode"],
-                                "mimeCategory": mime,
-                                "previewFileIndicator": False,
-                                "documentCategory": doc["directionCategory"],
-                            }
-                        ]
-                        documentInformationBag += doc_bag
+                    # Format filename
+                    mail_date = parser.parse(doc["officialDate"]).strftime("%Y-%m-%d")
+                    file_name = f"{doc['documentIdentifier']}_{appl_number}_{mail_date}_{doc['documentCode']}.{mime_type.lower()}"
+                    output_path = transactions_folder / file_name
 
-                headers, json_data = deepcopy(self.__headers__), {}
-                for bag in documentInformationBag:
-                    json_data = {
-                        "fileTitleText": doc["documentIdentifier"],
-                        "documentInformationBag": [bag],
-                    }
-                    if skip_download:
-                        logger.info(
-                            f"The document with the ID `{bag['documentIdentifier']}` has not been downloaded. Please set `skip_download=False` and try again."
-                        )
-                    else:
-                        headers["Accept"] = f"application/{bag['mimeCategory']}"
-                        while True:
-                            r = requests.post(post_url, json=json_data, headers=headers)
-                            if retry := r.headers.get("Retry-After", None):
-                                logger.info(
-                                    f"Accessing {post_url} is blocked for {retry} seconds"
-                                )
-                                sleep(int(retry))
-                            else:
-                                break
+                    # Skip if file exists
+                    if output_path.exists():
+                        downloaded_files.append(output_path)
+                        continue
 
-                        filename = regex(
-                            r.headers["Content-Disposition"],
-                            [
-                                (
-                                    r".*filename=\d+_",
-                                    f"{doc['documentIdentifier']}_",
-                                )
-                            ],
-                        )
-
-                        file_path = transactions_folder / filename
-                        with open(file_path.__str__(), "wb") as f:
-                            f.write(r.content)
-                            logger.info(
-                                f"{filename} was downloaded and saved successfully"
+                    # Download file
+                    if download_url := opt.get("downloadUrl"):
+                        try:
+                            response = requests.get(
+                                download_url, headers=self.uspto_headers, stream=True
                             )
+                            response.raise_for_status()
 
-                        if file_path.suffix.lower() in [".zip"]:
-                            with ZipFile(file_path.__str__(), "r") as zipf:
-                                zipf.extractall(transactions_folder.__str__())
-                            file_path.unlink()
+                            with open(output_path, "wb") as f:
+                                for chunk in response.iter_content(chunk_size=8192):
+                                    f.write(chunk)
 
-                        sleep(1)
+                            logger.info(f"Downloaded {file_name}")
+                            downloaded_files.append(output_path)
 
-            paths = []
-            for f in transactions_folder.iterdir():
-                if f.is_file():
-                    cs_num_removed_path = transactions_folder / regex(
-                        f.name, [(r"^" + re.escape(cs_num) + "_", "")]
-                    )
-                    f.rename(cs_num_removed_path)
-                    if mime_types:
-                        if f.suffix.lower() in [f".{m.lower()}" for m in mime_types]:
-                            paths.append(cs_num_removed_path)
-                    else:
-                        paths.append(cs_num_removed_path)
+                            # Extract if zip file
+                            if output_path.suffix.lower() == ".zip":
+                                with ZipFile(output_path, "r") as zipf:
+                                    zipf.extractall(transactions_folder)
+                                output_path.unlink()
 
-            return rm_repeated(paths)
+                        except Exception as e:
+                            logger.error(f"Error downloading {file_name}: {str(e)}")
+
+                    sleep(1)  # Rate limiting
+
+            return rm_repeated(downloaded_files)
+
+        except Exception as e:
+            logger.error(f"Error getting documents for {appl_number}: {str(e)}")
+            return []
 
     def parse_clm(self, xml_file: Union[Path, str]) -> dict:
         """
@@ -467,7 +443,7 @@ class USPTOscrape(PTABRegex, GeneralRegex):
         if not isinstance(xml_file, Path):
             xml_file = Path(xml_file)
 
-        clm = BS(deaccent(xml_file.read_text()), features="lxml")
+        clm = BS(deaccent(xml_file.read_text(errors="ignore")), features="lxml")
         date = clm.find(self.official_mailroom_date_patterns).get_text()
 
         if cs := clm.find(self.claimset_tag_patterns):
@@ -568,44 +544,3 @@ class USPTOscrape(PTABRegex, GeneralRegex):
             return {}
 
         return claims_data
-
-    def peds_call(self, **kwargs) -> dict:
-        """
-        Call the PEDS API.
-        """
-        url = "https://ped.uspto.gov/api/queries"
-
-        self.__query_params__ = {
-            "searchText": "",
-            "fq": [],
-            "fl": "*",
-            "mm": "0%",
-            "df": "patentTitle",
-            "qf": "appEarlyPubNumber applId appLocation appType appStatus_txt appConfrNumber appCustNumber appGrpArtNumber appCls appSubCls appEntityStatus_txt patentNumber patentTitle inventorName firstNamedApplicant appExamName appExamPrefrdName appAttrDockNumber appPCTNumber appIntlPubNumber wipoEarlyPubNumber pctAppType firstInventorFile appClsSubCls rankAndInventorsList",
-            "facet": "true",
-            "sort": "applId asc",
-            "start": "0",
-        }
-
-        for key, value in kwargs.items():
-            self.__query_params__[key] = value
-
-        while True:
-            sleep(1)
-            metadata = {}
-            r = requests.post(
-                url=url,
-                json=self.__query_params__,
-                headers=self.__headers__,
-            )
-            try:
-                metadata = r.json()
-                if retry := r.headers.get("Retry-After", None):
-                    logger.info(f"Accessing {url} is blocked for {retry} seconds")
-                    sleep(int(retry))
-                else:
-                    break
-            except ValueError or json.decoder.JSONDecodeError:
-                break
-
-        return metadata

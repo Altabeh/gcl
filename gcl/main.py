@@ -34,9 +34,10 @@ from reporters_db import EDITIONS, REPORTERS
 from tqdm import tqdm
 
 from .google_patents_scrape import GooglePatents
-from .regexes import GCLRegex
+from .regexes import GeneralRegex, GCLRegex
 from .settings import root_dir
-from .uspto_api import USPTOscrape
+from .search_api import BrightDataMixin
+from .uspto_api import USPTOAPIMixin
 from .utils import (
     closest_value,
     concurrent_run,
@@ -58,13 +59,12 @@ logger = getLogger(__name__)
 __all__ = ["GCLParse"]
 
 
-class GCLParse(GCLRegex, USPTOscrape, GooglePatents, Thread):
+class GCLParse(
+    GeneralRegex, BrightDataMixin, USPTOAPIMixin, GCLRegex, GooglePatents, Thread
+):
     """
     Parser for Google case law pages.
     """
-
-    # Flag to indicate whether to use SearchAPI for fetching case content
-    use_search_api = False
 
     gl = local()
 
@@ -81,15 +81,8 @@ class GCLParse(GCLRegex, USPTOscrape, GooglePatents, Thread):
     __pre_label_s__, __pre_label_e__ = "$rr$", "$/rr$"
 
     def __init__(self, **kwargs):
-        # Initialize SearchAPI if API key is provided
-        if api_key := kwargs.pop("search_api_key", None):
-            from .search_api import SearchAPIMixin
-
-            # Dynamically add SearchAPIMixin to class bases
-            if SearchAPIMixin not in self.__class__.__bases__:
-                self.__class__.__bases__ = (SearchAPIMixin,) + self.__class__.__bases__
-            self.use_search_api = True
-            kwargs["api_key"] = api_key
+        # Initialize all parent classes including SearchAPIMixin first
+        super().__init__(**kwargs)
 
         self.data_dir = create_dir(kwargs.get("data_dir", self.__default_data_dir__))
         # `jurisdictions.json` contains all U.S. states, territories and federal/state court names,
@@ -857,13 +850,13 @@ class GCLParse(GCLRegex, USPTOscrape, GooglePatents, Thread):
 
     def _get(self, url_or_id):
         """Get html content of a case law page."""
-        # Try Proxy SearchAPI first if enabled
-        if self.use_search_api:
+        # Try BrightData proxy first if enabled
+        if self.use_proxy:
             try:
-                return self._get_with_search_api(url_or_id)
+                return self._get_with_proxy(url_or_id)
             except Exception as e:
                 logger.warning(
-                    f"SearchAPI fetch failed, falling back to direct fetch: {str(e)}"
+                    f"Proxy fetch failed, falling back to direct fetch: {str(e)}"
                 )
 
         # Format the URL if it's just a case ID
@@ -1721,7 +1714,7 @@ class GCLParse(GCLRegex, USPTOscrape, GooglePatents, Thread):
         """
         updated_claims = []
         if appl_number:
-            xml = self.grab_ifw(
+            xml = self._get_application_bulk_documents(
                 appl_number,
                 ["CLM"],
                 ["XML"],
@@ -1761,39 +1754,20 @@ class GCLParse(GCLRegex, USPTOscrape, GooglePatents, Thread):
         standard_number = regex(number, self.standard_patent_patterns)
 
         if "/" in number:
-            metadata = self.peds_call(searchText=f"applId:({standard_number})")
-            response = {}
-            if metadata:
-                response = metadata["queryResults"]["searchResponse"]["response"]
-            else:
-                response["numFound"] = 0
+            app_data = self._get_application(standard_number)
+            if app_data:
+                app_data = app_data["patentFileWrapperDataBag"][0]
 
-            if response["numFound"] > 0:
-                docs = response["docs"][0]
-                appl_data = docs.get("childContinuity", []) or docs.get(
-                    "appEarlyPubNumber", ""
-                )
-                if isinstance(appl_data, list):
-                    for ap in appl_data:
-                        for pnum in ["patentNumberText", "applicationNumberText"]:
+            if app_data:
+                docs = app_data.get("childContinuityBag", [])
+                if isinstance(docs, list):
+                    for ap in docs:
+                        for pnum in ["childPatentNumber", "childApplicationNumberText"]:
                             if kn := ap.get(pnum, None):
                                 if self._is_cited(kn):
-                                    country = (
-                                        docs.get("corrAddrCountryCd", None) or "US"
-                                    )
-                                    if pnum == "applicationNumberText":
-                                        kn = ap["patentNumberText"]
-                                        if not kn:
-                                            country = ""
-                                    yield f"{country}{kn}", standard_number
+                                    yield f"US{kn}", standard_number
                                 else:
                                     yield None, standard_number
-                else:
-                    kn = regex(appl_data, self.standard_patent_patterns)
-                    if self._is_cited(kn):
-                        yield f"US{kn}", standard_number
-                    else:
-                        yield None, standard_number
             else:
                 yield None, standard_number
         else:
