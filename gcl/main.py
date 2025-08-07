@@ -8,6 +8,9 @@ decision dates, case numbers, patents in suit, cited claims, footnotes and etc.
 
 It also provides a useful labeled text of the case file that can be utilized
 in machine-learning applications.
+
+Copyright (c) 2025 Alireza Behtash
+Licensed under the MIT License (see LICENSE file)
 """
 
 from __future__ import absolute_import
@@ -877,8 +880,10 @@ class GCLParse(
                 "Accept-Language": "en-US,en;q=0.5",
                 "Referer": "https://scholar.google.com/",
             }
-            # Add a random delay between 2-5 seconds
-            sleep(randint(2, 5))
+            # Add a random delay between 2-10 seconds to avoid rate limiting
+            delay = randint(2, 10)
+            logger.info(f"Waiting {delay} seconds before requesting {url}")
+            sleep(delay)
             response = requests.get(url, headers=headers)
             status = response.status_code
 

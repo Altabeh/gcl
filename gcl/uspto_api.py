@@ -3,6 +3,9 @@ This module provides a python wrapper for USPTO Open Data Portal (ODP) API.
 
 The offered features include downloading, parsing and serializing
 patent application data, bulk search and download, and more.
+
+Copyright (c) 2025 Alireza Behtash
+Licensed under the MIT License (see LICENSE file)
 """
 
 import requests

@@ -81,4 +81,6 @@ Each test case compares the parsed output against known correct results stored i
 
 ## License
 
-MIT 
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+Copyright (c) 2025 Alireza Behtash 

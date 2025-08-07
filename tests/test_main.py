@@ -8,7 +8,7 @@ from gcl.utils import load_json
 
 
 class TestGCLParse(unittest.TestCase):
-    __case_id_list__ = ["9862061449582190482", "4398438352003003603"]
+    __case_id_list__ = ["7091749435533223455"]
 
     def test_case_parse(self):
         """
@@ -17,14 +17,17 @@ class TestGCLParse(unittest.TestCase):
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             self.assertEqual.__self__.maxDiff = None
-            GCL = GCLParse(suffix=f"test_v{__version__}")
+            GCL = GCLParse(
+                suffix=f"test_v{__version__}",
+                proxy_url="http://brd-customer-hl_fb191272-zone-serp_google-route_err-pass_dyn:dp8rqd7qgry9@brd.superproxy.io:33335",
+                uspto_api_key="nktgavsomrrjzklnymtlgcjoooguvm",
+            )
             for id_ in self.__case_id_list__:
                 print(f"Started testing test_case_{id_}...")
                 original_data = load_json(
                     root_dir / "tests" / "test_files" / f"test_case_{id_}.json"
                 )
-                GCL.gcl_parse(f"https://scholar.google.com/scholar_case?case={id_}"
-                )
+                GCL.gcl_parse(f"https://scholar.google.com/scholar_case?case={id_}")
                 test_data = load_json(
                     GCL.data_dir / "json" / f"json_test_v{__version__}" / f"{id_}.json"
                 )
