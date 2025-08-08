@@ -15,7 +15,7 @@ Licensed under the MIT License (see LICENSE file)
 
 from __future__ import absolute_import
 
-__version__ = "1.3.2"  # Directly specify version
+__version__ = "1.3.3"  # Directly specify version
 
 import json
 import re
@@ -885,30 +885,12 @@ class GCLParse(
                 "Accept-Language": "en-US,en;q=0.5",
                 "Referer": "https://scholar.google.com/",
             }
-            # Add a random delay between 2-10 seconds to avoid rate limiting
-            delay = randint(2, 10)
-            logger.info(f"Waiting {delay} seconds before requesting {url}")
-            sleep(delay)
             response = requests.get(url, headers=headers)
             status = response.status_code
 
-            if status == 429:
-                # If rate limited and proxy is available, try it as a fallback
-                if self.use_proxy:
-                    try:
-                        return self._get_with_proxy(url_or_id)
-                    except Exception as e:
-                        logger.warning(f"Proxy fallback failed: {str(e)}")
-
-                logger.warning("Rate limited. Waiting 30 seconds before retry...")
-                sleep(30)  # Wait 30 seconds
-                response = requests.get(url, headers=headers)  # Retry once
-                status = response.status_code
-
             if status == 200:
                 return url, response.text
-
-            if status != 200:
+            else:
                 raise Exception(f"Server response: {status}")
 
         except Exception as e:

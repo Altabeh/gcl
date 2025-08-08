@@ -235,7 +235,8 @@ class DataImpulseMixin:
                             attempt + 1,
                         )
                         continue
-                    return url, resp.text
+                    else:
+                        return url, resp.text
 
                 last_error = Exception(f"Server response via DataImpulse: {status}")
             except Exception as e:
