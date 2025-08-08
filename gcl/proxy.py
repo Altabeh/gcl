@@ -15,6 +15,7 @@ from typing import Optional, Tuple
 from time import sleep
 from requests.adapters import HTTPAdapter
 from urllib3.util import Retry
+from random import randint
 
 logger = logging.getLogger(__name__)
 
@@ -204,7 +205,7 @@ class DataImpulseMixin:
 
         # Attempt with rotating session labels to trigger proxy rotation on provider side
         last_error: Exception | None = None
-        for attempt in range(5):
+        for attempt in range(100):
             session = self.create_session(
                 use_proxy=True,
                 proxy_url=getattr(self, "di_proxy_url", None)
@@ -229,14 +230,37 @@ class DataImpulseMixin:
                     continue
 
                 if status == 200:
-                    if "gs_captcha_f" in resp.text:
+                    # Check for various Google redirects/challenges
+                    if any(
+                        x in resp.text
+                        for x in [
+                            "gs_captcha_f",
+                            "accounts.google.com/v3/signin",
+                            "accounts.google.com/ServiceLogin",
+                            "google.com/sorry/index",
+                            "Our systems have detected unusual traffic",
+                        ]
+                    ):
                         logger.warning(
-                            "Captcha detected on DataImpulse attempt %s. Rotating proxy...",
+                            "Google challenge/redirect detected on DataImpulse attempt %s. Rotating proxy...",
                             attempt + 1,
                         )
+                        sleep(randint(2, 5))
                         continue
-                    else:
-                        return url, resp.text
+
+                    # Check if we got redirected to a Google domain
+                    if (
+                        "accounts.google.com" in resp.url
+                        or "google.com/sorry" in resp.url
+                    ):
+                        logger.warning(
+                            "URL redirected to Google auth/challenge page on attempt %s. Rotating proxy...",
+                            attempt + 1,
+                        )
+                        sleep(randint(2, 5))
+                        continue
+
+                    return url, resp.text
 
                 last_error = Exception(f"Server response via DataImpulse: {status}")
             except Exception as e:
@@ -406,11 +430,21 @@ class BrightDataMixin:
         try:
             response = self.opener.open(url)
             html_content = response.read().decode("utf-8", errors="replace")
-            if "gs_captcha_f" in html_content:
+            # Check for various Google redirects/challenges
+            if any(
+                x in html_content
+                for x in [
+                    "gs_captcha_f",
+                    "accounts.google.com/v3/signin",
+                    "accounts.google.com/ServiceLogin",
+                    "google.com/sorry/index",
+                    "Our systems have detected unusual traffic",
+                ]
+            ):
                 logger.warning(
-                    "Captcha detected on BrightData. Consider rotating proxy and retrying."
+                    "Google challenge/redirect detected on BrightData. Consider rotating proxy and retrying."
                 )
-                raise urllib.error.URLError("Captcha encountered")
+                raise urllib.error.URLError("Google challenge/redirect encountered")
             return url, html_content
 
         except urllib.error.HTTPError as e:

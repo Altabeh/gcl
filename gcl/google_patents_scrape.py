@@ -5,7 +5,7 @@ The offered features include downloading, parsing and serializing
 patent data such as title, abstract, claims, and description.
 """
 
-__version__ = "1.3.2"  # Directly specify version
+__version__ = "1.3.3"  # Directly specify version
 
 import json
 import re
