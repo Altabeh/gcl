@@ -345,6 +345,11 @@ class GooglePatents(Thread):
                 if status == 200:
                     found = True
                     self.tl.patent = BS(deaccent(html), "html.parser")
+
+                    # If 404 page encountered, return False, None
+                    if "Error 404 (Not Found)" in self.tl.patent.get_text():
+                        return False, None
+
                     self._scrape_claims()
 
                     if include_description:
