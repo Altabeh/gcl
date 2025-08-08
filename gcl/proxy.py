@@ -2,19 +2,288 @@
 This module provides integration with BrightData proxy for retrieving case content.
 """
 
+import requests
 import os
 import logging
 import ssl
+import uuid
+import yaml
 import urllib.request
 import urllib.error
-import yaml
 from pathlib import Path
 from typing import Optional, Tuple
 from time import sleep
-from random import randint
-
+from requests.adapters import HTTPAdapter
+from urllib3.util import Retry
 
 logger = logging.getLogger(__name__)
+
+
+class DataImpulseMixin:
+    """
+    Helper mixin to route traffic through the DataImpulse proxy.
+
+    Usage:
+    - Choose provider via kwarg `proxy_provider="dataimpulse"` when constructing the parser
+    - Provide credentials via kwargs or environment variables
+      - kwargs: `di_proxy_url`, `di_username`, `di_password`
+      - env: `PROXY_URL`, `PROXY_USERNAME`, `PROXY_PASSWORD`
+
+    If `proxy_provider` is not "dataimpulse", this mixin transparently
+    defers to next mixin in MRO for proxy handling.
+    """
+
+    def __init__(self, **kwargs):
+        # Preserve any prior attributes; only set if not already present
+        self.proxy_provider = getattr(self, "proxy_provider", None)
+        self.use_proxy = getattr(self, "use_proxy", False)
+
+        provider = kwargs.get("proxy_provider", self.proxy_provider)
+        self.proxy_provider = provider
+
+        # Only initialize DataImpulse fields if explicitly chosen
+        if provider == "dataimpulse":
+            # Pull credentials from kwargs or environment
+            self.di_proxy_url = kwargs.get("di_proxy_url") or os.environ.get(
+                "PROXY_URL"
+            )
+            self.di_username = kwargs.get("di_username") or os.environ.get(
+                "PROXY_USERNAME"
+            )
+            self.di_password = kwargs.get("di_password") or os.environ.get(
+                "PROXY_PASSWORD"
+            )
+
+            # Use proxy only when we have a URL and credentials
+            if self.di_proxy_url and self.di_username and self.di_password:
+                self.use_proxy = True
+
+        # Continue cooperative initialization
+        super().__init__(**kwargs)
+
+    @staticmethod
+    def create_session(
+        *,
+        use_proxy: bool | None = None,
+        proxy_url: str | None = None,
+        proxy_username: str | None = None,
+        proxy_password: str | None = None,
+        session_label: str | None = None,
+        default_timeout: float | None = None,
+    ) -> requests.Session:
+        """
+        Build a requests.Session configured for DataImpulse when credentials are provided.
+
+        Args:
+            use_proxy: Force using proxy (True) or not (False). If None, auto-detect by presence of proxy_url/ENV.
+            proxy_url: Proxy gateway URL like "http://gw.dataimpulse.com:823".
+            proxy_username: DataImpulse username.
+            proxy_password: DataImpulse password.
+            session_label: Optional short token to enforce a new sticky session with the provider.
+            default_timeout: Optional default timeout to attach on the session via adapter.
+
+        Returns:
+            Configured requests.Session instance.
+        """
+        # Pull from environment if not provided
+
+        env_proxy_url = os.environ.get("PROXY_URL")
+        env_proxy_username = os.environ.get("PROXY_USERNAME")
+        env_proxy_password = os.environ.get("PROXY_PASSWORD")
+
+        proxy_url = proxy_url or env_proxy_url
+        proxy_username = proxy_username or env_proxy_username
+        proxy_password = proxy_password or env_proxy_password
+
+        if use_proxy is None:
+            use_proxy = bool(proxy_url and proxy_username and proxy_password)
+
+        session = requests.Session()
+
+        # Optional: attach default timeout via HTTPAdapter if requested
+        if default_timeout is not None:
+            try:
+
+                class TimeoutHTTPAdapter(HTTPAdapter):
+                    def __init__(self, *args, timeout: float | None = None, **kwargs):
+                        self._timeout = timeout
+                        super().__init__(*args, **kwargs)
+
+                    def send(self, request, **kwargs):
+                        if "timeout" not in kwargs or kwargs["timeout"] is None:
+                            kwargs["timeout"] = self._timeout
+                        return super().send(request, **kwargs)
+
+                retry = Retry(
+                    total=3,
+                    backoff_factor=0.3,
+                    status_forcelist=[429, 500, 502, 503, 504],
+                )
+                adapter = TimeoutHTTPAdapter(timeout=default_timeout, max_retries=retry)
+                session.mount("http://", adapter)
+                session.mount("https://", adapter)
+            except Exception:
+                # Fallback silently if adapter wiring fails
+                pass
+
+        if use_proxy:
+            # Encode credentials directly in the proxy URL (requests' preferred way)
+            # Example: http://user:pass@gw.dataimpulse.com:823
+            try:
+                from urllib.parse import urlparse, urlunparse
+
+                parsed = urlparse(proxy_url)
+                # Safeguard: ensure scheme and netloc exist
+                if not parsed.scheme or not parsed.netloc:
+                    return session
+
+                auth_netloc = parsed.netloc
+                # If credentials are not already embedded, embed them
+                if "@" not in auth_netloc and proxy_username and proxy_password:
+                    # Optionally append a session label for rotation, if not already present
+                    final_username = proxy_username
+                    if session_label and "session-" not in proxy_username:
+                        final_username = f"{proxy_username}-session-{session_label}"
+                    auth_netloc = f"{final_username}:{proxy_password}@{parsed.hostname}:{parsed.port}"
+
+                clean_url = urlunparse(
+                    (parsed.scheme, auth_netloc, parsed.path or "", "", "", "")
+                )
+
+                session.proxies = {
+                    "http": clean_url,
+                    "https": clean_url,
+                }
+
+            except Exception:
+                # If anything goes wrong building proxy URL, return direct session
+                return session
+
+        return session
+
+    def _get_with_proxy(self, url_or_id: str) -> Tuple[str, str]:
+        """
+        Fetch a URL using DataImpulse proxy when selected. If not selected,
+        delegate to the next mixin's implementation.
+        """
+        # Decide provider dynamically if not set
+        provider = getattr(self, "proxy_provider", None)
+        if not provider:
+            # Prefer DataImpulse if full credentials available
+            di_url = getattr(self, "di_proxy_url", None) or os.environ.get("PROXY_URL")
+            di_user = getattr(self, "di_username", None) or os.environ.get(
+                "PROXY_USERNAME"
+            )
+            di_pass = getattr(self, "di_password", None) or os.environ.get(
+                "PROXY_PASSWORD"
+            )
+            if di_url and di_user and di_pass:
+                provider = self.proxy_provider = "dataimpulse"
+                self.use_proxy = True
+            elif getattr(self, "proxy_url", None):
+                provider = self.proxy_provider = "brightdata"
+                self.use_proxy = True
+
+        # If provider is not DataImpulse, delegate to other mixins (e.g., BrightData)
+        if provider != "dataimpulse":
+            return super()._get_with_proxy(url_or_id)  # type: ignore[misc]
+
+        # Build URL similar to main fetch logic
+        url = url_or_id
+        if url_or_id.isdigit():
+            url = f"https://scholar.google.com/scholar_case?case={url_or_id}"
+        elif not url_or_id.startswith(("http://", "https://")):
+            url = f"https://scholar.google.com/{url_or_id}"
+
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+            "Accept-Language": "en-US,en;q=0.5",
+            "Referer": "https://scholar.google.com/",
+        }
+
+        # Attempt with rotating session labels to trigger proxy rotation on provider side
+        last_error: Exception | None = None
+        for attempt in range(5):
+            session = self.create_session(
+                use_proxy=True,
+                proxy_url=getattr(self, "di_proxy_url", None)
+                or os.environ.get("PROXY_URL"),
+                proxy_username=getattr(self, "di_username", None)
+                or os.environ.get("PROXY_USERNAME"),
+                proxy_password=getattr(self, "di_password", None)
+                or os.environ.get("PROXY_PASSWORD"),
+                session_label=uuid.uuid4().hex[:8],
+                default_timeout=30,
+            )
+            try:
+                resp = session.get(url, headers=headers)
+                status = resp.status_code
+
+                if status == 429:
+                    logger.warning(
+                        "Rate limited by DataImpulse upstream. Retrying after server hint..."
+                    )
+                    retry_after = resp.headers.get("Retry-After")
+                    sleep(int(retry_after)) if retry_after else sleep(30)
+                    continue
+
+                if status == 200:
+                    if "gs_captcha_f" in resp.text:
+                        logger.warning(
+                            "Captcha detected on DataImpulse attempt %s. Rotating proxy...",
+                            attempt + 1,
+                        )
+                        continue
+                    return url, resp.text
+
+                last_error = Exception(f"Server response via DataImpulse: {status}")
+            except Exception as e:
+                last_error = e
+            finally:
+                session.close()
+
+        # Exceeded attempts
+        if last_error:
+            raise last_error
+        raise Exception("Failed to fetch via DataImpulse after retries")
+
+    @staticmethod
+    def request(
+        method: str,
+        url: str,
+        *,
+        params: dict | None = None,
+        data: dict | None = None,
+        json_body: dict | None = None,
+        headers: dict | None = None,
+        timeout: float | None = None,
+        use_proxy: bool | None = None,
+        proxy_url: str | None = None,
+        proxy_username: str | None = None,
+        proxy_password: str | None = None,
+    ) -> requests.Response:
+        """Convenience method to perform a single HTTP request with optional proxy."""
+        session = DataImpulseMixin.create_session(
+            use_proxy=use_proxy,
+            proxy_url=proxy_url,
+            proxy_username=proxy_username,
+            proxy_password=proxy_password,
+        )
+        try:
+            resp = session.request(
+                method=method,
+                url=url,
+                params=params,
+                data=data,
+                json=json_body,
+                headers=headers,
+                timeout=timeout,
+            )
+            return resp
+        finally:
+            # Close to avoid sticky sessions
+            session.close()
 
 
 class BrightDataConfig:
@@ -73,10 +342,11 @@ class BrightDataMixin:
 
     def __init__(self, **kwargs):
         """Initialize BrightData functionality."""
-        # Initialize with default values
-        self.proxy_url = None
-        self.config = None
-        self.use_proxy = False
+        # Initialize with default values but preserve any previous mixin state
+        self.proxy_url = getattr(self, "proxy_url", None)
+        self.config = getattr(self, "config", None)
+        # Only default to False if not already set by a previous mixin
+        self.use_proxy = getattr(self, "use_proxy", False)
 
         # Initialize config if proxy parameters are provided
         if kwargs.get("proxy_url") or kwargs.get("config_file"):
@@ -133,10 +403,13 @@ class BrightDataMixin:
             url = f"https://scholar.google.com/{url_or_id}"
 
         try:
-            # Add a random delay between 2-5 seconds
-            sleep(randint(2, 5))
             response = self.opener.open(url)
             html_content = response.read().decode("utf-8", errors="replace")
+            if "gs_captcha_f" in html_content:
+                logger.warning(
+                    "Captcha detected on BrightData. Consider rotating proxy and retrying."
+                )
+                raise urllib.error.URLError("Captcha encountered")
             return url, html_content
 
         except urllib.error.HTTPError as e:
@@ -153,3 +426,51 @@ class BrightDataMixin:
         except Exception as e:
             logger.error(f"Error fetching URL {url} with proxy: {str(e)}")
             raise
+
+
+class ProxyMixin(DataImpulseMixin, BrightDataMixin):
+    """
+    Unified proxy mixin that transparently selects between DataImpulse and BrightData.
+
+    Selection order:
+    1) If `proxy_provider` provided, use that provider
+    2) Else if DataImpulse creds available (kwargs/env), use DataImpulse
+    3) Else if BrightData config provided, use BrightData
+    4) Else, no proxy
+    """
+
+    def __init__(self, **kwargs):
+        # Detect explicit provider
+        provider = kwargs.get("proxy_provider")
+
+        # Probe DataImpulse creds
+        di_url = kwargs.get("di_proxy_url") or os.environ.get("PROXY_URL")
+        di_user = kwargs.get("di_username") or os.environ.get("PROXY_USERNAME")
+        di_pass = kwargs.get("di_password") or os.environ.get("PROXY_PASSWORD")
+
+        # Probe BrightData
+        bd_url = kwargs.get("proxy_url") or os.environ.get("BRIGHTDATA_PROXY")
+        bd_cfg = kwargs.get("config_file")
+
+        if not provider:
+            if di_url and di_user and di_pass:
+                provider = "dataimpulse"
+            elif bd_url or bd_cfg:
+                provider = "brightdata"
+
+        # Stash provider so child mixins can see it
+        kwargs["proxy_provider"] = provider
+
+        # Initialize both parents cooperatively; DataImpulseMixin first per MRO
+        super().__init__(**kwargs)
+
+    def _get_with_proxy(self, url_or_id: str) -> Tuple[str, str]:
+        provider = getattr(self, "proxy_provider", None)
+        if provider == "dataimpulse":
+            # Call DataImpulseMixin implementation directly
+            return DataImpulseMixin._get_with_proxy(self, url_or_id)
+        if provider == "brightdata":
+            # Call BrightDataMixin implementation directly
+            return BrightDataMixin._get_with_proxy(self, url_or_id)
+        # No provider selected; raise to let caller fallback to direct fetch
+        raise ValueError("Proxy provider not configured")

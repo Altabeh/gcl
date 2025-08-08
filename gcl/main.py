@@ -15,7 +15,7 @@ Licensed under the MIT License (see LICENSE file)
 
 from __future__ import absolute_import
 
-__version__ = "1.3.1"  # Directly specify version
+__version__ = "1.3.2"  # Directly specify version
 
 import json
 import re
@@ -39,7 +39,7 @@ from tqdm import tqdm
 from .google_patents_scrape import GooglePatents
 from .regexes import GeneralRegex, GCLRegex
 from .settings import root_dir
-from .proxy import BrightDataMixin
+from .proxy import ProxyMixin
 from .uspto_api import USPTOAPIMixin
 from .utils import (
     closest_value,
@@ -63,7 +63,12 @@ __all__ = ["GCLParse"]
 
 
 class GCLParse(
-    GeneralRegex, BrightDataMixin, USPTOAPIMixin, GCLRegex, GooglePatents, Thread
+    GeneralRegex,
+    ProxyMixin,
+    USPTOAPIMixin,
+    GCLRegex,
+    GooglePatents,
+    Thread,
 ):
     """
     Parser for Google case law pages.
@@ -853,7 +858,7 @@ class GCLParse(
 
     def _get(self, url_or_id):
         """Get html content of a case law page."""
-        # Try BrightData proxy first if enabled
+        # Try proxy first if enabled
         if self.use_proxy:
             try:
                 return self._get_with_proxy(url_or_id)
