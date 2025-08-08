@@ -446,7 +446,9 @@ class USPTOAPIMixin(PTABRegex):
         if not isinstance(xml_file, Path):
             xml_file = Path(xml_file)
 
-        clm = BS(deaccent(xml_file.read_text(errors="ignore")), features="lxml")
+        clm = BS(
+            deaccent(str(xml_file.read_text(errors="ignore"))), features="html.parser"
+        )
         date = clm.find(self.official_mailroom_date_patterns).get_text()
 
         if cs := clm.find(self.claimset_tag_patterns):
@@ -528,7 +530,6 @@ class USPTOAPIMixin(PTABRegex):
                 status = "original"
 
             context = regex(context, [*self.strip_patterns, *self.space_patterns])
-
             if len(context) < 2:
                 context = None
 

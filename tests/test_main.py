@@ -12,6 +12,7 @@ class TestGCLParse(unittest.TestCase):
         "4398438352003003603",
         "9862061449582190482",
         "7091749435533223455",
+        "1123824875062066560",
     ]
 
     def test_case_parse(self):
