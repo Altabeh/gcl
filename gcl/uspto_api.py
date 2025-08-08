@@ -143,7 +143,8 @@ class USPTOAPIMixin(PTABRegex):
             response.raise_for_status()
             return response.json()
         except Exception as e:
-            raise Exception(f"Error getting application {application_number}: {str(e)}")
+            logger.error(f"Error getting application {application_number}: {str(e)}")
+            return None
 
     def _get_application_metadata(self, application_number: str) -> Optional[Dict]:
         """
