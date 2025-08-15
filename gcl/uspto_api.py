@@ -446,11 +446,40 @@ class USPTOAPIMixin(PTABRegex):
         if not isinstance(xml_file, Path):
             xml_file = Path(xml_file)
 
-        clm = BS(
-            deaccent(str(xml_file.read_text(errors="ignore"))), features="html.parser"
-        )
-        date = clm.find(self.official_mailroom_date_patterns).get_text()
+        # Read the XML file content
+        xml_content = deaccent(str(xml_file.read_text(errors="ignore")))
 
+        # Try different parsers in order of preference
+        for p in ["lxml", "lxml-xml", "xml", "html.parser"]:
+            try:
+                clm = BS(xml_content, features=p)
+                # Test if we can find the required elements
+                if clm.find(self.official_mailroom_date_patterns) or clm.find(
+                    self.claimset_tag_patterns
+                ):
+                    break
+            except Exception as e:
+                logger.debug(f"Parser {p} failed: {str(e)}")
+                continue
+        else:
+            logger.error(
+                f"All parsers failed for {xml_file}. Using html.parser as last resort."
+            )
+            clm = BS(xml_content, features="html.parser")
+
+        # Find and parse the date
+        date_elem = clm.find(self.official_mailroom_date_patterns)
+        if date_elem is None:
+            logger.warning(f"Could not find date in {xml_file}")
+            date = None
+        else:
+            try:
+                date = date_elem.get_text()
+            except Exception as e:
+                logger.error(f"Error getting date text: {str(e)}")
+                date = None
+
+        # Find the claimset if it exists
         if cs := clm.find(self.claimset_tag_patterns):
             clm = cs
 

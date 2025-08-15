@@ -27,7 +27,7 @@ class DataImpulseMixin:
     Usage:
     - Choose provider via kwarg `proxy_provider="dataimpulse"` when constructing the parser
     - Provide credentials via kwargs or environment variables
-      - kwargs: `di_proxy_url`, `di_username`, `di_password`
+      - kwargs: `di_url`, `di_username`, `di_password`
       - env: `PROXY_URL`, `PROXY_USERNAME`, `PROXY_PASSWORD`
 
     If `proxy_provider` is not "dataimpulse", this mixin transparently
@@ -45,9 +45,7 @@ class DataImpulseMixin:
         # Only initialize DataImpulse fields if explicitly chosen
         if provider == "dataimpulse":
             # Pull credentials from kwargs or environment
-            self.di_proxy_url = kwargs.get("di_proxy_url") or os.environ.get(
-                "PROXY_URL"
-            )
+            self.di_url = kwargs.get("di_url") or os.environ.get("PROXY_URL")
             self.di_username = kwargs.get("di_username") or os.environ.get(
                 "PROXY_USERNAME"
             )
@@ -56,7 +54,7 @@ class DataImpulseMixin:
             )
 
             # Use proxy only when we have a URL and credentials
-            if self.di_proxy_url and self.di_username and self.di_password:
+            if self.di_url and self.di_username and self.di_password:
                 self.use_proxy = True
 
         # Continue cooperative initialization
@@ -171,7 +169,7 @@ class DataImpulseMixin:
         provider = getattr(self, "proxy_provider", None)
         if not provider:
             # Prefer DataImpulse if full credentials available
-            di_url = getattr(self, "di_proxy_url", None) or os.environ.get("PROXY_URL")
+            di_url = getattr(self, "di_url", None) or os.environ.get("PROXY_URL")
             di_user = getattr(self, "di_username", None) or os.environ.get(
                 "PROXY_USERNAME"
             )
@@ -208,8 +206,7 @@ class DataImpulseMixin:
         for attempt in range(100):
             session = self.create_session(
                 use_proxy=True,
-                proxy_url=getattr(self, "di_proxy_url", None)
-                or os.environ.get("PROXY_URL"),
+                proxy_url=getattr(self, "di_url", None) or os.environ.get("PROXY_URL"),
                 proxy_username=getattr(self, "di_username", None)
                 or os.environ.get("PROXY_USERNAME"),
                 proxy_password=getattr(self, "di_password", None)
@@ -479,7 +476,7 @@ class ProxyMixin(DataImpulseMixin, BrightDataMixin):
         provider = kwargs.get("proxy_provider")
 
         # Probe DataImpulse creds
-        di_url = kwargs.get("di_proxy_url") or os.environ.get("PROXY_URL")
+        di_url = kwargs.get("di_url") or os.environ.get("PROXY_URL")
         di_user = kwargs.get("di_username") or os.environ.get("PROXY_USERNAME")
         di_pass = kwargs.get("di_password") or os.environ.get("PROXY_PASSWORD")
 
