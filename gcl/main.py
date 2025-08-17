@@ -15,7 +15,7 @@ Licensed under the MIT License (see LICENSE file)
 
 from __future__ import absolute_import
 
-__version__ = "1.3.3"  # Directly specify version
+from .version import __version__
 
 import json
 import re
@@ -74,8 +74,6 @@ class GCLParse(
     Parser for Google case law pages.
     """
 
-    gl = local()
-
     __default_data_dir__ = root_dir / "gcl" / "data"
     __gs_base_url__ = "https://scholar.google.com/"
     __suffix__ = None
@@ -91,6 +89,9 @@ class GCLParse(
     def __init__(self, **kwargs):
         # Initialize all parent classes including SearchAPIMixin first
         super().__init__(**kwargs)
+
+        # Create instance-specific thread-local storage for thread safety
+        self.gl = local()
 
         self.data_dir = create_dir(kwargs.get("data_dir", self.__default_data_dir__))
         # `jurisdictions.json` contains all U.S. states, territories and federal/state court names,

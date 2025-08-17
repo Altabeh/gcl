@@ -5,13 +5,13 @@ The offered features include downloading, parsing and serializing
 patent data such as title, abstract, claims, and description.
 """
 
-__version__ = "1.3.3"  # Directly specify version
+from .version import __version__
 
 import json
 import re
 from functools import wraps
 from logging import getLogger
-from threading import Thread, local
+from threading import local
 from bs4 import BeautifulSoup as BS
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -67,7 +67,7 @@ def get(url):
             sleep(2)
 
 
-class GooglePatents(Thread):
+class GooglePatents:
     __gp_base_url__ = "https://patents.google.com/"
     __relevant_patterns__ = [
         (r"\s", " "),
@@ -84,9 +84,9 @@ class GooglePatents(Thread):
     ]
     __description_patterns__ = [(r"description\W+(?:line|paragraph)", "")]
 
-    tl = local()
-
     def __init__(self, **kwargs):
+        # Create instance-specific thread-local storage for thread safety
+        self.tl = local()
         self.data_dir = create_dir(kwargs.get("data_dir", root_dir / "gcl" / "data"))
         self.suffix = kwargs.get("suffix", f"v{__version__}")
 

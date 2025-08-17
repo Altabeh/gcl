@@ -114,7 +114,7 @@ class DataImpulseMixin:
                         return super().send(request, **kwargs)
 
                 retry = Retry(
-                    total=3,
+                    total=10,
                     backoff_factor=0.3,
                     status_forcelist=[429, 500, 502, 503, 504],
                 )
