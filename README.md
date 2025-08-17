@@ -36,6 +36,7 @@ A powerful Python package for parsing and analyzing Google Case Law and Patent d
 - JSON serialization of parsed data
 - CSV export capabilities
 - Structured data organization
+- Thread-safe concurrent processing
 - Support for batch processing
 - Caching and data persistence
 
@@ -141,6 +142,40 @@ parser.gcl_make_list("case_summaries")
 parser.gcl_bundle_cites(blue_citation=True)
 ```
 
+### Thread-Safe Concurrent Processing
+
+Both `GCLParse` and `GooglePatents` classes are thread-safe and support concurrent downloads. Each instance maintains its own thread-local storage to prevent data leakage between threads.
+
+```python
+from gcl import GCLParse
+
+# List of case URLs or IDs to process
+case_urls = [
+    "https://scholar.google.com/scholar_case?case=9862061449582190482",
+    "https://scholar.google.com/scholar_case?case=4398438352003003603",
+    # ... more cases
+]
+
+# Initialize parser
+parser = GCLParse(data_dir="data")
+
+# Process cases in parallel
+for case_url in case_urls:
+    # Each case gets its own thread with isolated storage
+    parser.gcl_parse(case_url)
+
+# Access results
+for case_id in case_ids:
+    case_data = load_json(f"data/json/json_v1.3.3/{case_id}.json")
+    print(f"Case {case_id}: {case_data['full_case_name']}")
+```
+
+The thread-safe design ensures that:
+1. Each thread has its own isolated storage
+2. No data leakage between concurrent downloads
+3. Safe parallel processing of multiple cases
+4. Thread-safe file I/O operations
+
 ## Advanced Features
 
 ### Personal Opinions Analysis
@@ -186,6 +221,8 @@ The test suite covers:
 - Data structure validation
 - JSON serialization
 - Error handling
+- Thread safety and concurrent processing
+- Memory isolation between threads
 
 ## Project Structure
 
@@ -194,11 +231,12 @@ gcl/
 ├── gcl/
 │   ├── __init__.py
 │   ├── main.py           # Core parsing functionality
-│   ├── google_patents_scrape.py
+│   ├── google_patents_scrape.py  # Patent data extraction
 │   ├── uspto_api.py      # USPTO API integration
 │   ├── proxy.py          # Proxy management
 │   ├── regexes.py        # Regular expressions
 │   ├── settings.py       # Configuration
+│   ├── version.py        # Version information
 │   └── utils.py          # Utility functions
 ├── tests/
 │   ├── test_main.py
