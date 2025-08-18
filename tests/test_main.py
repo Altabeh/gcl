@@ -44,7 +44,3 @@ class TestGCLParse(unittest.TestCase):
                             print(f"{k}: OK")
 
             print(f"The case {id_} was successfully created and tested")
-
-
-if __name__ == "__main__":
-    unittest.main()
