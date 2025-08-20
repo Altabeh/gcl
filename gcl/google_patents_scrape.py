@@ -339,7 +339,11 @@ class GooglePatents:
             with open(json_path.__str__(), "r") as f:
                 self.tl.pat_data = json.load(f)
             found = True
-
+            if just_claims:
+                return found, {
+                    num: data["context"]
+                    for num, data in self.tl.pat_data["claims"].items()
+                }
         else:
             if not skip_patent:
                 url = f"{self.__gp_base_url__}patent/{patent_number}/{language}"
@@ -355,13 +359,20 @@ class GooglePatents:
 
                     self._scrape_claims()
 
+                    self.tl.pat_data["url"] = url
+                    self.tl.pat_data["patent_number"] = patent_number
+
+                    if just_claims:
+                        return found, {
+                            num: data["context"]
+                            for num, data in self.tl.pat_data["claims"].items()
+                        }
+
                     if include_description:
                         self._scrape_description()
 
                     self._scrape_abstract()
                     self._scrape_title()
-                    self.tl.pat_data["url"] = url
-                    self.tl.pat_data["patent_number"] = patent_number
 
                     abort = [
                         par for par in save_unless_empty if not self.tl.pat_data[par]
@@ -373,13 +384,6 @@ class GooglePatents:
                                 f"Saving patent data for Patent No. {patent_number}..."
                             )
                             json.dump(self.tl.pat_data, f, indent=4)
-
-        if just_claims:
-            if not found:
-                return found, None
-            return found, {
-                num: data["context"] for num, data in self.tl.pat_data["claims"].items()
-            }
 
         if return_data:
             if not found:
