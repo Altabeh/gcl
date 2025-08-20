@@ -335,10 +335,9 @@ class GooglePatents:
             / f"{patent_number if not filename else filename}.json"
         )
 
-        if json_path.is_file() and not no_save:
-            if return_data:
-                with open(json_path.__str__(), "r") as f:
-                    self.tl.pat_data = json.load(f)
+        if json_path.is_file():
+            with open(json_path.__str__(), "r") as f:
+                self.tl.pat_data = json.load(f)
             found = True
 
         else:
@@ -378,7 +377,9 @@ class GooglePatents:
         if just_claims:
             if not found:
                 return found, None
-            return found, {num: data["context"] for num, data in self.tl.pat_data["claims"].items()}
+            return found, {
+                num: data["context"] for num, data in self.tl.pat_data["claims"].items()
+            }
 
         if return_data:
             if not found:
