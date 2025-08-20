@@ -263,6 +263,7 @@ class GooglePatents:
         return_data: list = None,
         just_claims: bool = False,
         no_save: bool = False,
+        selenium_host: str = "localhost",
         **kwargs,
     ) -> tuple or None:
         """
@@ -283,6 +284,7 @@ class GooglePatents:
         * :param return_data: ---> list: contains the parameters whose data will be returned upon serialization.
         * :param just_claims: ---> bool: if true, returns only a dictionary of claim numbers and their context.
         * :param no_save: ---> bool: if true, prevents saving the patent data to a file.
+        * :param selenium_host: ---> str: the host of the selenium server.
         * :param kwargs: ---> dict: contains arbitrary key, value pairs to be added to the serialized data.
         """
 
@@ -347,7 +349,7 @@ class GooglePatents:
         else:
             if not skip_patent:
                 url = f"{self.__gp_base_url__}patent/{patent_number}/{language}"
-                status, html = get(url)
+                status, html = get(url, host=selenium_host)
 
                 if status == 200:
                     found = True
