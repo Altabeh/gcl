@@ -261,6 +261,8 @@ class GooglePatents:
         include_description: bool = False,
         save_unless_empty: list = None,
         return_data: list = None,
+        just_claims: bool = False,
+        no_save: bool = False,
         **kwargs,
     ) -> tuple or None:
         """
@@ -279,6 +281,8 @@ class GooglePatents:
         * :param save_unless_empty: ---> list: contains a list of parameters that if have no value in the patent,
         will abort saving. Possible values: "claims", "description", "abstract", "tilte".
         * :param return_data: ---> list: contains the parameters whose data will be returned upon serialization.
+        * :param just_claims: ---> bool: if true, returns only a dictionary of claim numbers and their context.
+        * :param no_save: ---> bool: if true, prevents saving the patent data to a file.
         * :param kwargs: ---> dict: contains arbitrary key, value pairs to be added to the serialized data.
         """
 
@@ -331,7 +335,7 @@ class GooglePatents:
             / f"{patent_number if not filename else filename}.json"
         )
 
-        if json_path.is_file():
+        if json_path.is_file() and not no_save:
             if return_data:
                 with open(json_path.__str__(), "r") as f:
                     self.tl.pat_data = json.load(f)
@@ -363,13 +367,18 @@ class GooglePatents:
                     abort = [
                         par for par in save_unless_empty if not self.tl.pat_data[par]
                     ]
-                    if not abort:
+                    if not abort and not no_save:
                         create_dir(json_path.parent)
                         with open(json_path.__str__(), "w") as f:
                             logger.info(
                                 f"Saving patent data for Patent No. {patent_number}..."
                             )
                             json.dump(self.tl.pat_data, f, indent=4)
+
+        if just_claims:
+            if not found:
+                return found, None
+            return found, {num: data["context"] for num, data in self.tl.pat_data["claims"].items()}
 
         if return_data:
             if not found:
