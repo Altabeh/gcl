@@ -18,7 +18,10 @@ A powerful Python package for parsing and analyzing Google Case Law and Patent d
 ### Patent Analysis
 - Extract and analyze patent information:
   - Identify patents-in-suit
-  - Parse patent claims
+  - Parse patent claims with flexible output options:
+    - Get just claim text and numbers
+    - Process without file I/O
+    - Full patent data extraction
   - Track claim citations
   - Handle patent application numbers
   - Link to USPTO data
@@ -118,6 +121,30 @@ print(f"Citation Summary: {summary}")
 ### Patent Analysis
 
 ```python
+from gcl import GooglePatents
+
+# Initialize patent parser
+gp = GooglePatents(data_dir="data")
+
+# Get full patent data
+found, patent_data = gp.patent_data(
+    "US7654321",
+    return_data=["patent_number", "title", "abstract", "claims"]
+)
+
+# Get just the claims
+found, claims = gp.patent_data(
+    "US7654321",
+    just_claims=True  # Returns only claim numbers and their text
+)
+
+# Process without saving to disk
+found, claims = gp.patent_data(
+    "US7654321",
+    just_claims=True,
+    no_save=True  # Prevents reading from or writing to files
+)
+
 # Parse case with patent information
 case_data = parser.gcl_parse(
     case_law_url,
