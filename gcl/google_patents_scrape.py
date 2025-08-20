@@ -26,7 +26,7 @@ logger = getLogger(__name__)
 __all__ = ["GooglePatents"]
 
 
-def get(url):
+def get(url, host: str = "localhost"):
     """Get page content using Selenium."""
     options = webdriver.ChromeOptions()
     options.add_argument("--headless")
@@ -36,7 +36,7 @@ def get(url):
     for attempt in range(3):  # Try 3 times
         try:
             driver = webdriver.Remote(
-                command_executor="http://localhost:4444/wd/hub", options=options
+                command_executor=f"http://{host}:4444/wd/hub", options=options
             )
             driver.set_page_load_timeout(30)
             driver.get(url)
