@@ -3,6 +3,8 @@ import json
 import re
 import unicodedata
 import urllib
+import asyncio
+import aiohttp
 from ast import literal_eval
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
@@ -10,7 +12,7 @@ from logging import getLogger
 from multiprocessing import Pool
 from os import cpu_count
 from pathlib import Path
-from typing import Any, Iterator
+from typing import Any, Iterator, List, Tuple, Optional
 from tqdm import tqdm
 
 from dateutil import parser
@@ -392,3 +394,50 @@ def validate_url(url: str) -> str:
         raise Exception(f"URL domain malformed (domain={domain})")
 
     return url
+
+
+class AsyncWebScraper:
+    """
+    Asynchronous web scraper for parallel downloads using aiohttp.
+    """
+
+    def __init__(self, max_concurrent_requests: int = 10):
+        self.max_concurrent_requests = max_concurrent_requests
+        self.semaphore = asyncio.Semaphore(max_concurrent_requests)
+
+    async def _fetch_url(
+        self, session: aiohttp.ClientSession, url: str
+    ) -> Tuple[int, Optional[str]]:
+        """
+        Fetch a single URL with rate limiting.
+        """
+        async with self.semaphore:
+            try:
+                async with session.get(url) as response:
+                    if response.status == 200:
+                        content = await response.text()
+                        return 200, content
+                    return response.status, None
+            except Exception as e:
+                logger.error(f"Error fetching {url}: {str(e)}")
+                return 404, None
+
+    async def fetch_urls(self, urls: List[str]) -> List[Tuple[int, Optional[str]]]:
+        """
+        Fetch multiple URLs concurrently.
+        """
+        async with aiohttp.ClientSession() as session:
+            tasks = [self._fetch_url(session, url) for url in urls]
+            return await asyncio.gather(*tasks)
+
+    @staticmethod
+    def run_async(coro):
+        """
+        Run an async coroutine in a synchronous context.
+        """
+        try:
+            loop = asyncio.get_event_loop()
+        except RuntimeError:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+        return loop.run_until_complete(coro)

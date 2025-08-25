@@ -19,7 +19,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 from .settings import root_dir
-from .utils import create_dir, deaccent, regex, validate_url
+from .utils import create_dir, deaccent, regex, validate_url, AsyncWebScraper
 
 logger = getLogger(__name__)
 
@@ -412,3 +412,97 @@ class GooglePatents:
             return found, *(self.tl.pat_data[d] for d in return_data)
 
         return
+
+    @classmethod
+    def download_patents_concurrently(
+        cls,
+        patents: list[str],
+        max_workers: int = 4,
+        just_claims: bool = False,
+        no_save: bool = False,
+        **kwargs,
+    ) -> list[tuple]:
+        """
+        Download multiple patents concurrently with per-worker isolation.
+
+        Args:
+            patents: List of patent numbers or URLs to process
+            max_workers: Maximum number of concurrent workers
+            show_progress: Whether to show a progress bar
+            just_claims: If true, returns only claim numbers and their text
+            no_save: If true, prevents reading from or writing to files
+            **kwargs: Additional arguments passed to patent_data
+
+        Returns:
+            List of tuples (found, data) where data is claims dict if just_claims=True
+        """
+        constructor_args = {
+            k: v for k, v in kwargs.items() if k in ["data_dir", "suffix"]
+        }
+
+        # Create URLs for all patents
+        urls = [
+            f"{cls.__gp_base_url__}patent/{patent.upper()}/en"
+            if not patent.startswith(("http://", "https://"))
+            else patent
+            for patent in patents
+        ]
+
+        # Initialize scraper with concurrency limit
+        scraper = AsyncWebScraper(max_concurrent_requests=max_workers)
+
+        # Fetch all URLs concurrently
+        responses = scraper.run_async(scraper.fetch_urls(urls))
+
+        results = []
+        for patent, (status, html) in zip(patents, responses):
+            try:
+                parser = cls(**constructor_args)
+                if status == 200:
+                    parser.tl.patent = BS(deaccent(html), "html.parser")
+
+                    # If 404 page encountered, return False, None
+                    if "Error 404 (Not Found)" in parser.tl.patent.get_text():
+                        results.append((False, None))
+                        continue
+
+                    # Initialize data structure
+                    parser._data()
+
+                    # Scrape claims
+                    parser._scrape_claims()
+
+                    if just_claims:
+                        claims_dict = {
+                            num: data["context"]
+                            for num, data in parser.tl.pat_data["claims"].items()
+                        }
+                        results.append((True, claims_dict))
+                    else:
+                        # Scrape other data if needed
+                        parser._scrape_abstract()
+                        parser._scrape_title()
+                        parser.tl.pat_data["url"] = urls[patents.index(patent)]
+                        parser.tl.pat_data["patent_number"] = patent.upper()
+
+                        if not no_save:
+                            # Save to file if needed
+                            json_path = (
+                                parser.data_dir
+                                / "patent"
+                                / f"patent_{parser.suffix}"
+                                / patent.upper()
+                                / f"{patent.upper()}.json"
+                            )
+                            json_path.parent.mkdir(parents=True, exist_ok=True)
+                            with open(json_path.__str__(), "w") as f:
+                                json.dump(parser.tl.pat_data, f, indent=4)
+
+                        results.append((True, parser.tl.pat_data))
+                else:
+                    results.append((False, None))
+            except Exception as e:
+                logger.error(f"Error processing patent {patent}: {str(e)}")
+                results.append((False, None))
+
+        return results
